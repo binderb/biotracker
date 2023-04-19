@@ -32,6 +32,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/react", "npm:18.0.37"],\
             ["@types/react-dom", "npm:18.0.11"],\
             ["autoprefixer", "virtual:7f7252f88b54a8c86684de21010dc70a72940d1bc3e01ac89ed82e41119b6435b71855924beecbbfff50461b713593d5fb44d55513a1fe8c2273605891f4f157#npm:10.4.14"],\
+            ["dotenv", "npm:16.0.3"],\
             ["eslint", "npm:8.38.0"],\
             ["eslint-config-next", "virtual:7f7252f88b54a8c86684de21010dc70a72940d1bc3e01ac89ed82e41119b6435b71855924beecbbfff50461b713593d5fb44d55513a1fe8c2273605891f4f157#npm:13.3.0"],\
             ["next", "virtual:7f7252f88b54a8c86684de21010dc70a72940d1bc3e01ac89ed82e41119b6435b71855924beecbbfff50461b713593d5fb44d55513a1fe8c2273605891f4f157#npm:13.3.0"],\
@@ -892,6 +893,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/react", "npm:18.0.37"],\
             ["@types/react-dom", "npm:18.0.11"],\
             ["autoprefixer", "virtual:7f7252f88b54a8c86684de21010dc70a72940d1bc3e01ac89ed82e41119b6435b71855924beecbbfff50461b713593d5fb44d55513a1fe8c2273605891f4f157#npm:10.4.14"],\
+            ["dotenv", "npm:16.0.3"],\
             ["eslint", "npm:8.38.0"],\
             ["eslint-config-next", "virtual:7f7252f88b54a8c86684de21010dc70a72940d1bc3e01ac89ed82e41119b6435b71855924beecbbfff50461b713593d5fb44d55513a1fe8c2273605891f4f157#npm:13.3.0"],\
             ["next", "virtual:7f7252f88b54a8c86684de21010dc70a72940d1bc3e01ac89ed82e41119b6435b71855924beecbbfff50461b713593d5fb44d55513a1fe8c2273605891f4f157#npm:13.3.0"],\
@@ -1329,6 +1331,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["doctrine", "npm:3.0.0"],\
             ["esutils", "npm:2.0.3"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["dotenv", [\
+        ["npm:16.0.3", {\
+          "packageLocation": "./.yarn/cache/dotenv-npm-16.0.3-4cc29121dc-afcf03f373.zip/node_modules/dotenv/",\
+          "packageDependencies": [\
+            ["dotenv", "npm:16.0.3"]\
           ],\
           "linkType": "HARD"\
         }]\
