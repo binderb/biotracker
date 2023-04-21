@@ -1,12 +1,17 @@
 import '@/styles/globals.css'
 import { Open_Sans } from 'next/font/google'
-import type { AppProps } from 'next/app'
+import type { AppProps, AppInitialProps } from 'next/app'
+import { ApolloProvider } from '@apollo/client';
+import { useApollo } from '../../utils/apolloClient';
+import connectMongo from '../../utils/connectMongo';
 
 const openSans = Open_Sans({
   subsets: ['latin']
 });
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({ Component, pageProps }: AppProps & AppInitialProps) {
+  console.log("rendering app")
+  const apolloClient = useApollo(pageProps);
   return (
     <>
       <style jsx global>
@@ -16,7 +21,9 @@ export default function App({ Component, pageProps }: AppProps) {
           }
         `}
       </style>
-      <Component {...pageProps} />
+      <ApolloProvider client={apolloClient}>
+        <Component {...pageProps} />
+      </ApolloProvider>
     </>
   );
 }
