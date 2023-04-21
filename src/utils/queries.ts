@@ -11,6 +11,15 @@ export const GET_CLIENTS = gql`
     getClients {
       _id
       name
+      code
+    }
+  }
+`;
+
+export const GET_CLIENT_CODES = gql`
+  query GetClientCodes {
+    getClients {
+      code
     }
   }
 `;

@@ -1,31 +1,14 @@
-import { NextPage } from 'next'
-import Image from 'next/image'
-import { GET_CLIENTS, HELLO } from '@/utils/queries'
-import { initializeApollo, addApolloState } from '../../utils/apolloClient'
-import { useQuery } from '@apollo/client'
-
-export async function getServerSideProps () {
-  console.log("initializing the index page");
-  const apolloClient = initializeApollo();
-  
-  const initialData = await apolloClient.query({
-    query: GET_CLIENTS,
-  });
-
-  return addApolloState(apolloClient, {
-    props: {},
-  });
-}
+import Link from "next/link";
 
 const Home = () => {
 
-  const { data } = useQuery(GET_CLIENTS);
-  console.log('data: ', data)
-
   return (
     <main className="flex flex-col p-4">
-      <div>Check the console!</div>
-      <div></div>
+      <div>This is a demo home page. Click the links below to access different prototypes.</div>
+      <div className="flex py-2">
+        <Link className='std-button mr-1' href='./client-manager'>Client Manager (admin only)</Link>
+        <Link className='std-button mr-1' href='./project-creator'>Project Creator</Link>
+      </div>
     </main>
   )
 }

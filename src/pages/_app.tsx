@@ -17,7 +17,13 @@ export default function App({ Component, pageProps }: AppProps & AppInitialProps
       <style jsx global>
         {`
           :root {
-            --font-primary: ${openSans.style.fontFamily}
+            --font-primary: ${openSans.style.fontFamily};
+            --primary: ${process.env.NEXT_PUBLIC_BRANDING_PRIMARY};
+            --primary-hover: ${process.env.NEXT_PUBLIC_BRANDING_PRIMARY_HOVER};
+            --primary-highlight: ${process.env.NEXT_PUBLIC_BRANDING_PRIMARY_HIGHLIGHT};
+            --secondary: ${process.env.NEXT_PUBLIC_BRANDING_SECONDARY};
+            --secondary-hover: ${process.env.NEXT_PUBLIC_BRANDING_SECONDARY_HOVER};
+            --secondary-highlight: ${process.env.NEXT_PUBLIC_BRANDING_SECONDARY_HIGHLIGHT};
           }
         `}
       </style>

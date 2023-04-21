@@ -11,6 +11,14 @@ module.exports = {
       fontFamily: {
         'primary' : ['var(--font-primary)',...fontFamily.sans]
       },
+      colors: {
+        'primary' : 'var(--primary)',
+        'primaryHover' : 'var(--primary-hover)',
+        'primaryHighlight' : 'var(--primary-highlight)',
+        'secondary' : 'var(--secondary)',
+        'secondaryHover' : 'var(--secondary-hover)',
+        'secondaryHighlight' : 'var(--secondary-highlight)',
+      },
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
         'gradient-conic':

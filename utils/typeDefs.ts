@@ -4,6 +4,7 @@ const typeDefs = gql`
   type Client {
     _id: ID
     name: String!
+    code: String!
   }
 
   type Query {
