@@ -7,3 +7,12 @@ export const ADD_CLIENT = gql`
     }
   }
 `;
+
+export const ADD_STUDY = gql`
+  mutation addStudy($clientCode: String!, $studyIndex: Int!, $studyType: String!) {
+    addStudy(clientCode: $clientCode, studyIndex: $studyIndex, studyType: $studyType) {
+      index
+      type
+    }
+  }
+`;

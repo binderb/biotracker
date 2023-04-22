@@ -7,6 +7,7 @@ import { useState, ChangeEvent } from 'react';
 
 export async function getServerSideProps () {
   const apolloClient = initializeApollo();
+  await apolloClient.resetStore();
   
   const initialData = await apolloClient.query({
     query: GET_CLIENTS,

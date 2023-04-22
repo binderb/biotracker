@@ -7,7 +7,7 @@ const Home = () => {
       <div>This is a demo home page. Click the links below to access different prototypes.</div>
       <div className="flex py-2">
         <Link className='std-button mr-1' href='./client-manager'>Client Manager (admin only)</Link>
-        <Link className='std-button mr-1' href='./project-creator'>Project Creator</Link>
+        <Link className='std-button mr-1' href='./study-creator'>Project Creator</Link>
       </div>
     </main>
   )

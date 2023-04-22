@@ -1,6 +1,8 @@
 import { EmptyObject } from "lodash";
 import Client from "../models/Client";
+import Study from "../models/Study";
 import connectMongo from "./connectMongo";
+const fs = require('fs');
 
 const resolvers = {
   Query: {
@@ -8,6 +10,30 @@ const resolvers = {
     getClients: async () => {
       await connectMongo();
       return Client.find();
+    },
+    getClientCodes: async () => {
+      await connectMongo();
+      return Client.find();
+    },
+    getNextStudy: async (_:any, args:any) => {
+      const { clientCode } = args;
+      console.log(clientCode);
+      await connectMongo();
+      const client = await Client.findOne({code: clientCode});
+      if (!client) {
+        throw new Error(`Client code doesn't exist!`);
+      }
+      console.log(client);
+      if (client.studies) {
+        const studies = client.studies.map((e:any) => e.index);
+        if (studies.length === 0) {
+          return 1;
+        } else {
+          return studies.length + 1;
+        }
+      } else {
+        return 1;
+      }
     }
   },
 
@@ -37,6 +63,40 @@ const resolvers = {
         code: newCode
       });
       return newClient;
+    },
+    addStudy: async (_:any, args:any) => {
+      const { clientCode, studyIndex, studyType } = args;
+      await connectMongo();
+      const client = await Client.findOne({code: clientCode});
+      if (!client) {
+        throw new Error("Client code not found!");
+      }
+      const newStudy = await Study.create({
+        type: studyType,
+        index: studyIndex
+      });
+      await Client.findOneAndUpdate({code: clientCode},{$addToSet: {studies: newStudy._id}});
+      const mainDir = './Studies/'+clientCode+'/'+clientCode+'00'+studyIndex+'-'+studyType;
+      if (!fs.existsSync(mainDir)){
+          fs.mkdirSync(mainDir, { recursive: true });
+      }
+      const dataDir = mainDir + '/Data';
+      if (!fs.existsSync(dataDir)){
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      const formsDir = mainDir + '/Forms';
+      if (!fs.existsSync(formsDir)){
+        fs.mkdirSync(formsDir, { recursive: true });
+      }
+      const protocolDir = mainDir + '/Protocol';
+      if (!fs.existsSync(protocolDir)){
+        fs.mkdirSync(protocolDir, { recursive: true });
+      }
+      const quoteDir = mainDir + '/Quote';
+      if (!fs.existsSync(quoteDir)){
+        fs.mkdirSync(quoteDir, { recursive: true });
+      }
+      return newStudy;
     }
   }
 }

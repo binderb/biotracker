@@ -18,8 +18,14 @@ export const GET_CLIENTS = gql`
 
 export const GET_CLIENT_CODES = gql`
   query GetClientCodes {
-    getClients {
+    getClientCodes {
       code
     }
+  }
+`;
+
+export const GET_NEXT_STUDY = gql`
+  query GetNextStudy($clientCode: String!) {
+    getNextStudy(clientCode: $clientCode)
   }
 `;
