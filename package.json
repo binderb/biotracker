@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "node server.ts",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "ts-node seeds/seed.ts"
   },
   "dependencies": {
     "@apollo/client": "^3.7.12",
@@ -29,7 +30,6 @@
     "graphql": "^16.6.0",
     "graphql-tag": "^2.12.6",
     "lodash": "^4.17.21",
-    "mongodb": "^5.3.0",
     "mongoose": "^7.0.4",
     "next": "13.3.0",
     "next-auth": "^4.22.1",
@@ -42,6 +42,7 @@
     "validator": "^13.9.0"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.194"
+    "@types/lodash": "^4.14.194",
+    "ts-node": "^10.9.1"
   }
 }

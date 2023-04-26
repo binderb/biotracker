@@ -3,7 +3,7 @@ import { Open_Sans } from 'next/font/google'
 import type { AppProps, AppInitialProps } from 'next/app'
 import { ApolloProvider } from '@apollo/client';
 import { useApollo } from '../../utils/apolloClient';
-import connectMongo from '../../utils/connectMongo';
+import connectMongo from '../../utils/connectMongo.js';
 import { SessionProvider } from 'next-auth/react';
 
 const openSans = Open_Sans({

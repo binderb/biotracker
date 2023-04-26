@@ -1,4 +1,4 @@
-import { GET_CLIENTS, HELLO } from '@/utils/queries'
+import { GET_CLIENTS } from '@/utils/queries'
 import { ADD_CLIENT } from '@/utils/mutations';
 import { initializeApollo, addApolloState } from '../../utils/apolloClient'
 import { useQuery, useMutation } from '@apollo/client'

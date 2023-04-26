@@ -4,6 +4,7 @@ import { initializeApollo, addApolloState } from '../../utils/apolloClient'
 import { useQuery, useMutation } from '@apollo/client'
 import Navbar from '@/components/Navbar';
 import { useState, ChangeEvent, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 
 export async function getServerSideProps () {
   const apolloClient = initializeApollo();
@@ -20,6 +21,7 @@ export async function getServerSideProps () {
 
 const StudyCreator = () => {
 
+  const { data: session, status } = useSession();
   const { data: clientData } = useQuery(GET_CLIENT_CODES);
   
   const [addStudy, { error, data : newStudyData }] = useMutation(ADD_STUDY, {
@@ -84,6 +86,7 @@ const StudyCreator = () => {
   return (
     <>
       <Navbar/>
+      { status === 'authenticated' ?
       <main className="flex items-top p-4">
         <div id="client-table" className='bg-secondaryHighlight p-4 rounded-xl flex-grow'>
           <h1 className='mb-2'>Create New Project</h1>
@@ -114,6 +117,11 @@ const StudyCreator = () => {
           <div className='my-2 text-[#800] whitespace-pre font-mono'>{creatorStatus}</div>
         </div>
       </main>
+      :
+      <main className='p-4'>
+        Unauthorized.
+      </main>
+      }
     </>
   )
 }

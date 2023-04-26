@@ -1,8 +1,11 @@
 import gql from "graphql-tag";
 
-export const HELLO = gql`
-  query Hello {
-    hello
+export const GET_USERS = gql`
+  query GetUsers {
+    getUsers {
+      username
+      role
+    }
   }
 `;
 

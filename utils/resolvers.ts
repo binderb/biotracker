@@ -2,11 +2,15 @@ import { EmptyObject } from "lodash";
 import Client from "../models/Client";
 import Study from "../models/Study";
 import connectMongo from "./connectMongo";
+import User from "../models/User";
 const fs = require('fs');
 
 const resolvers = {
   Query: {
-    hello: () => "hello world!",
+    getUsers: async () => {
+      await connectMongo();
+      return User.find();
+    },
     getClients: async () => {
       await connectMongo();
       return Client.find();
@@ -40,6 +44,18 @@ const resolvers = {
   },
 
   Mutation: {
+    addUser: async (_:any, args:any) => {
+      const { username, password } = args;
+      try {
+        await connectMongo();
+        await User.create({
+          username: username,
+          password: password
+        });
+      } catch (err:any) {
+        throw new Error (err.message);
+      }
+    },
     addClient: async (_:any, args:any) => {
       const { name } = args;
       await connectMongo();

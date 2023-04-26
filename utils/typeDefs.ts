@@ -1,6 +1,15 @@
 import { gql } from 'graphql-tag';
 
 const typeDefs = gql`
+  
+  type User {
+    _id: ID
+    username: String!
+    password: String
+    role: String
+    createdAt: String
+  }
+
   type Client {
     _id: ID
     name: String!
@@ -15,13 +24,14 @@ const typeDefs = gql`
   }
 
   type Query {
-    hello: String
+    getUsers: [User]
     getClients: [Client]
     getClientCodes: [Client]
     getNextStudy(clientCode: String!): Int
   }
 
   type Mutation {
+    addUser(username: String!, password: String!): User
     addClient(name: String!): Client
     addStudy(clientCode: String!, studyIndex: Int!, studyType: String!): Client
   }
