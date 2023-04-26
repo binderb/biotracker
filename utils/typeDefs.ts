@@ -23,7 +23,7 @@ const typeDefs = gql`
 
   type Mutation {
     addClient(name: String!): Client
-    addStudy(clientCode: String!, studyIndex: Int!, studyType: String!): Study
+    addStudy(clientCode: String!, studyIndex: Int!, studyType: String!): Client
   }
 `;
 

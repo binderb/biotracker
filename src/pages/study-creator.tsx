@@ -23,7 +23,7 @@ const StudyCreator = () => {
   const { data: clientData } = useQuery(GET_CLIENT_CODES);
   
   const [addStudy, { error, data : newStudyData }] = useMutation(ADD_STUDY, {
-    refetchQueries: [{query: GET_NEXT_STUDY}]
+    refetchQueries: [{query: GET_NEXT_STUDY}, 'GetNextStudy']
   });
   const clientCodes = clientData.getClientCodes;
   const [clientCode, setClientCode] = useState('');
@@ -40,7 +40,7 @@ const StudyCreator = () => {
   useEffect (() => {
     console.log('updating nextStudy!');
     setNextStudy(nextStudyData?.getNextStudy);
-  });
+  },[nextStudyData]);
 
   interface Client {
     code: string
@@ -73,6 +73,8 @@ const StudyCreator = () => {
           studyType: studyType
         }
       });
+      
+      console.log("completed adding new study!");
       // setCreatorStatus('')      
     } catch (err:any) {
       setCreatorStatus(err.message);

@@ -4,13 +4,13 @@ import type { AppProps, AppInitialProps } from 'next/app'
 import { ApolloProvider } from '@apollo/client';
 import { useApollo } from '../../utils/apolloClient';
 import connectMongo from '../../utils/connectMongo';
+import { SessionProvider } from 'next-auth/react';
 
 const openSans = Open_Sans({
   subsets: ['latin']
 });
 
-export default function App({ Component, pageProps }: AppProps & AppInitialProps) {
-  console.log("rendering app")
+export default function App({ Component, pageProps: {session, ...pageProps} }: AppProps & AppInitialProps) {
   const apolloClient = useApollo(pageProps);
   return (
     <>
@@ -27,9 +27,11 @@ export default function App({ Component, pageProps }: AppProps & AppInitialProps
           }
         `}
       </style>
+      <SessionProvider session={session} >
       <ApolloProvider client={apolloClient}>
         <Component {...pageProps} />
       </ApolloProvider>
+      </SessionProvider>
     </>
   );
 }

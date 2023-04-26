@@ -4,6 +4,7 @@ import { initializeApollo, addApolloState } from '../../utils/apolloClient'
 import { useQuery, useMutation } from '@apollo/client'
 import Navbar from '@/components/Navbar';
 import { useState, ChangeEvent } from 'react';
+import { useSession } from 'next-auth/react';
 
 export async function getServerSideProps () {
   const apolloClient = initializeApollo();
@@ -20,6 +21,7 @@ export async function getServerSideProps () {
 
 const ClientManager = () => {
 
+  const { data: session, status } = useSession();
   const { data: clientData } = useQuery(GET_CLIENTS);
   const [addClient, { error, data : newClientData }] = useMutation(ADD_CLIENT, {
     refetchQueries: [{query: GET_CLIENTS}]
@@ -55,6 +57,7 @@ const ClientManager = () => {
   return (
     <>
       <Navbar/>
+      { status === 'authenticated' && session.user.role === 'admin' ?
       <main className="flex items-top p-4">
         <div id="client-table" className='mr-1 bg-secondaryHighlight p-4 rounded-xl flex-grow'>
           <h1>Client Table</h1>
@@ -85,6 +88,11 @@ const ClientManager = () => {
           <div className='my-2 text-[#800]'>{creatorStatus}</div>
         </div>
       </main>
+      :
+      <main className='p-4'>
+        Unauthorized.
+      </main>
+      }
     </>
   )
 }

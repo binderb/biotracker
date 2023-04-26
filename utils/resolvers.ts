@@ -23,15 +23,17 @@ const resolvers = {
       if (!client) {
         throw new Error(`Client code doesn't exist!`);
       }
-      console.log(client);
       if (client.studies) {
         const studies = client.studies.map((e:any) => e.index);
         if (studies.length === 0) {
+          console.log(1);
           return 1;
         } else {
+          console.log(studies.length+1);
           return studies.length + 1;
         }
       } else {
+        console.log(1);
         return 1;
       }
     }
@@ -96,7 +98,8 @@ const resolvers = {
       if (!fs.existsSync(quoteDir)){
         fs.mkdirSync(quoteDir, { recursive: true });
       }
-      return newStudy;
+      console.log('completed adding new study!');
+      return client;
     }
   }
 }
