@@ -34,6 +34,9 @@ const typeDefs = gql`
     addUser(username: String!, password: String!): User
     addClient(name: String!): Client
     addStudy(clientCode: String!, studyIndex: Int!, studyType: String!): Client
+    authorizeGoogleDrive: String
+    testGoogleDrive: String
+    createDriveStudyTree(clientCode: String!, studyName: String!): String
   }
 `;
 

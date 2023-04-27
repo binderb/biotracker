@@ -1,5 +1,5 @@
 import { GET_CLIENT_CODES, GET_NEXT_STUDY } from '@/utils/queries'
-import { ADD_STUDY } from '@/utils/mutations';
+import { ADD_STUDY, CREATE_DRIVE_STUDY_TREE } from '@/utils/mutations';
 import { initializeApollo, addApolloState } from '../../utils/apolloClient'
 import { useQuery, useMutation } from '@apollo/client'
 import Navbar from '@/components/Navbar';
@@ -27,6 +27,7 @@ const StudyCreator = () => {
   const [addStudy, { error, data : newStudyData }] = useMutation(ADD_STUDY, {
     refetchQueries: [{query: GET_NEXT_STUDY}, 'GetNextStudy']
   });
+  const [createDriveStudyTree, { data : driveTreeResponse }] = useMutation(CREATE_DRIVE_STUDY_TREE);
   const clientCodes = clientData.getClientCodes;
   const [clientCode, setClientCode] = useState('');
   const [studyType, setStudyType] = useState('');
@@ -56,17 +57,30 @@ const StudyCreator = () => {
   }
 
   async function handleSubmitNewStudy () {
-    let folderTree = "Folder structure to be generated: \n";
-    folderTree += 'Studies/\n';
-    folderTree += ' |—'+clientCode + '/\n';
-    folderTree += '    |—'+clientCode + '00' + nextStudy + '-' + studyType + "/\n";
-    folderTree += '      |—Data/\n';
-    folderTree += '      |—Forms/\n';
-    folderTree += '         |—Specimen and Accessory Product Usage Form\n';
-    folderTree += '         |—Chain of Custody Form\n';
-    folderTree += '      |—Protocol/\n';
-    folderTree += '      |—Quote/\n';
-    setCreatorStatus(folderTree);
+    // let folderTree = "Folder structure to be generated: \n";
+    // folderTree += 'Studies/\n';
+    // folderTree += ' |—'+clientCode + '/\n';
+    // folderTree += '    |—'+clientCode + '00' + nextStudy + '-' + studyType + "/\n";
+    // folderTree += '      |—Data/\n';
+    // folderTree += '      |—Forms/\n';
+    // folderTree += '         |—Specimen and Accessory Product Usage Form\n';
+    // folderTree += '         |—Chain of Custody Form\n';
+    // folderTree += '      |—Protocol/\n';
+    // folderTree += '      |—Quote/\n';
+    setCreatorStatus('Creating file tree in Google Drive...');
+    const studyFullName = `${clientCode}${nextStudy.toString().padStart(3,'0')}-${studyType}`;
+    try {
+      const treeResult = await createDriveStudyTree({
+        variables: {
+          clientCode: clientCode,
+          studyName: studyFullName
+        }
+      });    
+    } catch (err:any) {
+      setCreatorStatus(err.message);
+      return;
+    }
+    setCreatorStatus('Updating database...');
     try {
       const newStudy = await addStudy({
         variables: {
@@ -75,9 +89,7 @@ const StudyCreator = () => {
           studyType: studyType
         }
       });
-      
-      console.log("completed adding new study!");
-      // setCreatorStatus('')      
+      setCreatorStatus(`Completed adding new study: ${studyFullName}`)      
     } catch (err:any) {
       setCreatorStatus(err.message);
     }
@@ -89,7 +101,7 @@ const StudyCreator = () => {
       { status === 'authenticated' ?
       <main className="flex items-top p-4">
         <div id="client-table" className='bg-secondaryHighlight p-4 rounded-xl flex-grow'>
-          <h1 className='mb-2'>Create New Project</h1>
+          <h1 className='mb-2'>Create New Study</h1>
           <div className='flex items-center mb-2'>
             <div className='mr-2'>Client Code:</div>
             <select className='bg-[#ffffff88] p-2' onChange={handleClientChange}>

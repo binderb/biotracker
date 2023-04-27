@@ -3,6 +3,7 @@ import Client from "../models/Client";
 import Study from "../models/Study";
 import connectMongo from "./connectMongo";
 import User from "../models/User";
+import { adminAuthorizeGoogleDrive, createDirectoryIfNotExists, createDirectoryWithSubdirectories, getFolderIdFromPath, listFiles, userAuthorizeGoogleDrive } from "./googleDrive";
 const fs = require('fs');
 
 const resolvers = {
@@ -94,28 +95,47 @@ const resolvers = {
         index: studyIndex
       });
       await Client.findOneAndUpdate({code: clientCode},{$addToSet: {studies: newStudy._id}});
-      const mainDir = './Studies/'+clientCode+'/'+clientCode+'00'+studyIndex+'-'+studyType;
-      if (!fs.existsSync(mainDir)){
-          fs.mkdirSync(mainDir, { recursive: true });
-      }
-      const dataDir = mainDir + '/Data';
-      if (!fs.existsSync(dataDir)){
-        fs.mkdirSync(dataDir, { recursive: true });
-      }
-      const formsDir = mainDir + '/Forms';
-      if (!fs.existsSync(formsDir)){
-        fs.mkdirSync(formsDir, { recursive: true });
-      }
-      const protocolDir = mainDir + '/Protocol';
-      if (!fs.existsSync(protocolDir)){
-        fs.mkdirSync(protocolDir, { recursive: true });
-      }
-      const quoteDir = mainDir + '/Quote';
-      if (!fs.existsSync(quoteDir)){
-        fs.mkdirSync(quoteDir, { recursive: true });
-      }
-      console.log('completed adding new study!');
+      // const mainDir = './Studies/'+clientCode+'/'+clientCode+'00'+studyIndex+'-'+studyType;
+      // if (!fs.existsSync(mainDir)){
+      //     fs.mkdirSync(mainDir, { recursive: true });
+      // }
+      // const dataDir = mainDir + '/Data';
+      // if (!fs.existsSync(dataDir)){
+      //   fs.mkdirSync(dataDir, { recursive: true });
+      // }
+      // const formsDir = mainDir + '/Forms';
+      // if (!fs.existsSync(formsDir)){
+      //   fs.mkdirSync(formsDir, { recursive: true });
+      // }
+      // const protocolDir = mainDir + '/Protocol';
+      // if (!fs.existsSync(protocolDir)){
+      //   fs.mkdirSync(protocolDir, { recursive: true });
+      // }
+      // const quoteDir = mainDir + '/Quote';
+      // if (!fs.existsSync(quoteDir)){
+      //   fs.mkdirSync(quoteDir, { recursive: true });
+      // }
+      // console.log('completed adding new study!');
       return client;
+    },
+    authorizeGoogleDrive: async () => {
+      await adminAuthorizeGoogleDrive();
+      return 'success';
+    },
+    testGoogleDrive: async () => {
+      const client = await userAuthorizeGoogleDrive();
+      const files = await listFiles(client);
+      return files;
+    },
+    createDriveStudyTree: async (_:any, args:any) => {
+      const { clientCode, studyName } = args;
+      const client = await userAuthorizeGoogleDrive();
+      const studyFolderId = await getFolderIdFromPath(`/Studies`, client);
+      console.log('client code: ',clientCode);
+      console.log('study name: ',studyName);
+      const clientFolderId = await createDirectoryIfNotExists(clientCode, studyFolderId, client);
+      const result = await createDirectoryWithSubdirectories(studyName, clientFolderId, ['Data','Forms','Protocol','Quote'], client);
+      return 'Study folder tree created in Google Drive!';
     }
   }
 }

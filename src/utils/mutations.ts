@@ -23,3 +23,21 @@ export const ADD_STUDY = gql`
     }
   }
 `;
+
+export const CREATE_DRIVE_STUDY_TREE = gql`
+  mutation createDriveStudyTree($clientCode: String!, $studyName: String!) {
+    createDriveStudyTree(clientCode: $clientCode, studyName: $studyName)
+  }
+`;
+
+export const AUTHORIZE_GOOGLE_DRIVE = gql`
+  mutation authorizeGoogleDrive {
+    authorizeGoogleDrive
+  }
+`;
+
+export const TEST_GOOGLE_DRIVE = gql`
+  mutation testGoogleDrive {
+    testGoogleDrive
+  }
+`;

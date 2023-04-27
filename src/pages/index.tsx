@@ -12,7 +12,7 @@ const Home = () => {
     <main className="flex flex-col p-4">
       <div>This is a demo home page. Click the links below to access different prototypes.</div>
       <div className="flex py-2">
-        <Link className='std-button mr-1' href='./user-manager'>Manage Users (admin only)</Link>
+        <Link className='std-button mr-1' href='./settings'>App Settings (admin only)</Link>
         <Link className='std-button mr-1' href='./client-manager'>Client Manager (admin only)</Link>
         <Link className='std-button mr-1' href='./study-creator'>Study Creator</Link>
       </div>
