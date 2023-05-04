@@ -4,6 +4,8 @@ import connectMongo from "../utils/connectMongo";
 
 // Default admin user, should be deleted after initial installation!
 const rootUser = {
+  first: 'root',
+  last: '',
   username: 'root',
   password: 'rootroot',
   role: 'admin'

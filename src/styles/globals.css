@@ -10,6 +10,14 @@ h2 {
   @apply font-bold
 }
 
+.std-input {
+  @apply p-2 bg-[#FFFFFF88]
+}
+
+.std-link {
+  @apply font-bold text-primary underline hover:text-primaryHover
+}
+
 .nav-link {
   @apply px-4 py-2 text-white hover:text-primaryHighlight
 }

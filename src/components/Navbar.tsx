@@ -9,7 +9,7 @@ export default function Navbar () {
     <>
       <nav className='flex bg-primary justify-between items-center'>
         <div>
-        <Link className='nav-link' href='./'>Home</Link>
+        <Link className='nav-link' href='/'>Home</Link>
         </div>
         <div>
           { status === 'authenticated' ?

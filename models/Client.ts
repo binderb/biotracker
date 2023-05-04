@@ -1,5 +1,4 @@
 import { Schema, model, models } from 'mongoose';
-import Study from './Study';
 
 const clientSchema = new Schema({
   name: String!,

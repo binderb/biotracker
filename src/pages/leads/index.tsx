@@ -1,9 +1,12 @@
 import Navbar from "@/components/Navbar";
 import { getServerSession } from 'next-auth';
-import { authOptions } from './api/auth/[...nextauth]';
-import { initializeApollo, addApolloState } from "../../utils/apolloClient";
-import { GET_CLIENT_CODES } from "@/utils/queries";
+import { authOptions } from '../api/auth/[...nextauth]';
+import { initializeApollo, addApolloState } from "../../../utils/apolloClient";
+// import { GET_LEADS } from "@/utils/queries";
 import { useSession } from "next-auth/react";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import Link from "next/link";
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -22,9 +25,9 @@ export async function getServerSideProps(context:any) {
 
   const apolloClient = initializeApollo();
   console.log('initializing apollo');
-  const initialData = await apolloClient.query({
-    query: GET_CLIENT_CODES,
-  });
+  // const initialData = await apolloClient.query({
+  //   // query: GET_LEADS,
+  // });
 
   return addApolloState(apolloClient, {
     props: {
@@ -44,7 +47,8 @@ export default function LeadManager () {
       <Navbar/>
       { status === 'authenticated' ?
         <main className="flex items-top p-4">
-
+          <Link className="std-button mr-2" href="/leads/new"><FontAwesomeIcon icon={faPlus} className="mr-2"></FontAwesomeIcon> New Lead</Link>
+          
         </main>
         :
         <main className="flex items-top p-4">

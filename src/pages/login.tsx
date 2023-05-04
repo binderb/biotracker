@@ -46,11 +46,11 @@ export default function Login () {
         <form onSubmit={submitHandler}>
           <div className='my-2'>
             <div>Username:</div>
-            <input type='text' id='username' name='username' className='mr-2 p-2 bg-[#FFFFFF88] w-full' required onChange={updateField}  />
+            <input type='text' id='username' name='username' className='mr-2 std-input' required onChange={updateField}  />
           </div>
           <div className='my-2'>
             <div>Password:</div>
-            <input type='password' id='password' name='password' className='mr-2 p-2 bg-[#FFFFFF88] w-full' required onChange={updateField} />
+            <input type='password' id='password' name='password' className='mr-2 std-input' required onChange={updateField} />
           </div>
           <div className='my-5'>
             <button className='std-button'>Login</button>

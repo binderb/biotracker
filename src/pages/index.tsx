@@ -15,7 +15,7 @@ const Home = () => {
         <Link className='std-button mr-1' href='./settings'>App Settings (admin only)</Link>
         <Link className='std-button mr-1' href='./client-manager'>Client Manager (admin only)</Link>
         <Link className='std-button mr-1' href='./study-creator'>Study Creator</Link>
-        <Link className='std-button mr-1' href='./lead-manager'>Leads</Link>
+        <Link className='std-button mr-1' href='./leads'>Leads</Link>
       </div>
       {/* { session ?
         <div>{`${JSON.stringify(session)}`}</div>
