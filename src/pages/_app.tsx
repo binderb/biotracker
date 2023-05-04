@@ -24,7 +24,7 @@ export default function App({ Component, pageProps: {session, ...pageProps} }: A
             --secondary: ${process.env.NEXT_PUBLIC_BRANDING_SECONDARY};
             --secondary-hover: ${process.env.NEXT_PUBLIC_BRANDING_SECONDARY_HOVER};
             --secondary-highlight: ${process.env.NEXT_PUBLIC_BRANDING_SECONDARY_HIGHLIGHT};
-          }
+          }adm
         `}
       </style>
       <SessionProvider session={session} >

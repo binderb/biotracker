@@ -5,18 +5,36 @@ import { useQuery, useMutation } from '@apollo/client'
 import Navbar from '@/components/Navbar';
 import { useState, ChangeEvent } from 'react';
 import { useSession } from 'next-auth/react';
+import { getServerSession } from 'next-auth';
+import { authOptions } from './api/auth/[...nextauth]';
 
-export async function getServerSideProps () {
+export async function getServerSideProps(context:any) {
+  const session = await getServerSession(
+    context.req,
+    context.res,
+    authOptions
+  )
+  if (!session) {
+    return {
+      redirect: {
+        destination: '/login',
+        permanent: false
+      }
+    }
+  }
+
   const apolloClient = initializeApollo();
-  await apolloClient.resetStore();
-  
+  console.log('initializing apollo');
   const initialData = await apolloClient.query({
     query: GET_CLIENTS,
   });
 
   return addApolloState(apolloClient, {
-    props: {},
+    props: {
+      session,
+    },
   });
+
 }
 
 const ClientManager = () => {
@@ -90,7 +108,7 @@ const ClientManager = () => {
       </main>
       :
       <main className='p-4'>
-        Unauthorized.
+        {`It looks like you aren't authorized to view this page (admin access only). If you think this is an error, please contact your system administrator.`}
       </main>
       }
     </>

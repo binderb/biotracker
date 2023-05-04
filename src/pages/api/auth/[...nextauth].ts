@@ -1,9 +1,9 @@
-import NextAuth from "next-auth"
+import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials";
 import connectMongo from "../../../../utils/connectMongo";
 import UserModel from "../../../../models/User";
 
-export default NextAuth({
+export const authOptions: NextAuthOptions = {
   session: {
     strategy: 'jwt',
     maxAge: 60 * 60 * 8 // 8 hours
@@ -40,7 +40,7 @@ export default NextAuth({
     },
     async session ({session, token}) {
       session.user = {
-        id: token.user.id,
+        id: token.user._id,
         username: token.user.username,
         role: token.user.role
       };
@@ -50,4 +50,6 @@ export default NextAuth({
   pages: {
      signIn: '/login'
   }
-});
+};
+
+export default NextAuth(authOptions);
