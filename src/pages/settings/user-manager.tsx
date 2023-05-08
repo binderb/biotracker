@@ -41,6 +41,9 @@ export async function getServerSideProps(context:any) {
 export default function UserManager () {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [first, setFirst] = useState('');
+  const [last, setLast] = useState('');
+  const [role, setRole] = useState('user');
   const [creatorStatus, setCreatorStatus] = useState('');
   const { data: userData } = useQuery(GET_USERS);
   const users = userData.getUsers;
@@ -58,9 +61,19 @@ export default function UserManager () {
       case 'password':
         setPassword(e.target.value);
         break;
+      case 'first':
+        setFirst(e.target.value);
+        break;
+      case 'last':
+        setLast(e.target.value);
+        break;
       default:
         break;
     }
+  }
+
+  function updateRole (e:ChangeEvent<HTMLSelectElement>) {
+    setRole(e.target.value);
   }
 
   async function handleAddUser(e:ChangeEvent<HTMLFormElement>) {
@@ -69,7 +82,10 @@ export default function UserManager () {
       await addUser({
         variables: {
           username: username,
-          password: password
+          password: password,
+          first: first,
+          last: last,
+          role: role
         }
       });
     } catch (err:any) {
@@ -111,11 +127,26 @@ export default function UserManager () {
           <form onSubmit={handleAddUser}>
             <div >
               <div className='mr-2'>Username:</div>
-              <input className='mr-2 p-2 bg-[#FFFFFF88]' type='text' id='username' name='username' required onChange={updateField}  />
+              <input className='std-input mb-2 w-full' type='text' id='username' name='username' required onChange={updateField}  />
             </div>
             <div >
               <div className='mr-2'>Password:</div>
-              <input className='mr-2 p-2 bg-[#FFFFFF88]' type='password' id='password' name='password' required onChange={updateField} />
+              <input className='std-input mb-2 w-full' type='password' id='password' name='password' required onChange={updateField} />
+            </div>
+            <div >
+              <div className='mr-2'>First Name:</div>
+              <input className='std-input mb-2 w-full' type='text' id='first' name='first' required onChange={updateField}  />
+            </div>
+            <div >
+              <div className='mr-2'>Last Name:</div>
+              <input className='std-input mb-2 w-full' type='text' id='last' name='last' required onChange={updateField} />
+            </div>
+            <div >
+              <div className='mr-2'>Role:</div>
+              <select className='std-input' id='role' name='role' required onChange={updateRole}>
+                <option value='user'>Regular User</option>
+                <option value='admin'>Admin (elevated privileges)</option>
+              </select>
             </div>
             <div className='my-5'>
               <button className='std-button'>Create User</button>

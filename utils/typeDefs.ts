@@ -5,6 +5,8 @@ const typeDefs = gql`
   type User {
     _id: ID
     username: String!
+    first: String
+    last: String
     password: String
     role: String
     createdAt: String
@@ -23,6 +25,38 @@ const typeDefs = gql`
     index: Int!
   }
 
+  type Lead {
+    _id: ID
+    name: String!
+    author: User
+    drafters: [User]
+    client: Client
+    revisions: [LeadRevision]
+    notes: LeadNote
+  }
+
+  type LeadRevision {
+    _id: ID
+    author: User,
+    createdAt: String
+    content: String
+  }
+
+  type LeadNote {
+    author: User
+    createdAt: String
+    content: String!
+    revision: LeadRevision
+    leadChanges: [LeadChange]
+    parentNote: LeadNote
+  }
+
+  type LeadChange {
+    field: String!,
+    before: String!,
+    after: String!
+  }
+
   type Query {
     getUsers: [User]
     getClients: [Client]
@@ -31,8 +65,9 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    addUser(username: String!, password: String!): User
+    addUser(username: String!, password: String!, first: String!, last: String!, role: String!): User
     addClient(name: String!): Client
+    addLead(name: String!, author: ID!, drafters: [ID]!, client: ID!, content: String!, firstNote: String!): String
     addStudy(clientCode: String!, studyIndex: Int!, studyType: String!): Client
     authorizeGoogleDrive: String
     testGoogleDrive: String

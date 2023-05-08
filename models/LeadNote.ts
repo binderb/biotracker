@@ -9,6 +9,6 @@ const leadNoteSchema = new Schema({
   parentNote: { type: Schema.Types.ObjectId, ref: 'LeadNote' }
 });
 
-const LeadNote = models?.LeadNote || model('Client', leadNoteSchema);
+const LeadNote = models?.LeadNote || model('LeadNote', leadNoteSchema);
 
 export default LeadNote;

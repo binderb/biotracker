@@ -42,6 +42,8 @@ export const authOptions: NextAuthOptions = {
       session.user = {
         id: token.user._id,
         username: token.user.username,
+        first: token.user.first,
+        last: token.user.last,
         role: token.user.role
       };
       return session;

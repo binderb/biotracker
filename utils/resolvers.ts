@@ -1,5 +1,8 @@
-import { EmptyObject } from "lodash";
 import Client from "../models/Client";
+import Lead from "../models/Lead";
+import LeadRevision from "../models/LeadRevision";
+import LeadNote from "../models/LeadNote";
+import LeadChange from "../models/LeadChange";
 import Study from "../models/Study";
 import connectMongo from "./connectMongo";
 import User from "../models/User";
@@ -46,12 +49,15 @@ const resolvers = {
 
   Mutation: {
     addUser: async (_:any, args:any) => {
-      const { username, password } = args;
+      const { username, password, first, last, role } = args;
       try {
         await connectMongo();
         await User.create({
           username: username,
-          password: password
+          password: password,
+          first: first,
+          last: last,
+          role: role
         });
       } catch (err:any) {
         throw new Error (err.message);
@@ -83,6 +89,35 @@ const resolvers = {
       });
       return newClient;
     },
+    addLead: async (_:any, args:any) => {
+      const { name, author, drafters, client, content, firstNote } = args;
+      try {
+        // Create Lead Revision
+        const newRevision = await LeadRevision.create({
+          author,
+          content
+        });
+        // Create Lead Note
+        const newNote = await LeadNote.create({
+          author,
+          content: firstNote,
+          revision: newRevision._id,
+        });
+        // // Create Lead
+        const newLead = await Lead.create({
+          name,
+          author,
+          drafters,
+          client,
+          revisions: [newRevision._id],
+          notes: [newNote._id]
+        });
+      } catch (err:any) {
+        throw new Error(err.message);
+      }
+      return `success`;
+
+    },
     addStudy: async (_:any, args:any) => {
       const { clientCode, studyIndex, studyType } = args;
       await connectMongo();
@@ -95,27 +130,6 @@ const resolvers = {
         index: studyIndex
       });
       await Client.findOneAndUpdate({code: clientCode},{$addToSet: {studies: newStudy._id}});
-      // const mainDir = './Studies/'+clientCode+'/'+clientCode+'00'+studyIndex+'-'+studyType;
-      // if (!fs.existsSync(mainDir)){
-      //     fs.mkdirSync(mainDir, { recursive: true });
-      // }
-      // const dataDir = mainDir + '/Data';
-      // if (!fs.existsSync(dataDir)){
-      //   fs.mkdirSync(dataDir, { recursive: true });
-      // }
-      // const formsDir = mainDir + '/Forms';
-      // if (!fs.existsSync(formsDir)){
-      //   fs.mkdirSync(formsDir, { recursive: true });
-      // }
-      // const protocolDir = mainDir + '/Protocol';
-      // if (!fs.existsSync(protocolDir)){
-      //   fs.mkdirSync(protocolDir, { recursive: true });
-      // }
-      // const quoteDir = mainDir + '/Quote';
-      // if (!fs.existsSync(quoteDir)){
-      //   fs.mkdirSync(quoteDir, { recursive: true });
-      // }
-      // console.log('completed adding new study!');
       return client;
     },
     authorizeGoogleDrive: async () => {

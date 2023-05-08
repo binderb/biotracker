@@ -46,9 +46,16 @@ export default function LeadManager () {
     <>
       <Navbar/>
       { status === 'authenticated' ?
-        <main className="flex items-top p-4">
-          <Link className="std-button mr-2" href="/leads/new"><FontAwesomeIcon icon={faPlus} className="mr-2"></FontAwesomeIcon> New Lead</Link>
-          
+        <main className="flex flex-col p-4">
+          <div className='mt-2 mb-4'>
+            <Link className="std-button mr-2" href="/leads/new"><FontAwesomeIcon icon={faPlus} className="mr-2"></FontAwesomeIcon> New Lead</Link>
+          </div>
+          <div className='flex flex-col mt-4'>
+            <div className='font-bold'>Current Leads:</div>
+            <div>...</div>
+            <div>...</div>
+            <div>...</div>
+          </div>
         </main>
         :
         <main className="flex items-top p-4">

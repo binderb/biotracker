@@ -6,6 +6,6 @@ const leadChangeSchema = new Schema({
   after: String!
 });
 
-const LeadChange = models?.LeadChange || model('Client', leadChangeSchema);
+const LeadChange = models?.LeadChange || model('LeadChange', leadChangeSchema);
 
 export default LeadChange;

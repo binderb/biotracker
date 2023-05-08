@@ -25,3 +25,56 @@ h2 {
 .std-button {
   @apply py-2 px-4 bg-primary text-white rounded-full hover:bg-primaryHighlight
 }
+
+.std-button:disabled {
+  @apply opacity-50 hover:bg-primary
+}
+
+.secondary-button {
+  @apply py-2 px-4 bg-secondary text-white rounded-full hover:bg-secondaryHighlight
+}
+
+.secondary-button:disabled {
+  @apply opacity-50 hover:bg-secondary
+}
+
+.secondary-button-lite {
+  @apply py-1 px-3 bg-secondary text-white rounded-md hover:bg-secondaryHighlight
+}
+
+.secondary-button-lite:disabled {
+  @apply opacity-50 hover:bg-secondary
+}
+
+.visible-cell {
+  @apply bg-[#FFFFFF88] p-2
+}
+
+.form-control {
+  @apply flex my-2 px-2 gap-2
+}
+
+input[type='checkbox'] {
+  appearance: none;
+  color: var(--secondary);
+  width: 1.65em;
+  height: 1.65em;
+  border: 0.15em solid currentColor;
+  border-radius: 0.15em;
+  transform: translateY(-0.075em);
+  display: grid;
+  place-content: center;
+}
+
+input[type="checkbox"]::before {
+  content: "";
+  width: 1.1em;
+  height: 1.1em;
+  transform: scale(0);
+  box-shadow: inset 1em 1em var(--primary);
+  transform-origin: center;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}

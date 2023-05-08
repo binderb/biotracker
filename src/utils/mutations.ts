@@ -1,8 +1,8 @@
 import gql from "graphql-tag";
 
 export const ADD_USER = gql`
-  mutation addUser($username: String!, $password: String!) {
-    addUser(username: $username, password: $password) {
+  mutation addUser($username: String!, $password: String!, $first: String!, $last: String!, $role: String!) {
+    addUser(username: $username, password: $password, first: $first, last: $last, role: $role) {
       username
     }
   }
@@ -13,6 +13,12 @@ export const ADD_CLIENT = gql`
     addClient(name: $name) {
       name
     }
+  }
+`;
+
+export const ADD_NEW_LEAD = gql`
+  mutation addNewLead($name: String!, $author: ID!, $drafters: [ID]!, $client: ID!, $content: String!, $firstNote: String!) {
+    addLead(name: $name, author: $author, drafters: $drafters, client: $client, content: $content, firstNote: $firstNote)
   }
 `;
 

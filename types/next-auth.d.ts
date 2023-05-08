@@ -4,6 +4,8 @@ declare module "next-auth" {
   interface User {
     _id?: string
     username: string
+    first: string
+    last: string
     password?: string
     role?: string
   }
