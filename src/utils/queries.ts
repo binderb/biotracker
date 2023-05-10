@@ -80,6 +80,9 @@ export const GET_LEAD_LATEST = gql`
       _id
       name
       status
+      drafters {
+        _id
+      }
       client {
         _id
         code

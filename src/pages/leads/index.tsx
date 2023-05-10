@@ -8,6 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight, faCircle, faClockRotateLeft, faCodeCommit, faComment, faComments, faMagnifyingGlass, faMagnifyingGlassArrowRight, faPen, faPlus } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { useQuery } from "@apollo/client";
+import { Yesteryear } from "next/font/google";
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -43,7 +44,8 @@ export default function LeadManager () {
   const { data: session, status } = useSession();
   const { data: leadData, error } = useQuery(GET_LEADS);
   const leads = leadData.getLeads;
-  
+  console.log(session?.user.id)
+  console.log(leads.map((lead:any) => lead.drafters.map((drafter:any) => drafter._id).indexOf(session?.user.id)));
 
   return (
     <>
@@ -56,35 +58,38 @@ export default function LeadManager () {
           <div className='flex flex-col mt-4 bg-secondaryHighlight rounded-md p-4'>
             <div className='font-bold mb-4'>Current Leads:</div>
             <ul className='flex flex-col gap-2'>
-              {leads ? 
+              {leads && leads.filter((lead:any) => lead.drafters.map((drafter:any) => drafter._id).indexOf(session.user.id) > -1).length > 0 ? 
                 leads.map((lead:any) => (
-                  <li key={lead._id} className='std-input rounded-md flex justify-between items-center'>
-                    {lead.name}
-                    <div className='flex gap-2'>
-                      { lead.status === 'active' &&
+                    lead.drafters.map((drafter:any)=>drafter._id).indexOf(session.user.id) > -1 ? 
+                    <li key={lead._id} className='std-input rounded-md flex justify-between items-center'>
+                      {lead.name}
+                      <div className='flex gap-2'>
+                        { lead.status === 'active' &&
+                          <div className='flex items-center bg-secondary rounded-md text-white px-2 gap-2'>
+                            <FontAwesomeIcon className='text-green-500' icon={faCircle} size='2xs' />
+                            Active
+                          </div>
+                        }
+                        { lead.status === 'inactive' &&
+                          <div className='flex items-center bg-secondary rounded-md text-white px-2 gap-2'>
+                            <FontAwesomeIcon className='text-secondaryHighlight' icon={faCircle} size='2xs' />
+                            Inactive
+                          </div>
+                        }
                         <div className='flex items-center bg-secondary rounded-md text-white px-2 gap-2'>
-                          <FontAwesomeIcon className='text-green-500' icon={faCircle} size='2xs' />
-                          Active
+                          <FontAwesomeIcon icon={faComment} />
+                          {lead.notes.length}
                         </div>
-                      }
-                      { lead.status === 'inactive' &&
                         <div className='flex items-center bg-secondary rounded-md text-white px-2 gap-2'>
-                          <FontAwesomeIcon className='text-secondaryHighlight' icon={faCircle} size='2xs' />
-                          Inactive
+                          <FontAwesomeIcon icon={faCodeCommit} />
+                          {lead.revisions.length}
                         </div>
-                      }
-                      <div className='flex items-center bg-secondary rounded-md text-white px-2 gap-2'>
-                        <FontAwesomeIcon icon={faComment} />
-                        {lead.notes.length}
+                        <Link href={{pathname: '/leads/edit/[id]', query: { id: lead._id }}} as={`/leads/edit/${lead._id}`} className='std-button-lite' ><FontAwesomeIcon icon={faMagnifyingGlass}/></Link>
                       </div>
-                      <div className='flex items-center bg-secondary rounded-md text-white px-2 gap-2'>
-                        <FontAwesomeIcon icon={faCodeCommit} />
-                        {lead.revisions.length}
-                      </div>
-                      <Link href={{pathname: '/leads/edit/[id]', query: { id: lead._id }}} as={`/leads/edit/${lead._id}`} className='std-button-lite' ><FontAwesomeIcon icon={faMagnifyingGlass}/></Link>
-                      {/* <button className='secondary-button-lite'><FontAwesomeIcon icon={faPen}/></button> */}
-                    </div>
-                  </li>
+                    </li>
+                    :
+                    null
+                  
                 ))
                 :
                 <div>

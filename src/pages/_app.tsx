@@ -3,7 +3,6 @@ import { Open_Sans } from 'next/font/google'
 import type { AppProps, AppInitialProps } from 'next/app'
 import { ApolloProvider } from '@apollo/client';
 import { useApollo } from '../../utils/apolloClient';
-import connectMongo from '../../utils/connectMongo.js';
 import { SessionProvider } from 'next-auth/react';
 
 const openSans = Open_Sans({
@@ -24,7 +23,7 @@ export default function App({ Component, pageProps: {session, ...pageProps} }: A
             --secondary: ${process.env.NEXT_PUBLIC_BRANDING_SECONDARY};
             --secondary-hover: ${process.env.NEXT_PUBLIC_BRANDING_SECONDARY_HOVER};
             --secondary-highlight: ${process.env.NEXT_PUBLIC_BRANDING_SECONDARY_HIGHLIGHT};
-          }adm
+          }
         `}
       </style>
       <SessionProvider session={session} >

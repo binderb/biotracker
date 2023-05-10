@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../api/auth/[...nextauth]';
 import { initializeApollo, addApolloState } from "../../../../utils/apolloClient";
-import { GET_CLIENTS, GET_USERS, GET_LEAD_LATEST } from "@/utils/queries";
+import { GET_CLIENTS, GET_USERS, GET_LEAD_LATEST, GET_LEADS } from "@/utils/queries";
 import { useSession } from "next-auth/react";
 import { ChangeEvent, MouseEventHandler, useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
@@ -57,16 +57,16 @@ export default function LeadManager (props:any) {
   });
   const leadData = leadResponseData?.getLeadLatestRevision;
   const leadContent = JSON.parse(leadData?.revisions[0].content);
-  const [creatorStep, setCreatorStep] = useState(1);
   const [errStatus, setErrStatus] = useState('');
   const [successStatus, setSuccessStatus] = useState('');
   const [client, setClient] = useState(leadData.client.code);
 
+
   const [addLeadRevision, { error: leadRevisionError, data: addLeadRevisionData }] = useMutation(ADD_LEAD_REVISION, {
-    refetchQueries: [GET_LEAD_LATEST]
+    refetchQueries: [GET_LEAD_LATEST, GET_LEADS]
   });
   const [addLeadNote, { error: leadNoteError, data: addLeadNoteData }] = useMutation(ADD_LEAD_NOTE, {
-    refetchQueries: [GET_LEAD_LATEST]
+    refetchQueries: [GET_LEAD_LATEST, GET_LEADS]
   });
 
   // Maybe make this a more generic interface in the future?
@@ -230,7 +230,7 @@ export default function LeadManager (props:any) {
     <>
       <main className='md:h-screen overflow-x-hidden flex flex-col gap-2 pb-4'>
       <Navbar/>
-      { status === 'authenticated' && session.user.role === 'admin' ?
+      { status === 'authenticated' ?
         <>
         <div className='flex items-center'>
 

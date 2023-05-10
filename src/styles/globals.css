@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --drafter1: #09a0fe;
+  --drafter2: #fe9409;
+  --drafter3: #74b300;
+  --drafter4: #ca007c;
+  --drafter5: #7f09fe;
+  --drafter6: #009da5;
+  --drafter7: #cca300;
+  --drafter8: #fe0909;
+}
+
 h1 {
   @apply font-bold text-[20px]
 }
