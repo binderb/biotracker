@@ -201,7 +201,7 @@ export default function LeadManager () {
   function handleChangeStep (delta:number) {
     const newCreatorStep = creatorStep + delta;
     if (newCreatorStep === 1 || newCreatorStep === 2 || newCreatorStep === 3) setErrStatus('');
-    if (newCreatorStep === 1 && (!client || !leadName)) {
+    if (newCreatorStep === 2 && (!client || !leadName)) {
       setErrStatus('Please select a value for all fields before proceeding!');
       return;
     }
@@ -330,8 +330,10 @@ export default function LeadManager () {
                   <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
                   <table className='whitespace-nowrap'>
                       <thead>
+                        <tr>
                         <th></th>
                         <th className='w-full'></th>
+                        </tr>
                       </thead>
                       <tbody>
                         <tr>
@@ -367,8 +369,10 @@ export default function LeadManager () {
                   <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
                     <table className='whitespace-nowrap'>
                       <thead>
+                        <tr>
                         <th></th>
                         <th className='w-full'></th>
+                        </tr>
                       </thead>
                       <tbody>
                         <tr>
@@ -404,8 +408,10 @@ export default function LeadManager () {
                   <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
                   <table className='whitespace-nowrap'>
                       <thead>
+                        <tr>
                         <th></th>
                         <th className='w-full'></th>
+                        </tr>
                       </thead>
                       <tbody>
                         <tr>
@@ -441,8 +447,10 @@ export default function LeadManager () {
                   <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
                   <table className='whitespace-nowrap'>
                       <thead>
+                      <tr>
                         <th></th>
                         <th className='w-full'></th>
+                      </tr>
                       </thead>
                       <tbody>
                         <tr>
@@ -478,10 +486,12 @@ export default function LeadManager () {
                   <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
                     <table className='whitespace-nowrap border-separate border-spacing-1'>
                       <thead>
+                      <tr>
                         <th></th>
                         <th className='w-[33%]'></th>
                         <th className='w-[33%]'></th>
                         <th className='w-[33%]'></th>
+                      </tr>
                       </thead>
                       <tbody>
                         <tr>
@@ -577,8 +587,10 @@ export default function LeadManager () {
                   <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
                   <table className='whitespace-nowrap'>
                       <thead>
+                      <tr>
                         <th></th>
                         <th className='w-full'></th>
+                      </tr>
                       </thead>
                       <tbody>
                         <tr>

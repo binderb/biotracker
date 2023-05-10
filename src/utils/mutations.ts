@@ -22,6 +22,18 @@ export const ADD_NEW_LEAD = gql`
   }
 `;
 
+export const ADD_LEAD_REVISION = gql`
+  mutation addLeadRevision($addLeadRevisionId: ID!, $author: ID!, $status: String!, $content: String!, $note: String!) {
+    addLeadRevision(id: $addLeadRevisionId, author: $author, status: $status, content: $content, note: $note)
+  }
+`;
+
+export const ADD_LEAD_NOTE = gql`
+  mutation addLeadNote($addLeadNoteId: ID!, $revisionId: ID!, $author: ID!, $note: String!) {
+    addLeadNote(id: $addLeadNoteId, revisionId: $revisionId, author: $author, note: $note)
+  }
+`;
+
 export const ADD_STUDY = gql`
   mutation addStudy($clientCode: String!, $studyIndex: Int!, $studyType: String!) {
     addStudy(clientCode: $clientCode, studyIndex: $studyIndex, studyType: $studyType) {

@@ -3,6 +3,7 @@ import { Schema, model, models } from 'mongoose';
 const leadSchema = new Schema({
   name: String!,
   author: { type: Schema.Types.ObjectId, ref: 'User' }!,
+  status: { type: String, required: true, default: 'active'},
   drafters: [{ type: Schema.Types.ObjectId, ref: 'User' }]!,
   client: { type: Schema.Types.ObjectId, ref: 'Client' }!,
   revisions: [{ type: Schema.Types.ObjectId, ref: 'LeadRevision' }]!,

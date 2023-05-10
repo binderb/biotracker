@@ -14,7 +14,11 @@ function createApolloClient() {
       uri: 'http://localhost:3000/api/graphql',
       credentials: 'same-origin',
     }),
-    cache: new InMemoryCache(),
+    cache: new InMemoryCache({
+      dataIdFromObject: (object: any) => {
+        return object.id
+      },
+    }),
   })
 }
 
@@ -24,6 +28,7 @@ export function initializeApollo(initialState: NormalizedCacheObject | null = nu
   // If your page has Next.js data fetching methods that use Apollo Client, the initial state
   // gets hydrated here
   if (initialState) {
+    
     // Get existing cache, loaded during client side data fetching
     const existingCache = _apolloClient.extract();
 

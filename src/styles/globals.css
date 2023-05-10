@@ -30,6 +30,14 @@ h2 {
   @apply opacity-50 hover:bg-primary
 }
 
+.std-button-lite {
+  @apply py-1 px-3 bg-primary text-white rounded-md hover:bg-primaryHighlight
+}
+
+.std-button-lite:disabled {
+  @apply opacity-50 hover:bg-primary
+}
+
 .secondary-button {
   @apply py-2 px-4 bg-secondary text-white rounded-full hover:bg-secondaryHighlight
 }
@@ -39,7 +47,7 @@ h2 {
 }
 
 .secondary-button-lite {
-  @apply py-1 px-3 bg-secondary text-white rounded-md hover:bg-secondaryHighlight
+  @apply py-1 px-3 bg-secondary text-white rounded-md hover:bg-secondaryHover
 }
 
 .secondary-button-lite:disabled {

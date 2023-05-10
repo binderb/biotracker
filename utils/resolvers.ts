@@ -7,6 +7,7 @@ import Study from "../models/Study";
 import connectMongo from "./connectMongo";
 import User from "../models/User";
 import { adminAuthorizeGoogleDrive, createDirectoryIfNotExists, createDirectoryWithSubdirectories, getFolderIdFromPath, listFiles, userAuthorizeGoogleDrive } from "./googleDrive";
+import { now } from "lodash";
 const fs = require('fs');
 
 const resolvers = {
@@ -25,7 +26,6 @@ const resolvers = {
     },
     getNextStudy: async (_:any, args:any) => {
       const { clientCode } = args;
-      console.log(clientCode);
       await connectMongo();
       const client = await Client.findOne({code: clientCode});
       if (!client) {
@@ -34,16 +34,60 @@ const resolvers = {
       if (client.studies) {
         const studies = client.studies.map((e:any) => e.index);
         if (studies.length === 0) {
-          console.log(1);
           return 1;
         } else {
-          console.log(studies.length+1);
           return studies.length + 1;
         }
       } else {
-        console.log(1);
         return 1;
       }
+    },
+    getLeads: async () => {
+      await connectMongo();
+      return Lead.find()
+        .populate('author')
+        .populate('client')
+        .populate('drafters')
+        .populate('revisions')
+        .populate({
+          path: 'notes',
+          model: 'LeadNote',
+          populate: {
+            path: 'author',
+            model: 'User'
+          }
+        });
+    },
+    getLeadLatestRevision: async (_:any, args:any) => {
+      const { id } = args;
+      await connectMongo();
+      const lead = await Lead.findById(id,{'revisions': {$slice: -1} })
+        .populate('client')
+        // .populate({path: 'notes', model: 'LeadNote'});
+        .populate('revisions')
+        .populate({
+          path: 'revisions',
+          model: 'LeadRevision',
+          populate: {
+            path: 'author',
+            model: 'User'
+          }
+        })
+        .populate('notes')
+        .populate({
+          path: 'notes',
+          options: {
+            sort: {
+              'createdAt': -1
+            }
+          },
+          model: 'LeadNote',
+          populate: {
+            path: 'author',
+            model: 'User'
+          }
+        });
+      return lead;
     }
   },
 
@@ -91,17 +135,20 @@ const resolvers = {
     },
     addLead: async (_:any, args:any) => {
       const { name, author, drafters, client, content, firstNote } = args;
+      await connectMongo();
       try {
         // Create Lead Revision
         const newRevision = await LeadRevision.create({
           author,
-          content
+          content,
+          createdAt: new Date(now())
         });
         // Create Lead Note
         const newNote = await LeadNote.create({
           author,
           content: firstNote,
           revision: newRevision._id,
+          createdAt: new Date(now())
         });
         // // Create Lead
         const newLead = await Lead.create({
@@ -117,6 +164,64 @@ const resolvers = {
       }
       return `success`;
 
+    },
+    addLeadRevision: async (_:any, args:any) => {
+      const { id, author, status, content, note } = args;
+      try {
+        await connectMongo();
+        // Create Lead Revision
+        const newRevision = await LeadRevision.create({
+          author,
+          content,
+          createdAt: new Date()
+        });
+        // Create Lead Note
+        const newNote = await LeadNote.create({
+          author,
+          content: note,
+          revision: newRevision._id,
+          createdAt: new Date()
+        });
+        // Update Lead
+        const updatedLead = await Lead.findOneAndUpdate(
+          { _id: id},
+          { $push: 
+            {
+              revisions: newRevision,
+              notes: newNote,
+            },
+            status: status
+          }
+        );
+      } catch (err:any) {
+        throw new Error(err.message);
+      }
+      return `success`;
+    },
+    addLeadNote: async(_:any, args:any) => {
+      const { id, revisionId, author, note } = args;
+      try {
+        await connectMongo();
+        // Create note
+        const newNote = await LeadNote.create({
+          author,
+          content: note,
+          revision: revisionId,
+          createdAt: new Date()
+        });
+        // Update Lead
+        const updatedLead = await Lead.findOneAndUpdate(
+          { _id: id},
+          { $push: 
+            {
+              notes: newNote,
+            }
+          }
+        );
+      } catch (err:any) {
+        throw new Error(err.message);
+      }
+      return `success`;
     },
     addStudy: async (_:any, args:any) => {
       const { clientCode, studyIndex, studyType } = args;

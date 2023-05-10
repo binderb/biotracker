@@ -35,3 +35,107 @@ export const GET_NEXT_STUDY = gql`
     getNextStudy(clientCode: $clientCode)
   }
 `;
+
+export const GET_LEADS = gql`
+  query GetLeads {
+    getLeads {
+      _id
+      status
+      author {
+        _id
+        first
+        last
+        username
+      }
+      client {
+        _id
+        code
+      }
+      drafters {
+        _id
+        first
+        last
+        username
+      }
+      revisions {
+        _id
+      }
+      name
+      notes {
+        author {
+          _id
+          first
+          last
+          username
+        }
+      }
+
+    }
+  }
+`;
+
+export const GET_LEAD_LATEST = gql`
+  query GetLeads($getLeadLatestRevisionId: ID!) {
+    getLeadLatestRevision(id: $getLeadLatestRevisionId) {
+      _id
+      name
+      status
+      client {
+        _id
+        code
+      }
+      revisions {
+        _id
+        content
+        author {
+          _id
+        }
+      }
+      notes {
+        _id
+        createdAt
+        content
+        author {
+          _id
+          first
+          last
+          username
+        }
+      }
+    }
+  }
+`;
+
+// export const GET_LEAD_LATEST = gql`
+//   query GetLeads($getLeadLatestRevisionId: ID!) {
+//     getLeadLatestRevision(id: $getLeadLatestRevisionId) {
+//       _id
+//       name
+//       status
+//       client {
+//         code
+//       }
+//       revisions {
+//         _id
+//         content
+//         createdAt
+//         author {
+//           _id
+//           first
+//           last
+//           username
+//         }
+//       }
+//       notes {
+//         _id
+//         author {
+//           _id
+//           first
+//           last
+//           username
+//         }
+//         content
+//       }
+//     }
+//   }
+// `;
