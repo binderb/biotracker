@@ -5,10 +5,9 @@ import { initializeApollo, addApolloState } from "../../../utils/apolloClient";
 import { GET_LEADS } from "@/utils/queries";
 import { useSession } from "next-auth/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRight, faCircle, faClockRotateLeft, faCodeCommit, faComment, faComments, faMagnifyingGlass, faMagnifyingGlassArrowRight, faPen, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faBriefcase, faCircle, faClockRotateLeft, faCodeCommit, faComment, faComments, faFile, faFileArchive, faFileClipboard, faFileLines, faFolderOpen, faMagnifyingGlass, faMagnifyingGlassArrowRight, faPen, faPlus } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { useQuery } from "@apollo/client";
-import { Yesteryear } from "next/font/google";
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -52,8 +51,9 @@ export default function LeadManager () {
       <Navbar/>
       { status === 'authenticated' ?
         <main className="flex flex-col p-4">
-          <div className='mt-2 mb-4'>
-            <Link className="std-button mr-2" href="/leads/new"><FontAwesomeIcon icon={faPlus} className="mr-2"></FontAwesomeIcon> New Lead</Link>
+          <div className='flex mt-2 mb-2 gap-2'>
+            <Link className="std-button" href="/leads/new"><FontAwesomeIcon icon={faPlus} className="mr-2"></FontAwesomeIcon>New Lead</Link>
+            <Link className="std-button" href="/leads/templates"><FontAwesomeIcon icon={faBriefcase} className="mr-2"></FontAwesomeIcon>Templates</Link>
           </div>
           <div className='flex flex-col mt-4 bg-secondaryHighlight rounded-md p-4'>
             <div className='font-bold mb-4'>Current Leads:</div>

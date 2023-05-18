@@ -171,7 +171,7 @@ export default function LeadManager (props:any) {
     }
     if (!note.trim()) {
       setSuccessStatus('');
-      setErrStatus('Please enter a comment explaining your changes.');
+      setErrStatus('Please enter a discussion note explaining your changes.');
       return;
     }
     const leadData = {
@@ -237,7 +237,7 @@ export default function LeadManager (props:any) {
           <Link className='std-link ml-4 my-2' href='/leads'>&larr; Back</Link>
           <h1 className='mx-4'>Editing: {leadData.name}</h1>
         </div>
-        <div className='flex justify-between items-center bg-secondaryHighlight rounded-xl p-2 mx-4 flex-grow'>
+        <div className='flex justify-between items-center bg-secondaryHighlight rounded-xl p-2 mx-4 flex-grow gap-2'>
           <div className='pl-2'>
             {errStatus && 
               <div className='flex items-center gap-2 bg-[#FDD] pl-2 pr-1 py-1 rounded-md text-[#800]'>

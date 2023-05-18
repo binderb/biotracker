@@ -1,3 +1,5 @@
+import { faClockRotateLeft, faCodeCommit } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface Props {
   leadData: any
@@ -34,8 +36,14 @@ export default function DiscussionBoard(props:Props) {
               {`${note.author.first[0]}${note.author.last ? note.author.last[0] : ''}`}
             </div>
             <div className='flex flex-col gap-2 rounded-md pl-6 pr-2'>
-            <div className='text-[12px]'>
+            <div className='flex items-center text-[12px] gap-2'>
               { getFormattedDate(note.createdAt) }
+              { note.newRevision && <>
+                {/* <FontAwesomeIcon icon={faCodeCommit}/> */}
+                <button className='hover:text-secondaryHighlight'>
+                  <FontAwesomeIcon icon={faClockRotateLeft}/>
+                </button>
+              </> }
             </div>
             <div className='mb-2'>
               {note.content}

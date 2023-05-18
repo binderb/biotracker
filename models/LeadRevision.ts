@@ -2,7 +2,8 @@ import { Schema, model, models } from 'mongoose';
 
 const leadRevisionSchema = new Schema({
   author: { type: Schema.Types.ObjectId, ref: 'User' }!,
-  createdAt: { type: Date!, default: Date.now() },
+  templateRevision: { type: Schema.Types.ObjectId, ref: 'LeadTemplateRevision' }!,
+  createdAt: Date!,
   content: String!,
 });
 

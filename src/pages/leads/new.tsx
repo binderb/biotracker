@@ -43,7 +43,7 @@ export async function getServerSideProps(context:any) {
 }
 
 
-export default function LeadManager () {
+export default function NewLead () {
 
   const { data: session, status } = useSession();
   const { data: clientData } = useQuery(GET_CLIENTS);

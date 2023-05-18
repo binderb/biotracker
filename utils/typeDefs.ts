@@ -29,6 +29,7 @@ const typeDefs = gql`
     _id: ID
     name: String!
     author: User
+    template: LeadTemplate
     status: String!
     drafters: [User]
     client: Client
@@ -39,6 +40,7 @@ const typeDefs = gql`
   type LeadRevision {
     _id: ID
     author: User,
+    templateRevision: LeadTemplateRevision
     createdAt: String
     content: String
   }
@@ -49,6 +51,7 @@ const typeDefs = gql`
     createdAt: String
     content: String!
     revision: LeadRevision
+    newRevision: Boolean!
     leadChanges: [LeadChange]
     parentNote: LeadNote
   }
@@ -59,6 +62,37 @@ const typeDefs = gql`
     after: String!
   }
 
+  type LeadTemplate {
+    _id: ID,
+    name: String!,
+    revisions: [LeadTemplateRevision]!
+    active: Boolean!,
+  }
+
+  type LeadTemplateRevision {
+    _id: ID,
+    createdAt: String!,
+    sections: [LeadTemplateSection]!,
+  }
+
+  type LeadTemplateSection {
+    _id: ID,
+    name: String!,
+    index: Int!,
+    fields: [LeadTemplateField]!,
+    extensible: Boolean!,
+    enstensibleGroupName: String
+  }
+
+  type LeadTemplateField {
+    _id: ID,
+    name: String!,
+    index: Int!,
+    type: String!,
+    data: String,
+    extensible: Boolean!,
+  }
+
   type Query {
     getUsers: [User]
     getClients: [Client]
@@ -66,6 +100,7 @@ const typeDefs = gql`
     getNextStudy(clientCode: String!): Int
     getLeads: [Lead]
     getLeadLatestRevision(id: ID!): Lead
+    getLeadTemplates: [LeadTemplate]
   }
 
   type Mutation {

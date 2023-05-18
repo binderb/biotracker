@@ -8,6 +8,7 @@ import connectMongo from "./connectMongo";
 import User from "../models/User";
 import { adminAuthorizeGoogleDrive, createDirectoryIfNotExists, createDirectoryWithSubdirectories, getFolderIdFromPath, listFiles, userAuthorizeGoogleDrive } from "./googleDrive";
 import { now } from "lodash";
+import LeadTemplate from "../models/LeadTemplate";
 const fs = require('fs');
 
 const resolvers = {
@@ -63,7 +64,6 @@ const resolvers = {
       await connectMongo();
       const lead = await Lead.findById(id,{'revisions': {$slice: -1} })
         .populate('client')
-        // .populate({path: 'notes', model: 'LeadNote'});
         .populate('revisions')
         .populate({
           path: 'revisions',
@@ -88,7 +88,11 @@ const resolvers = {
           }
         });
       return lead;
-    }
+    },
+    getLeadTemplates: async () => {
+      await connectMongo();
+      return LeadTemplate.find();
+    },
   },
 
   Mutation: {
@@ -141,16 +145,17 @@ const resolvers = {
         const newRevision = await LeadRevision.create({
           author,
           content,
-          createdAt: new Date(now())
+          createdAt: new Date()
         });
         // Create Lead Note
         const newNote = await LeadNote.create({
           author,
           content: firstNote,
           revision: newRevision._id,
-          createdAt: new Date(now())
+          newRevision: true,
+          createdAt: new Date()
         });
-        // // Create Lead
+        // Create Lead
         const newLead = await Lead.create({
           name,
           author,
@@ -180,6 +185,7 @@ const resolvers = {
           author,
           content: note,
           revision: newRevision._id,
+          newRevision: true,
           createdAt: new Date()
         });
         // Update Lead
@@ -207,6 +213,7 @@ const resolvers = {
           author,
           content: note,
           revision: revisionId,
+          newRevision: false,
           createdAt: new Date()
         });
         // Update Lead
