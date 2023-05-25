@@ -34,6 +34,12 @@ export const ADD_LEAD_NOTE = gql`
   }
 `;
 
+export const ADD_LEAD_TEMPLATE = gql`
+  mutation addLeadTemplate($name: String!, $sections: String!) {
+    addLeadTemplate(name: $name, sections: $sections)
+  }
+`;
+
 export const ADD_STUDY = gql`
   mutation addStudy($clientCode: String!, $studyIndex: Int!, $studyType: String!) {
     addStudy(clientCode: $clientCode, studyIndex: $studyIndex, studyType: $studyType) {

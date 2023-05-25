@@ -2,7 +2,6 @@ import { Schema, model, models } from 'mongoose';
 
 const leadTemplateRevisionSchema = new Schema({
   createdAt: Date!,
-  active: Boolean!,
   sections: [{ type: Schema.Types.ObjectId, ref: 'LeadTemplateSection'}]!,
 });
 

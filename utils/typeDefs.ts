@@ -109,6 +109,7 @@ const typeDefs = gql`
     addLead(name: String!, author: ID!, drafters: [ID]!, client: ID!, content: String!, firstNote: String!): String
     addLeadRevision(id: ID!, author: ID!, status: String!, content: String!, note: String!): String
     addLeadNote(id: ID!, revisionId: ID!, author: ID!, note: String!): String
+    addLeadTemplate(name: String!, sections: String!): String
     addStudy(clientCode: String!, studyIndex: Int!, studyType: String!): Client
     authorizeGoogleDrive: String
     testGoogleDrive: String

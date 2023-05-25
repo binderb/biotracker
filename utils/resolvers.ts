@@ -9,6 +9,9 @@ import User from "../models/User";
 import { adminAuthorizeGoogleDrive, createDirectoryIfNotExists, createDirectoryWithSubdirectories, getFolderIdFromPath, listFiles, userAuthorizeGoogleDrive } from "./googleDrive";
 import { now } from "lodash";
 import LeadTemplate from "../models/LeadTemplate";
+import LeadTemplateField from "../models/LeadTemplateField";
+import LeadTemplateSection from "../models/LeadTemplateSection";
+import LeadTemplateRevision from "../models/LeadTemplateRevision";
 const fs = require('fs');
 
 const resolvers = {
@@ -229,6 +232,46 @@ const resolvers = {
         throw new Error(err.message);
       }
       return `success`;
+    },
+    addLeadTemplate: async (_:any, args:any) => {
+      const { name, sections } = args;
+      const sectionData = JSON.parse(sections);
+      try {
+        const sectionModels = [];
+        for (var section of sectionData) {
+          let sectionFieldModels = [];
+          if (section.fields.length > 0) {
+            // Create fields for each section
+            sectionFieldModels = await LeadTemplateField.create(section.fields);
+            // Create each section
+            let newSection = await LeadTemplateSection.create({
+              ...section,
+              fields: sectionFieldModels.map((field:any) => field._id)
+            });
+            sectionModels.push(newSection);
+          }
+        }
+        // Create template revision
+        const revision = await LeadTemplateRevision.create({
+          createdAt: new Date(),
+          sections: sectionModels.map((section:any) => section._id)
+        });
+        // Create top-level template model
+        const template = await LeadTemplate.create({
+          name: name,
+          active: true,
+          revisions: revision._id
+        })
+      } catch (err:any) {
+        return err.message;
+      }
+
+      // Create template revision
+
+      // Create top-level template model
+
+      // "[{\"name\":\"Test section\",\"fields\":[{\"name\":\"Apple\",\"index\":0,\"type\":\"textarea\",\"data\":\"\",\"extensible\":false},{\"name\":\"Orange\",\"index\":1,\"type\":\"textarea\",\"data\":\"\",\"extensible\":false}],\"extensible\":true,\"extensibleGroupName\":\"\"}]"
+
     },
     addStudy: async (_:any, args:any) => {
       const { clientCode, studyIndex, studyType } = args;

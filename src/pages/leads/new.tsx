@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { initializeApollo, addApolloState } from "../../../utils/apolloClient";
-import { GET_CLIENTS, GET_USERS } from "@/utils/queries";
+import { GET_CLIENTS, GET_LEAD_TEMPLATES, GET_USERS } from "@/utils/queries";
 import { useSession } from "next-auth/react";
 import { ChangeEvent, MouseEventHandler, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
@@ -58,6 +58,7 @@ export default function NewLead () {
   const initialDrafters = session ? [session.user] : [];
   const [drafterList, setDrafterList] = useState(initialDrafters);
   const [addNewLead, { error, data: addNewLeadData }] = useMutation(ADD_NEW_LEAD);
+  const { data: templateData } = useQuery(GET_LEAD_TEMPLATES);
 
   // Maybe make this a more generic interface in the future?
   // Like a JSON object based on a loaded template?
@@ -266,9 +267,9 @@ export default function NewLead () {
               <div className='mr-2'>Client:</div>
               <select className='std-input mr-2' onChange={handleClientChange} value={client}>
                 <option value=''>-- Choose --</option> 
-                {clients.map( (client:Client) => 
+                {clients.map( (client:Client) => (
                   <option value={client.code} key={client.code}>{`${client.name} - ${client.code}`}</option>  
-                )}
+                ))}
               </select>
               <div>Don&apos;t have a client code? <Link className='std-link' href='/client-manager'>Create one</Link> before starting this process!</div>
             </div>
