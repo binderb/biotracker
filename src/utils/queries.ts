@@ -74,15 +74,6 @@ export const GET_LEADS = gql`
   }
 `;
 
-export const GET_LEAD_TEMPLATES = gql`
-  query GetLeadTemplates {
-    getLeadTemplates {
-      _id
-      name
-    }
-  }
-`;
-
 export const GET_LEAD_LATEST = gql`
   query GetLeads($getLeadLatestRevisionId: ID!) {
     getLeadLatestRevision(id: $getLeadLatestRevisionId) {
@@ -116,6 +107,44 @@ export const GET_LEAD_LATEST = gql`
           first
           last
           username
+        }
+      }
+    }
+  }
+`;
+
+export const GET_LEAD_TEMPLATES = gql`
+  query GetLeadTemplates {
+    getLeadTemplates {
+      _id
+      name
+    }
+  }
+`;
+
+export const GET_LEAD_TEMPLATE_LATEST = gql`
+  query Query($getLeadTemplateLatestRevisionId: ID!) {
+    getLeadTemplateLatestRevision(id: $getLeadTemplateLatestRevisionId) {
+      _id
+      active
+      name
+      revisions {
+        _id
+        createdAt
+        sections {
+          _id
+          enstensibleGroupName
+          extensible
+          fields {
+            _id
+            data
+            extensible
+            index
+            name
+            type
+          }
+          index
+          name
         }
       }
     }

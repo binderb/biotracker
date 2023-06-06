@@ -10,6 +10,7 @@ interface TemplateField {
 
 interface TemplateSection {
   name: string
+  index: number
   fields: Array<TemplateField>
   extensible: boolean
   extensibleGroupName: string

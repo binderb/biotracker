@@ -52,7 +52,7 @@ export default function LeadManager () {
       { status === 'authenticated' ?
         <main className="flex flex-col p-4">
           <div className='flex mt-2 mb-2 gap-2'>
-            <Link className="std-button" href="/leads/new"><FontAwesomeIcon icon={faPlus} className="mr-2"></FontAwesomeIcon>New Lead</Link>
+            <Link className="std-button" href="/leads/newtest"><FontAwesomeIcon icon={faPlus} className="mr-2"></FontAwesomeIcon>New Lead</Link>
             <Link className="std-button" href="/leads/templates"><FontAwesomeIcon icon={faBriefcase} className="mr-2"></FontAwesomeIcon>Templates</Link>
           </div>
           <div className='flex flex-col mt-4 bg-secondaryHighlight rounded-md p-4'>

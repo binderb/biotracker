@@ -22,6 +22,7 @@ interface TemplateField {
 
 interface TemplateSection {
   name: string
+  index: number,
   fields: Array<TemplateField>
   extensible: boolean
   extensibleGroupName: string
@@ -70,11 +71,16 @@ export default function NewLeadTemplate () {
       ...sections,
       {
         name: '',
+        index: sections.length,
         fields: new Array<TemplateField>,
         extensible: false,
         extensibleGroupName: ''
       }
     ])
+  }
+
+  function handleDeleteSection (index:number) {
+    setSections(sections.filter( (_, i) => i !== index));
   }
 
   async function handleCreateLeadTemplate() {
@@ -135,7 +141,7 @@ export default function NewLeadTemplate () {
                       <>
                       {sections.map((section:TemplateSection, index:number) => 
                         <>
-                          <LeadTemplateSection key={index} index={index} sections={sections} setSections={setSections} />
+                          <LeadTemplateSection key={index} index={index} sections={sections} setSections={setSections} handleDeleteSection={handleDeleteSection} />
                         </>
                       )}
                       </>

@@ -101,6 +101,7 @@ const typeDefs = gql`
     getLeads: [Lead]
     getLeadLatestRevision(id: ID!): Lead
     getLeadTemplates: [LeadTemplate]
+    getLeadTemplateLatestRevision(id: ID!): LeadTemplate
   }
 
   type Mutation {

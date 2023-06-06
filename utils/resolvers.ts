@@ -96,6 +96,25 @@ const resolvers = {
       await connectMongo();
       return LeadTemplate.find();
     },
+    getLeadTemplateLatestRevision: async (_:any, args:any) => {
+      const { id } = args;
+      await connectMongo();
+      const leadTemplate = await LeadTemplate.findById(id,{'revisions': {$slice: -1} })
+        .populate('revisions')
+        .populate({
+          path: 'revisions',
+          model: 'LeadTemplateRevision',
+          populate: {
+            path: 'sections',
+            model: 'LeadTemplateSection',
+            populate: {
+              path: 'fields',
+              model: 'LeadTemplateField'
+            }
+          }
+        });
+      return leadTemplate;
+    },
   },
 
   Mutation: {
@@ -237,6 +256,7 @@ const resolvers = {
       const { name, sections } = args;
       const sectionData = JSON.parse(sections);
       try {
+        await connectMongo();
         const sectionModels = [];
         for (var section of sectionData) {
           let sectionFieldModels = [];

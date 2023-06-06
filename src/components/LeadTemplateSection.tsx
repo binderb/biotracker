@@ -13,6 +13,7 @@ interface TemplateField {
 
 interface TemplateSection {
   name: string
+  index: number
   fields: Array<TemplateField>
   extensible: boolean
   extensibleGroupName: string
@@ -22,9 +23,10 @@ interface Props {
   index: number
   sections: Array<TemplateSection>
   setSections: Function
+  handleDeleteSection: Function
 }
 
-export default function LeadTemplateSection ({sections, index, setSections}:Props) {
+export default function LeadTemplateSection ({sections, index, setSections, handleDeleteSection}:Props) {
 
   const sectionData = sections[index];
   const [sectionName, setSectionName] = useState(sections[index].name);
@@ -62,6 +64,7 @@ export default function LeadTemplateSection ({sections, index, setSections}:Prop
         <div className='flex gap-2 items-center'>
           <div className='font-bold'>Section Name:</div>
           <input type="text" className='std-input' value={sectionName} onChange={(e)=>handleSectionNameUpdate(e)} />
+          <button className='secondary-button-lite' onClick={() => handleDeleteSection(index)}>Delete</button>
         </div>
         <label className='flex gap-2 py-2 font-bold'>
           Extensible Section:
