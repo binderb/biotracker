@@ -29,12 +29,13 @@ export default function Login () {
 
     // optional: Add validation here
     const data = await signIn('credentials', {
-      callbackUrl: '/',
+      // callbackUrl: '/',
       redirect: false,
       username: username,
       password: password,
     });
-    if (data?.url) router.push(data.url);
+    console.log(data);
+    if (data?.ok) router.push('/');
   }
 
   return (

@@ -8,11 +8,10 @@ let apolloClient:ApolloClient<NormalizedCacheObject>;
 export const APOLLO_STATE_PROP_NAME = '__APOLLO_STATE__';
 
 function createApolloClient() {
-  console.log(`http://${process.env.HOST}:${process.env.PORT}/api/graphql`)
   return new ApolloClient({
     ssrMode: typeof window === 'undefined',
     link: new HttpLink({
-      uri: `http://${process.env.HOST}:${process.env.PORT}/api/graphql`,
+      uri: `http://localhost:3000/api/graphql`,
       credentials: 'same-origin',
     }),
     cache: new InMemoryCache({
