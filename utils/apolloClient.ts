@@ -2,16 +2,21 @@ import { useMemo } from 'react'
 import { ApolloClient, InMemoryCache, HttpLink, NormalizedCacheObject } from '@apollo/client'
 import merge from 'deepmerge'
 import isEqual from 'lodash/isEqual';
+import config from '../config';
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+console.log(`isDevelopment: ${isDevelopment}`);
+const { uri:graphqlURI } = isDevelopment ? config.development : config.production;
 
 let apolloClient:ApolloClient<NormalizedCacheObject>;
 export const APOLLO_STATE_PROP_NAME = '__APOLLO_STATE__';
 
 function createApolloClient() {
+  console.log(graphqlURI);
   return new ApolloClient({
     ssrMode: typeof window === 'undefined',
     link: new HttpLink({
-      uri: `http://localhost:3000/api/graphql`,
+      uri: graphqlURI,
       credentials: 'same-origin',
     }),
     cache: new InMemoryCache({
