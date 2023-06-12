@@ -93,6 +93,68 @@ const typeDefs = gql`
     extensible: Boolean!,
   }
 
+  type InventoryCategory {
+    _id: ID,
+    name: String!
+  }
+
+  type InventoryItem {
+    _id: ID,
+    lot: String!,
+    status: String!,
+    boxgridX: String,
+    boxgridY: String,
+    received: String,
+    currentAmount: Number!,
+    spec: InventorySpec!,
+    location: InventoryLocation!
+  }
+
+  type InventoryItemLog {
+    _id: ID,
+    createdAt: String!,
+    item: InventoryItem,
+    author: User,
+    body: String!
+  }
+  
+  type InventoryLocation {
+    _id: ID,
+    name: String!,
+    description: String,
+    type: String!,
+    parent: InventoryLocation
+  }
+
+  type InventorySpec {
+    _id: ID,
+    pn: String!,
+    name: String!,
+    shortName: String,
+    description: String,
+    status: String!,
+    link: String,
+    shelfLife: Int,
+    amount: Float!,
+    units: String!,
+    threshold: Float!,
+    category: InventoryCategory,
+    vendor:
+  }
+
+  type InventorySpecLog {
+    _id: ID,
+    createdAt: String!,
+    spec: InventorySpec!,
+    author: User!,
+    body: String!
+  }
+
+  type InventoryVendor {
+    _id: ID,
+    name: String!
+  }
+
   type Query {
     getUsers: [User]
     getClients: [Client]
