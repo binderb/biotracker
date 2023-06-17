@@ -1,12 +1,13 @@
 import '@/styles/globals.css'
-import { Open_Sans } from 'next/font/google'
+import { MedievalSharp, Open_Sans, Source_Sans_Pro } from 'next/font/google'
 import type { AppProps, AppInitialProps } from 'next/app'
 import { ApolloProvider } from '@apollo/client';
 import { useApollo } from '../../utils/apolloClient';
 import { SessionProvider } from 'next-auth/react';
 
-const openSans = Open_Sans({
-  subsets: ['latin']
+const sourceSansPro = Source_Sans_Pro({
+  subsets: ['latin'],
+  weight: ['300','400','700','900']
 });
 
 export default function App({ Component, pageProps: {session, ...pageProps} }: AppProps & AppInitialProps) {
@@ -16,13 +17,9 @@ export default function App({ Component, pageProps: {session, ...pageProps} }: A
       <style jsx global>
         {`
           :root {
-            --font-primary: ${openSans.style.fontFamily};
+            --font-primary: ${sourceSansPro.style.fontFamily};
             --primary: ${process.env.NEXT_PUBLIC_BRANDING_PRIMARY};
-            --primary-hover: ${process.env.NEXT_PUBLIC_BRANDING_PRIMARY_HOVER};
-            --primary-highlight: ${process.env.NEXT_PUBLIC_BRANDING_PRIMARY_HIGHLIGHT};
             --secondary: ${process.env.NEXT_PUBLIC_BRANDING_SECONDARY};
-            --secondary-hover: ${process.env.NEXT_PUBLIC_BRANDING_SECONDARY_HOVER};
-            --secondary-highlight: ${process.env.NEXT_PUBLIC_BRANDING_SECONDARY_HIGHLIGHT};
           }
         `}
       </style>

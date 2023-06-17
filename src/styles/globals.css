@@ -21,8 +21,12 @@ h2 {
   @apply font-bold
 }
 
+h5 {
+  @apply font-bold pb-2 text-primary text-[18px]
+}
+
 .std-input {
-  @apply p-2 bg-[#FFFFFF88]
+  @apply p-2 bg-white/50 border border-secondary/80 rounded-md
 }
 
 .std-link {
@@ -30,7 +34,7 @@ h2 {
 }
 
 .nav-link {
-  @apply px-4 py-2 text-white hover:text-primaryHighlight
+  @apply font-bold text-primary hover:text-primaryHover
 }
 
 .std-button {
@@ -96,4 +100,36 @@ input[type="checkbox"]::before {
 }
 input[type="checkbox"]:checked::before {
   transform: scale(1);
+}
+
+.radio-group {
+
+}
+
+.radio-check {
+  @apply hidden
+}
+
+.radio-label {
+  @apply cursor-pointer
+}
+
+.radio-group .radio-label {
+  @apply flex items-center gap-2 w-full px-2 py-2 bg-white/0 border border-secondary/80 mb-[-1px]
+}
+
+.radio-label:first-of-type {
+  @apply rounded-t-md
+}
+
+.radio-label:last-of-type {
+  @apply rounded-b-md
+}
+
+.radio-check+.radio-label:hover {
+  @apply bg-white/80
+}
+
+.radio-check:checked+.radio-label {
+  @apply bg-primary text-white
 }

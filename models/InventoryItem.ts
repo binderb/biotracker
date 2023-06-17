@@ -13,6 +13,7 @@ const inventoryItemSchema = new Schema({
   currentAmount: Number!,
   spec: { type: Schema.Types.ObjectId, ref: 'InventorySpec' }!,
   location: { type: Schema.Types.ObjectId, ref: 'InventoryLocation' }!,
+  logs: [{ type: Schema.Types.ObjectId, ref: 'InventoryLogEntry' }]!
 });
 
 const InventoryItem = models?.InventoryItem || model('InventoryItem', inventoryItemSchema);

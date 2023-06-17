@@ -2,7 +2,6 @@ import { Schema, model, models } from 'mongoose';
 
 const inventoryItemLogSchema = new Schema({
   createdAt: Date!,
-  item: { type: Schema.Types.ObjectId, ref: 'InventoryItem' }!,
   author: { type: Schema.Types.ObjectId, ref: 'User' }!,
   body: String!
 });

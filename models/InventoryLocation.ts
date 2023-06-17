@@ -8,7 +8,7 @@ const inventoryLocationSchema = new Schema({
     enum: ['cold', 'rt', 'box'],
     default: 'rt'
   },
-  parent: { type: Schema.Types.ObjectId, ref: 'InventoryLocation' }
+  children: [{ type: Schema.Types.ObjectId, ref: 'InventoryLocation' }]
 });
 
 const InventoryLocation = models?.InventoryLocation || model('InventoryLocation', inventoryLocationSchema);

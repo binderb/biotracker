@@ -7,6 +7,9 @@ import { initializeApollo, addApolloState } from '../../../utils/apolloClient';
 import { useSession } from 'next-auth/react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenNib, faPenToSquare, faX } from '@fortawesome/free-solid-svg-icons';
+import { useRouter } from 'next/router';
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -38,6 +41,7 @@ export async function getServerSideProps(context:any) {
 
 // This gets handled by the [...nextauth] endpoint
 export default function UserManager () {
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [first, setFirst] = useState('');
@@ -97,54 +101,67 @@ export default function UserManager () {
     role: string
   }
 
+  if (status !== 'authenticated') {
+    router.push('/login');
+    return;
+  }
+
   return (
     <>
       <Navbar />
       { status === 'authenticated' && session.user.role === 'admin' ?
-      <main className="flex items-top p-4">
-        <div id="client-table" className='mr-1 bg-secondaryHighlight p-4 rounded-xl w-[50%]'>
-          <h1>User Table</h1>
-          <table className='w-full text-left border-separate'>
+      <main className="flex items-top p-4 gap-2">
+        <div id="client-table" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl w-[50%]'>
+          <h5>User Table</h5>
+          <table className='w-full text-left'>
             <thead>
               <tr>
-                <th className='w-[50%]'>User</th>
-                <th className='w-[50%]'>Role</th>
+                <th className='w-[40%]'>User</th>
+                <th className='w-[40%]'>Role</th>
+                <th className='w-[20%]'>Actions</th>
               </tr>
             </thead>
             <tbody>
             {users.map((user:User) => 
               <tr key={user.username}>
-                <td className='bg-[#FFFFFF88] p-1'>{user.username}</td>
-                <td className='bg-[#FFFFFF88] p-1'>{user.role}</td>
+                <td className='bg-white/50 p-1 border border-secondary/80 py-2'>{user.username}</td>
+                <td className='bg-white/50 p-1 border border-secondary/80 py-2'>{user.role}</td>
+                <td className='bg-white/50 p-1 border border-secondary/80 py-2'>
+                  <div className='w-full h-full flex justify-center'>
+                    <button aria-label='delete' className='mr-1 py-1 px-3 rounded-md bg-primary hover:bg-primaryHover text-white text-[12px]'><FontAwesomeIcon icon={faPenToSquare}/></button>
+                    <button aria-label='delete' className='py-1 px-3 rounded-md bg-primary hover:bg-primaryHover text-white text-[12px]'><FontAwesomeIcon icon={faX}/></button>
+                  </div>
+                </td>
               </tr>
             )}
             </tbody>
           </table>
         </div>
-        <div id="client-creator" className='ml-1 bg-secondaryHighlight p-4 rounded-xl w-[50%]'>
-          <h1 className='mb-2'>Create a User</h1>
+        <div id="client-creator" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl w-[50%]'>
+          <h5>Create a User</h5>
           <form onSubmit={handleAddUser}>
             <div >
-              <div className='mr-2'>Username:</div>
+              <div className='mb-1 font-bold'>Username:</div>
               <input className='std-input mb-2 w-full' type='text' id='username' name='username' required onChange={updateField}  />
             </div>
             <div >
-              <div className='mr-2'>Password:</div>
+              <div className='mb-1 font-bold'>Password:</div>
               <input className='std-input mb-2 w-full' type='password' id='password' name='password' required onChange={updateField} />
             </div>
             <div >
-              <div className='mr-2'>First Name:</div>
+              <div className='mb-1 font-bold'>First Name:</div>
               <input className='std-input mb-2 w-full' type='text' id='first' name='first' required onChange={updateField}  />
             </div>
             <div >
-              <div className='mr-2'>Last Name:</div>
+              <div className='mb-1 font-bold'>Last Name:</div>
               <input className='std-input mb-2 w-full' type='text' id='last' name='last' required onChange={updateField} />
             </div>
             <div >
-              <div className='mr-2'>Role:</div>
+              <div className='mb-1 font-bold'>Role:</div>
               <select className='std-input' id='role' name='role' required onChange={updateRole}>
                 <option value='user'>Regular User</option>
                 <option value='admin'>Admin (elevated privileges)</option>
+                <option value='dev'>Dev (see things that are not ready yet)</option>
               </select>
             </div>
             <div className='my-5'>

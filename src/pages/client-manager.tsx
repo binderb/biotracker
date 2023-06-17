@@ -79,7 +79,7 @@ const ClientManager = () => {
       <main className="flex items-top p-4">
         <div id="client-table" className='mr-1 bg-secondaryHighlight p-4 rounded-xl flex-grow'>
           <h1>Client Table</h1>
-          <table className='w-full text-left border-separate'>
+          <table className='w-full text-left border-collapse'>
             <thead>
               <tr>
                 <th className='w-[50%]'>Client</th>

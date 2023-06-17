@@ -2,6 +2,8 @@ import { useState, ChangeEvent } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Navbar from '@/components/Navbar';
+import Image from 'next/image';
+import config from '../../config';
 
 // This gets handled by the [...nextauth] endpoint
 export default function Login () {
@@ -40,21 +42,24 @@ export default function Login () {
 
   return (
     <>
-    <Navbar />
-    <main className='flex justify-center p-4'>
-      <div id="client-creator" className='flex flex-col ml-1 bg-secondaryHighlight p-4 rounded-xl min-w-[400px]'>
-        <h1 className='mb-2'>Login</h1>
+    {/* <Navbar /> */}
+    <main className='flex flex-col items-center p-4'>
+      <Image alt='logo' className="my-3 w-auto h-[100px]" src="/logo.png" width='100' height='100' />
+      <div className="font-light text-[32px] mb-6">
+        Login | {config.webTitle}
+      </div>
+      <div id="client-creator" className='flex flex-col ml-1 bg-secondary/20 border border-secondary/80 p-4 rounded-xl min-w-[400px]'>
         <form onSubmit={submitHandler}>
           <div className='my-2'>
-            <div>Username:</div>
+            <div className='font-bold pb-1'>Username:</div>
             <input type='text' id='username' name='username' className='mr-2 std-input w-full' required onChange={updateField}  />
           </div>
           <div className='my-2'>
-            <div>Password:</div>
+            <div className='font-bold pb-1'>Password:</div>
             <input type='password' id='password' name='password' className='mr-2 std-input w-full' required onChange={updateField} />
           </div>
-          <div className='my-5'>
-            <button className='std-button'>Login</button>
+          <div className='mt-4'>
+            <button className='std-button-lite'>Login</button>
           </div>
         </form>
         <div className='my-2 text-[#800]'>{}</div>

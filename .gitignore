@@ -4,6 +4,10 @@
 credentials.json
 token.json
 
+# Custom branding
+public/*
+!public/placeholder.md
+
 # dependencies
 /node_modules
 /.pnp

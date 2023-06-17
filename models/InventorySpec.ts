@@ -25,7 +25,8 @@ const inventorySpecSchema = new Schema({
   },
   threshold: Number!,
   category: { type: Schema.Types.ObjectId, ref: 'InventoryCategory' },
-  vendor: { type: Schema.Types.ObjectId, ref: 'InventoryVendor' }
+  vendor: { type: Schema.Types.ObjectId, ref: 'InventoryVendor' },
+  logs: [{ type: Schema.Types.ObjectId, ref: 'InventoryLogEntry' }]!
 });
 
 const InventorySpec = models?.InventorySpec || model('InventorySpec', inventorySpecSchema);

@@ -12,12 +12,12 @@ module.exports = {
         'primary' : ['var(--font-primary)',...fontFamily.sans]
       },
       colors: {
-        'primary' : 'var(--primary)',
-        'primaryHover' : 'var(--primary-hover)',
-        'primaryHighlight' : 'var(--primary-highlight)',
-        'secondary' : 'var(--secondary)',
-        'secondaryHover' : 'var(--secondary-hover)',
-        'secondaryHighlight' : 'var(--secondary-highlight)',
+        'primary' : 'rgba(var(--primary), <alpha-value>)',
+        'primaryHover' : 'color-mix(in srgb, white 20%, rgb(var(--primary)))',
+        'primaryHighlight' : 'color-mix(in srgb, white 10%, rgb(var(--primary)))',
+        'secondary' : 'rgba(var(--secondary), <alpha-value>)',
+        'secondaryHover' : 'color-mix(in srgb, white 20%, rgb(var(--secondary)))',
+        'secondaryHighlight' : 'color-mix(in srgb, white 10%, rgb(var(--secondary)))',
         'drafter1' : 'var(--drafter1)',
         'drafter2' : 'var(--drafter2)',
         'drafter3' : 'var(--drafter3)',
