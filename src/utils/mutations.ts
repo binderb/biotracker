@@ -9,9 +9,10 @@ export const ADD_USER = gql`
 `;
 
 export const ADD_CLIENT = gql`
-  mutation addClient($name: String!) {
-    addClient(name: $name) {
+  mutation addClient($name: String!, $code: String!) {
+    addClient(name: $name, code: $code) {
       name
+      code
     }
   }
 `;

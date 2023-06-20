@@ -30,6 +30,12 @@ export const GET_CLIENT_CODES = gql`
   }
 `;
 
+export const GET_NEW_CODE = gql`
+  query GetNewCode {
+    getNewCode
+  }
+`;
+
 export const GET_NEXT_STUDY = gql`
   query GetNextStudy($clientCode: String!) {
     getNextStudy(clientCode: $clientCode)

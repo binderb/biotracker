@@ -28,6 +28,23 @@ const resolvers = {
       await connectMongo();
       return Client.find();
     },
+    getNewCode: async () => {
+      await connectMongo();
+      const clients = await Client.find();
+      const clientCodes = clients.map(e => e.code);
+      // generate a new client code
+      const codeSymbols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      let newCode = null;
+      while (!newCode) {
+        const potentialCode:Array<string> = [];
+        for (let i=0;i<3;i++) {
+          const randomIndex = Math.floor(Math.random()*codeSymbols.length);
+          potentialCode.push(codeSymbols[randomIndex]);
+        }
+        if (!clientCodes.includes(potentialCode.join(''))) newCode = potentialCode.join('');
+      }
+      return newCode;
+    },
     getNextStudy: async (_:any, args:any) => {
       const { clientCode } = args;
       await connectMongo();
@@ -134,28 +151,31 @@ const resolvers = {
       }
     },
     addClient: async (_:any, args:any) => {
-      const { name } = args;
+      const { name, code:rawCode } = args;
+      const code = rawCode.toUpperCase();
       await connectMongo();
       const clients = await Client.find();
       const clientNames = clients.map(e => e.name);
       const clientCodes = clients.map(e => e.code);
+      if (!name || !code) {
+        throw new Error("All fields must have a value!");
+      }
       if (clientNames.includes(name)) {
         throw new Error("Client already exists! Please choose a different name.");
       }
-      // generate a new client code
+      if (clientCodes.includes(code)) {
+        throw new Error("Provided code is already in use! Please pick or generate a different one.");
+      }
       const codeSymbols = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-      let newCode = null;
-      while (!newCode) {
-        const potentialCode:Array<string> = [];
-        for (let i=0;i<3;i++) {
-          const randomIndex = Math.floor(Math.random()*codeSymbols.length);
-          potentialCode.push(codeSymbols[randomIndex]);
-        }
-        if (!clientCodes.includes(potentialCode.join(''))) newCode = potentialCode.join('');
+      let correctCodeFormat = true;
+      if (code.length !== 3) correctCodeFormat = false;
+      for (let c of code) if (!codeSymbols.includes(c)) correctCodeFormat = false;
+      if (!correctCodeFormat) {
+        throw new Error("Incorrect code format!");
       }
       const newClient = await Client.create({
         name: name,
-        code: newCode
+        code: code
       });
       return newClient;
     },

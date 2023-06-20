@@ -1,12 +1,13 @@
-import { GET_CLIENTS } from '@/utils/queries'
+import { GET_CLIENTS, GET_NEW_CODE } from '@/utils/queries'
 import { ADD_CLIENT } from '@/utils/mutations';
 import { initializeApollo, addApolloState } from '../../utils/apolloClient'
-import { useQuery, useMutation } from '@apollo/client'
+import { useQuery, useMutation, useLazyQuery } from '@apollo/client'
 import Navbar from '@/components/Navbar';
-import { useState, ChangeEvent } from 'react';
+import { useState, ChangeEvent, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from './api/auth/[...nextauth]';
+import { useRouter } from 'next/router';
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -39,15 +40,31 @@ export async function getServerSideProps(context:any) {
 
 const ClientManager = () => {
 
+  const router = useRouter();
   const { data: session, status } = useSession();
   const { data: clientData } = useQuery(GET_CLIENTS);
+  const clients = clientData.getClients;
+  const [clientList, setClientList] = useState(clients);
+  const [getCode, { data: newCodeData }] = useLazyQuery(GET_NEW_CODE, {
+    fetchPolicy: 'network-only'
+  });
   const [addClient, { error, data : newClientData }] = useMutation(ADD_CLIENT, {
     refetchQueries: [{query: GET_CLIENTS}]
   });
-  const clients = clientData.getClients;
 
   const [clientName, setClientName] = useState('');
-  const [creatorStatus, setCreatorStatus] = useState('');
+  const [errStatus, setErrStatus] = useState('');
+  const [code, setCode] = useState('');
+
+  useEffect(() => {
+    if (clientName.trim().length > 0) {
+      const regex = new RegExp(`${clientName}`,'gi');
+      const filteredList = clients.filter((e:Client) => (e.name.match(regex) || e.code.match(regex)));
+      setClientList(filteredList);
+    } else {
+      setClientList(clients);
+    }
+  },[clients, clientName]);
 
   interface Client {
     _id: string,
@@ -59,51 +76,83 @@ const ClientManager = () => {
     setClientName(e.target.value)
   }
 
+  async function handleGenerateNewCode () {
+    try {
+      const codeResponse = await getCode();
+      setCode(codeResponse?.data.getNewCode);
+    } catch (err:any) {
+      setErrStatus(err.message);
+    }
+  }
+
   async function handleSubmitNewClient () {
     try {
       const newClient = await addClient({
         variables: {
-          name: clientName
+          name: clientName,
+          code: code
         }
       });
-      setCreatorStatus('');
+      setErrStatus('');
+      setClientName('');
+      setCode('');
     } catch (err:any) {
-      setCreatorStatus(err.message);
+      setErrStatus(err.message);
     }
+  }
+
+  if (status !== 'authenticated') {
+    router.push('/login');
+    return;
   }
 
   return (
     <>
       <Navbar/>
       { status === 'authenticated' && session.user.role === 'admin' ?
-      <main className="flex items-top p-4">
-        <div id="client-table" className='mr-1 bg-secondaryHighlight p-4 rounded-xl flex-grow'>
-          <h1>Client Table</h1>
-          <table className='w-full text-left border-collapse'>
-            <thead>
-              <tr>
-                <th className='w-[50%]'>Client</th>
-                <th className='w-[50%]'>Code</th>
-              </tr>
-            </thead>
-            <tbody>
-            {clients.map((client:Client) => 
-              <tr key={client._id}>
-                <td className='bg-[#FFFFFF88] p-1'>{client.name}</td>
-                <td className='bg-[#FFFFFF88] p-1'>{client.code}</td>
-              </tr>
-            )}
-            </tbody>
-          </table>
+      <main className="grid grid-cols-12 items-top p-4 gap-2">
+        <div id="client-table" className='flex flex-col col-span-8 bg-secondary/20 border border-secondary/80 p-4 rounded-xl flex-grow'>
+          <h5>Client Table</h5>
+          {clientList.length > 0  &&
+            <table className='w-full text-left border-collapse'>
+              <thead>
+                <tr>
+                  <th className='w-[50%]'>Client</th>
+                  <th className='w-[50%]'>Code</th>
+                </tr>
+              </thead>
+              <tbody>
+              {clientList.map((client:Client) => 
+                <tr key={client._id}>
+                  <td className='bg-white/50 border border-secondary/80 p-1'>{client.name}</td>
+                  <td className='bg-white/50 border border-secondary/80 p-1'>{client.code}</td>
+                </tr>
+              )}
+              </tbody>
+            </table>
+          }
+          {clientList.length === 0 &&
+            <>
+            <div className='mb-2 font-bold'>No clients matched your search.</div>
+            <div>To add this client to the database, provide a unique 3-letter code and click <b>Add Client</b>.</div>
+            </>
+          }
         </div>
-        <div id="client-creator" className='ml-1 bg-secondaryHighlight p-4 rounded-xl'>
-          <h1 className='mb-2'>Client Creator</h1>
-          <div className='flex items-center'>
+        <div id="client-creator" className='flex flex-col col-span-4 gap-2 bg-secondary/20 border border-secondary/80 p-4 rounded-xl'>
+          <h5>Search or Add Clients</h5>
+          <div className='flex gap-2 items-center'>
             <div className='mr-2'>Client Name:</div>
-            <input className='mr-2 p-2 bg-[#FFFFFF88]' value={clientName} onChange={handleNameChange} />
-            <button className='std-button' onClick={handleSubmitNewClient}>Add Client</button>
+            <input className='std-input flex-1' value={clientName} onChange={handleNameChange} />
           </div>
-          <div className='my-2 text-[#800]'>{creatorStatus}</div>
+          <div className='flex gap-2 items-center'>
+            <div className='mr-2'>Code:</div>
+            <input className='std-input font-mono uppercase' size={3} maxLength={3} value={code} onChange={(e)=>setCode(e.target.value)} />
+            <button className='std-button-lite flex-1' onClick={handleGenerateNewCode}>Generate</button>
+          </div>
+          <div className='flex gap-2 items-center'>
+            <button className='std-button-lite flex-1' onClick={handleSubmitNewClient}>Add Client</button>
+          </div>
+          <div className='my-2 text-[#800]'>{errStatus}</div>
         </div>
       </main>
       :

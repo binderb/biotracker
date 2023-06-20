@@ -97,6 +97,7 @@ const typeDefs = gql`
     getUsers: [User]
     getClients: [Client]
     getClientCodes: [Client]
+    getNewCode: String
     getNextStudy(clientCode: String!): Int
     getLeads: [Lead]
     getLeadLatestRevision(id: ID!): Lead
@@ -106,7 +107,7 @@ const typeDefs = gql`
 
   type Mutation {
     addUser(username: String!, password: String!, first: String!, last: String!, role: String!): User
-    addClient(name: String!): Client
+    addClient(name: String!, code: String!): Client
     addLead(name: String!, author: ID!, drafters: [ID]!, client: ID!, content: String!, firstNote: String!): String
     addLeadRevision(id: ID!, author: ID!, status: String!, content: String!, note: String!): String
     addLeadNote(id: ID!, revisionId: ID!, author: ID!, note: String!): String
