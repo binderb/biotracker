@@ -22,11 +22,11 @@ const resolvers = {
     },
     getClients: async () => {
       await connectMongo();
-      return Client.find();
+      return Client.find().sort('name');
     },
     getClientCodes: async () => {
       await connectMongo();
-      return Client.find();
+      return Client.find().sort('code');
     },
     getNewCode: async () => {
       await connectMongo();
@@ -146,6 +146,50 @@ const resolvers = {
           last: last,
           role: role
         });
+      } catch (err:any) {
+        throw new Error (err.message);
+      }
+    },
+    updateUser: async (_:any, args:any) => {
+      const { updateUserId, username, password, first, last, role } = args;
+      const updateObj = {
+        username: username,
+        password: password,
+        first: first,
+        last: last,
+        role: role
+      }
+      // remove empty fields
+      let filteredObj = Object.fromEntries(Object.entries(updateObj).filter(([_, v]) => (v != null && v != '')));
+      try {
+        await connectMongo();
+        // Make sure someone else doesn't already have the username in the update
+        const existingUser = await User.findOne({username: username});
+        if (existingUser && existingUser._id.toString() !== updateUserId) {
+          throw new Error('A different user already has this username. Please choose a different one!');
+        }
+
+        await User.findByIdAndUpdate(updateUserId,filteredObj,{
+          runValidators: true,
+          new: true
+        });
+      } catch (err:any) {
+        throw new Error (err.message);
+      }
+    },
+    removeUser: async (_:any, args:any) => {
+      const { removeUserId } = args;
+      const idString = removeUserId.toString();
+      // remove empty fields
+      try {
+        await connectMongo();
+        // Need to check if this user is referenced by other documents.
+        const leads = await Lead.find({$where: "JSON.stringify(this).includes('"+idString+"')"
+        });
+        if (leads.length > 0) {
+          throw new Error (`REFERENCED`);
+        }
+        await User.findByIdAndDelete(removeUserId);
       } catch (err:any) {
         throw new Error (err.message);
       }

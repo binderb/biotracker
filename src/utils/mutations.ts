@@ -8,6 +8,20 @@ export const ADD_USER = gql`
   }
 `;
 
+export const UPDATE_USER = gql`
+  mutation updateUser($updateUserId: ID!, $username: String!, $password: String!, $first: String!, $last: String!, $role: String!) {
+    updateUser(updateUserId: $updateUserId, username: $username, password: $password, first: $first, last: $last, role: $role) {
+      username
+    }
+  }
+`;
+
+export const REMOVE_USER = gql`
+  mutation removeUser($removeUserId: ID!) {
+    removeUser(removeUserId: $removeUserId)
+  }
+`;
+
 export const ADD_CLIENT = gql`
   mutation addClient($name: String!, $code: String!) {
     addClient(name: $name, code: $code) {

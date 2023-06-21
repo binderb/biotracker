@@ -69,6 +69,15 @@ h5 {
   @apply opacity-50 hover:bg-secondary
 }
 
+.danger-button-lite {
+  @apply py-1 px-3 bg-[#800] text-white rounded-md hover:bg-[#A00]
+}
+
+.danger-button-lite:disabled {
+  @apply opacity-50 hover:bg-primary
+}
+
+
 .visible-cell {
   @apply bg-[#FFFFFF88] p-2
 }
@@ -100,10 +109,6 @@ input[type="checkbox"]::before {
 }
 input[type="checkbox"]:checked::before {
   transform: scale(1);
-}
-
-.radio-group {
-
 }
 
 .radio-check {

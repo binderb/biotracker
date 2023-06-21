@@ -8,7 +8,7 @@ const rootUser = {
   last: '',
   username: 'root',
   password: 'rootroot',
-  role: 'admin'
+  role: 'dev'
 }
 
 async function seedDatabase () {

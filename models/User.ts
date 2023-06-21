@@ -21,7 +21,9 @@ const userSchema = new Schema({
     enum: {
       values: [
         'user',
-        'admin'
+        'admin',
+        'dev',
+        'inactive'
       ],
     }
   },
@@ -38,6 +40,14 @@ userSchema.pre('save', async function(next){
   }
   this.password = await bcrypt.hash(this.password, 10)
   next();
+});
+
+userSchema.pre('findOneAndUpdate', async function(){
+  const update = this.getUpdate() as {password: string};
+  if (update.password) {
+    const newPassword = await bcrypt.hash(update.password, 10);
+    this.set({ password: newPassword });
+  }
 });
 
 userSchema.methods.comparePassword = async function(enteredPassword:string){

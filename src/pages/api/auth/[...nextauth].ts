@@ -25,6 +25,9 @@ export const authOptions: NextAuthOptions = {
         if (!pwValid) {
           throw new Error('Incorrect username/password.')
         }
+        if (pwValid && user.role === 'inactive') {
+          throw new Error('Your account has been made inactive; please see your system administrator.')
+        }
         return user;
       }
     })
