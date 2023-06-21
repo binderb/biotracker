@@ -169,7 +169,7 @@ export default function NewLead () {
       author: session?.user.id,
       drafters: drafterList.map((drafter:any) => drafter.id || drafter._id),
       client: clients.filter((clientObject:any) => clientObject.code === client)[0]._id,
-      content: 'nothing',
+      content: JSON.stringify(content),
       firstNote: firstNote
     }
     try {
@@ -196,8 +196,8 @@ export default function NewLead () {
       </div>
       { status === 'authenticated' && session.user.role === 'admin' ?
         <main className="flex items-top p-4">
-          <div id="create-study" className='bg-secondaryHighlight p-4 rounded-xl flex-grow'>
-          <h1 className='mb-2'>Create New Lead</h1>
+          <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-lg flex-grow'>
+          <h5>Create New Lead</h5>
           { (creatorStep === 1) &&
             <section id='step-1'>
             <h2 className='mb-2'>Basic Setup (Step 1 of 3)</h2>
@@ -647,7 +647,7 @@ export default function NewLead () {
               <div className='flex gap-2'>
                 <button className='std-button' onClick={() => handleChangeStep(-1)}>Back</button>
                 <button className='std-button' onClick={() => handleChangeStep(1)}>Next</button>
-                <button className='std-button' onClick={() => console.log(JSON.stringify(content))}>Test Content</button>
+                {/* <button className='std-button' onClick={() => console.log(JSON.stringify(content))}>Test Content</button> */}
               </div>
               {/* <button className='std-button' onClick={handleSubmitNewStudy}>Submit</button> */}
               <div className='my-2 text-[#800] whitespace-pre font-mono'>{errStatus}</div>          

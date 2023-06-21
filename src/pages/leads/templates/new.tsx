@@ -97,6 +97,11 @@ export default function NewLeadTemplate () {
     }
   }
 
+  if (status !== 'authenticated') {
+    router.push('/login');
+    return;
+  }
+
   return (
     <>
       <Navbar />
@@ -105,7 +110,7 @@ export default function NewLeadTemplate () {
       </div>
       { status === 'authenticated' && session.user.role === 'admin' ?
         <main className="flex flex-col items-top p-4 gap-2">
-          <div className='flex justify-between items-center bg-secondaryHighlight rounded-xl p-2 flex-grow gap-2'>
+          <div className='flex justify-between items-center bg-secondary/20 border border-secondary/80 rounded-lg p-2 flex-grow gap-2'>
             <div className='pl-2'>
               {errStatus && 
                 <div className='flex items-center gap-2 bg-[#FDD] pl-2 pr-1 py-1 rounded-md text-[#800]'>
@@ -125,8 +130,8 @@ export default function NewLeadTemplate () {
           </div>
           <div className='flex items-top gap-2'>
           {/* Template Editor */}
-            <div id="create-study" className='bg-secondaryHighlight p-4 rounded-xl flex-grow'>
-              <h1 className='mb-2'>New Lead Template</h1>
+            <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl flex-grow'>
+              <h5>New Lead Template</h5>
               <div className='flex items-center mb-4 gap-2 justify-between'>
                 <div className='flex items-center gap-2'>
                 <div className='font-bold'>Template Name:</div>
@@ -136,7 +141,7 @@ export default function NewLeadTemplate () {
               </div>
               <section className='flex flex-col gap-2'>
                 <div className='font-bold'>Template Layout:</div>
-                  <div className='flex flex-col border border-black rounded-md p-4 my-2 gap-2'>
+                  <div className='flex flex-col border border-secondary/80 rounded-lg p-4 my-2 gap-2'>
                     { sections.length > 0 ? 
                       <>
                       {sections.map((section:TemplateSection, index:number) => 
@@ -154,10 +159,10 @@ export default function NewLeadTemplate () {
               </section>
             </div>
             {/* Template Preview */}
-            <div id="create-study" className='bg-secondaryHighlight p-4 rounded-xl flex-grow'>
-              <h1 className='mb-2'>Template Preview</h1>
+            {/* <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl flex-grow'>
+              <h5>Template Preview</h5>
               
-            </div>
+            </div> */}
           </div>
         </main>
         :

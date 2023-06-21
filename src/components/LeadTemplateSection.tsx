@@ -60,7 +60,7 @@ export default function LeadTemplateSection ({sections, index, setSections, hand
 
   return (
     <>
-      <div className='flex flex-col w-full p-2 border border-1 border-black rounded-md gap-2'>
+      <div className='std-input flex flex-col w-full p-2 border border-1 border-secondary/80 rounded-lg gap-2'>
         <div className='flex gap-2 items-center'>
           <div className='font-bold'>Section Name:</div>
           <input type="text" className='std-input' value={sectionName} onChange={(e)=>handleSectionNameUpdate(e)} />
@@ -75,7 +75,7 @@ export default function LeadTemplateSection ({sections, index, setSections, hand
           <button className='std-button-lite flex gap-2 items-center' onClick={handleAddField}><FontAwesomeIcon icon={faPlus}/>Add Field</button>
         </div>
         
-        <div className='flex flex-col w-full p-2 border border-1 border-black rounded-md gap-2'>
+        <div className='std-input flex flex-col w-full p-2 border border-1 border-secondary/80 rounded-lg gap-2'>
           { sectionData.fields.length > 0 ? 
             <>
             { sectionData.fields.map( (field:TemplateField, fieldIndex:number) => (

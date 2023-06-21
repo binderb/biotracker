@@ -47,11 +47,13 @@ const resolvers = {
     },
     getNextStudy: async (_:any, args:any) => {
       const { clientCode } = args;
+      console.log("hello?");
       await connectMongo();
       const client = await Client.findOne({code: clientCode});
       if (!client) {
         throw new Error(`Client code doesn't exist!`);
       }
+      console.log(client);
       if (client.studies) {
         const studies = client.studies.map((e:any) => e.index);
         if (studies.length === 0) {

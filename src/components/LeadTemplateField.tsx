@@ -53,7 +53,7 @@ export default function LeadTemplateField ({sections, index, fieldIndex, setSect
 
   return (
     <>
-    <div className='flex flex-col gap-2 std-input rounded-md'>
+    <div className='flex flex-col gap-2 std-input rounded-lg'>
         <div className='flex gap-2 items-center'>
           <div className='font-bold'>Field Name:</div>
           <input type="text" className='std-input' value={fieldName} onChange={(e)=>handleFieldNameUpdate(e)} />
@@ -70,6 +70,12 @@ export default function LeadTemplateField ({sections, index, fieldIndex, setSect
           Extensible Section:
           <input name='animalHeart' type='checkbox' checked={fieldExtensible} onChange={(e) => handleFieldExtensibleUpdate(e)}></input>
         </label>
+        { fieldType === 'multicheckbox' &&
+        <div className='flex flex-col items-start gap-2'>
+          <div className='font-bold'>Checkbox Names (separated by commas):</div>
+          <input type="text" className='std-input w-full' value={fieldName} onChange={(e)=>handleFieldNameUpdate(e)} />
+        </div>
+        }
     </div>
     </>
   );
