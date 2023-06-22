@@ -12,6 +12,7 @@ import LeadTemplate from "../models/LeadTemplate";
 import LeadTemplateField from "../models/LeadTemplateField";
 import LeadTemplateSection from "../models/LeadTemplateSection";
 import LeadTemplateRevision from "../models/LeadTemplateRevision";
+import { buildFormHeader, createAndSetupDocument } from "./googleDocs";
 const fs = require('fs');
 
 const resolvers = {
@@ -47,13 +48,11 @@ const resolvers = {
     },
     getNextStudy: async (_:any, args:any) => {
       const { clientCode } = args;
-      console.log("hello?");
       await connectMongo();
       const client = await Client.findOne({code: clientCode});
       if (!client) {
         throw new Error(`Client code doesn't exist!`);
       }
-      console.log(client);
       if (client.studies) {
         const studies = client.studies.map((e:any) => e.index);
         if (studies.length === 0) {
@@ -384,13 +383,18 @@ const resolvers = {
     },
     createDriveStudyTree: async (_:any, args:any) => {
       const { clientCode, studyName } = args;
-      const client = await userAuthorizeGoogleDrive();
-      const studyFolderId = await getFolderIdFromPath(`/Studies`, client);
+      const auth = await userAuthorizeGoogleDrive();
+      const studyFolderId = await getFolderIdFromPath(`/Studies`, auth);
       console.log('client code: ',clientCode);
       console.log('study name: ',studyName);
-      const clientFolderId = await createDirectoryIfNotExists(clientCode, studyFolderId, client);
-      const result = await createDirectoryWithSubdirectories(studyName, clientFolderId, ['Data','Forms','Protocol','Quote'], client);
-      return 'Study folder tree created in Google Drive!';
+      const clientFolderId = await createDirectoryIfNotExists(clientCode, studyFolderId, auth);
+      // const newStudyFolderId = await createDirectoryWithSubdirectories(studyName, clientFolderId, ['Data','Forms','Protocol','Quote'], client);
+      // const formResult = await createStudyForm(`${studyName}`, newStudyFolderId, client);
+      // return 'Study folder tree created in Google Drive!';
+      const formFileId = await createAndSetupDocument(studyName, clientFolderId, auth);
+      await buildFormHeader(formFileId, auth);
+      
+      console.log('Completed actions successfully.');
     }
   }
 }

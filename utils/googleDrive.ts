@@ -8,11 +8,9 @@ const {google} = require('googleapis');
 async function loadSavedCredentialsIfExist() {
   try {
     const credentialsPath = path.join(process.cwd(),process.env.GOOGLE_TOKEN_PATH!);
-    console.log(credentialsPath);
     const content = await fs.readFile(credentialsPath);
     const credentials = JSON.parse(content);
     // const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_PATH!);
-    console.log(credentials);
     return google.auth.fromJSON(credentials);
   } catch (err) {
     return null;
@@ -21,7 +19,6 @@ async function loadSavedCredentialsIfExist() {
 
 async function saveCredentials(client:any) {
   const credentialsPath = path.join(process.cwd(),process.env.GOOGLE_CREDENTIALS_PATH!);
-  console.log(credentialsPath);
   const content = await fs.readFile(credentialsPath);
   const keys = JSON.parse(content);
   // const keys = JSON.parse(process.env.GOOGLE_CREDENTIALS_PATH!);
@@ -36,9 +33,12 @@ async function saveCredentials(client:any) {
 }
 
 export async function adminAuthorizeGoogleDrive() {
-  const SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly','https://www.googleapis.com/auth/drive.file'];
+  const SCOPES = [
+    'https://www.googleapis.com/auth/drive.metadata.readonly',
+    'https://www.googleapis.com/auth/drive.file',
+    'https://www.googleapis.com/auth/documents'
+  ];
   let client = await loadSavedCredentialsIfExist();
-  console.log("client: ",client);
   if (client) {
     return client;
   }
@@ -54,7 +54,6 @@ export async function adminAuthorizeGoogleDrive() {
 
 export async function userAuthorizeGoogleDrive() {
   let client = await loadSavedCredentialsIfExist();
-  console.log("client: ",client);
   if (client) {
     return client;
   } else {
@@ -69,7 +68,6 @@ export async function userAuthorizeGoogleDrive() {
 export async function listFiles(authClient:any) {
   const drive = google.drive({version: 'v3', auth: authClient});
   const folderId = await getFolderIdFromPath('/Studies',authClient);
-  console.log(folderId);
   const res = await drive.files.list({
     pageSize: 10,
     q: `'${folderId}' in parents and trashed=false`,
@@ -142,7 +140,6 @@ export async function createDirectoryWithSubdirectories(directoryName:string, pa
 
   return directoryId;
 }
-
 
 export async function getFolderIdFromPath(path:string, auth:any) {
   const drive = google.drive({ version: 'v3', auth });
