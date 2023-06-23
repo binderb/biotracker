@@ -20,6 +20,7 @@ async function loadSavedCredentialsIfExist() {
 async function saveCredentials(client:any) {
   const credentialsPath = path.join(process.cwd(),process.env.GOOGLE_CREDENTIALS_PATH!);
   const content = await fs.readFile(credentialsPath);
+  console.log(content);
   const keys = JSON.parse(content);
   // const keys = JSON.parse(process.env.GOOGLE_CREDENTIALS_PATH!);
   const key = keys.installed || keys.web;
@@ -33,6 +34,9 @@ async function saveCredentials(client:any) {
 }
 
 export async function adminAuthorizeGoogleDrive() {
+  const credentialsPath = path.join(process.cwd(),process.env.GOOGLE_CREDENTIALS_PATH!);
+  const content = await fs.readFile(credentialsPath);
+  console.log(JSON.parse(content));
   const SCOPES = [
     'https://www.googleapis.com/auth/drive.metadata.readonly',
     'https://www.googleapis.com/auth/drive.file',
@@ -42,6 +46,7 @@ export async function adminAuthorizeGoogleDrive() {
   if (client) {
     return client;
   }
+  
   client = await authenticate({
     scopes: SCOPES,
     keyfilePath: path.join(process.cwd(),process.env.GOOGLE_CREDENTIALS_PATH!),
