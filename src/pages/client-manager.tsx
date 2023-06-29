@@ -109,7 +109,7 @@ const ClientManager = () => {
   return (
     <>
       <Navbar/>
-      { status === 'authenticated' && session.user.role === 'admin' ?
+      { status === 'authenticated' && (session.user.role === 'dev' || session.user.role === 'admin') ?
       <main className="grid grid-cols-12 items-top p-4 gap-2">
         <div id="client-table" className='flex flex-col col-span-8 bg-secondary/20 border border-secondary/80 p-4 rounded-xl flex-grow'>
           <h5>Client Table</h5>

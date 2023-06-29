@@ -216,7 +216,7 @@ export default function NewLead () {
       <div className='mt-4'>
         <Link className='std-link ml-4' href='/leads'>&larr; Back</Link>
       </div>
-      { status === 'authenticated' && session.user.role === 'admin' ?
+      { status === 'authenticated' && (session.user.role === 'dev' || session.user.role === 'admin') ?
         <main className="flex items-top p-4">
           <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-lg flex-grow'>
           <h5>Create New Lead</h5>
@@ -313,11 +313,7 @@ export default function NewLead () {
                               </>
                             )}
                             {field.type === 'textarea' && (
-                              <>
-                                <div className='flex flex-col gap-2'>
-                                  <textarea className='resize-none std-input w-full h-[100px]' value={field.data} onChange={(e) => handleUpdateLeadTextArea(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
-                                </div>
-                              </>
+                              <textarea className='resize-none std-input w-full h-[100px]' value={field.data} onChange={(e) => handleUpdateLeadTextArea(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
                             )}
                             {field.type === 'input' && (
                               <input type='text' className='std-input flex-grow w-full' value={field.data} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />

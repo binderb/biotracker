@@ -46,19 +46,31 @@ const Home = () => {
     <>
     <Navbar />
     <main className="flex flex-col p-4">
-      <div>This is a demo home page. Click the links below to access different prototypes.</div>
-      <div className="flex py-2 gap-1">
-        <Link className='std-button' href='./settings'>App Settings (admin only)</Link>
-        <Link className='std-button' href='./client-manager'>Client Manager (admin only)</Link>
-        <Link className='std-button' href='./inventory'>Inventory</Link>
-        <Link className='std-button' href='./study-creator'>Study Creator</Link>
-        <Link className='std-button' href='./leads'>Leads</Link>
-      </div>
-      {/* { session ?
-        <div>{`${JSON.stringify(session)}`}</div>
-        :
-        null
-      } */}
+      <div className='pb-4'>This is a demo home page. Click the links below to access different prototypes.</div>
+      <section className='pb-4'>
+        <div className='font-bold'>Regular User Functions:</div>
+        <div className="flex py-2 gap-1">
+          <Link className='std-button' href='./leads'>Leads</Link>
+        </div>
+      </section>
+      { status === 'authenticated' && (session.user.role === 'dev' || session.user.role === 'admin')  && (
+        <section className='pb-4'>
+          <div className='font-bold'>Admin Functions:</div>
+          <div className="flex py-2 gap-1">
+            <Link className='std-button' href='./settings'>App Settings</Link>
+            <Link className='std-button' href='./client-manager'>Client Manager</Link>
+          </div>
+        </section>
+      )}
+      { status === 'authenticated' && session.user.role === 'dev' && (
+        <section className='pb-4'>
+          <div className='font-bold'>Dev Functions:</div>
+          <div className="flex py-2 gap-1">
+            <Link className='std-button' href='./inventory'>Inventory</Link>
+            <Link className='std-button' href='./study-creator'>Study Creator</Link>
+          </div>
+        </section>
+      )}
 
     </main>
     </>

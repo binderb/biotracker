@@ -338,11 +338,7 @@ export default function LeadManager (props:any) {
                               </>
                             )}
                             {field.type === 'textarea' && (
-                              <>
-                                <div className='flex flex-col gap-2'>
-                                  <textarea className='resize-none std-input w-full h-[100px]' value={field.data} onChange={(e) => handleUpdateLeadTextArea(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
-                                </div>
-                              </>
+                              <textarea className='resize-none std-input w-full h-[100px]' value={field.data} onChange={(e) => handleUpdateLeadTextArea(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
                             )}
                             {field.type === 'input' && (
                               <input type='text' className='std-input flex-grow w-full' value={field.data} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
@@ -400,6 +396,14 @@ export default function LeadManager (props:any) {
               This action will build a new <b>Study</b>.
             </div>
             <div>
+              This feature requires Google Drive to be communicating with our system, and is a work in progress! Check back later; a patch to implement this functionality will be applied this week!
+            </div>
+            <div className='flex pt-4 gap-2'>
+              <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>
+                Back
+              </button>
+            </div>
+            {/* <div>
               A new study folder will be generated with an automatically-assigned Study ID (below), and the details for this lead will be copied onto an appropriate form and placed within the study folder.
             </div>
             <select className='std-input' onChange={(e)=>setStudyType(e.target.value)} value={studyType}>
@@ -421,8 +425,8 @@ export default function LeadManager (props:any) {
                 <button className='std-button-lite flex-grow' onClick={handlePublish}>Publish</button>
               }
             </div>
-            <div className='text-[#800]'>{publishErrStatus}</div>
-        </section>
+            <div className='text-[#800]'>{publishErrStatus}</div> */}
+          </section>
         </section>
       </section>
     </>

@@ -35,7 +35,7 @@ export default function UserManager () {
   return (
     <>
       <Navbar />
-      { status === 'authenticated' && session.user.role === 'admin' ?
+      { status === 'authenticated' && (session.user.role === 'dev' || session.user.role === 'admin') ?
        <main className="flex flex-col p-4">
        <div>Here are the current options for app customization.</div>
        <div className="flex py-2">

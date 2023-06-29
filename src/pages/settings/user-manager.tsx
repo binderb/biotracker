@@ -189,7 +189,7 @@ export default function UserManager () {
   return (
     <>
       <Navbar />
-      { status === 'authenticated' && session.user.role === 'admin' ?
+      { status === 'authenticated' && (session.user.role === 'dev' || session.user.role === 'admin') ?
       <>
       <main className="flex items-top p-4 gap-2">
         <div id="client-table" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl w-[50%]'>

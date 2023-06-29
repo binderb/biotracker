@@ -57,7 +57,7 @@ export default function UserManager () {
   return (
     <>
       <Navbar />
-      { status === 'authenticated' && session.user.role === 'admin' ?
+      { status === 'authenticated' && (session.user.role === 'dev' || session.user.role === 'admin') ?
        <main className="flex flex-col p-4">
        <div>You can use the options below to manage Google Drive access.</div>
        <div className="flex py-2">

@@ -111,7 +111,7 @@ export default function NewLeadTemplate () {
       <div className='mt-4'>
         <Link className='std-link ml-4' href='/leads/templates'>&larr; Back</Link>
       </div>
-      { status === 'authenticated' && session.user.role === 'admin' ?
+      { status === 'authenticated' && (session.user.role === 'dev' || session.user.role === 'admin') ?
         <main className="flex flex-col items-top p-4 gap-2">
           <div className='flex justify-between items-center bg-secondary/20 border border-secondary/80 rounded-lg p-2 flex-grow gap-2'>
             <div className='pl-2'>
