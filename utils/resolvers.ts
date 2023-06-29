@@ -13,6 +13,7 @@ import LeadTemplateField from "../models/LeadTemplateField";
 import LeadTemplateSection from "../models/LeadTemplateSection";
 import LeadTemplateRevision from "../models/LeadTemplateRevision";
 import { buildFormHeader, createAndSetupDocument } from "./googleDocs";
+import LeadTemplateSectionRow from "../models/LeadTemplateSectionRow";
 const fs = require('fs');
 
 const resolvers = {
@@ -126,8 +127,12 @@ const resolvers = {
             path: 'sections',
             model: 'LeadTemplateSection',
             populate: {
-              path: 'fields',
-              model: 'LeadTemplateField'
+              path: 'rows',
+              model: 'LeadTemplateSectionRow',
+              populate: {
+                path: 'fields',
+                model: 'LeadTemplateField'
+              }
             }
           }
         });
@@ -324,14 +329,33 @@ const resolvers = {
         await connectMongo();
         const sectionModels = [];
         for (var section of sectionData) {
-          let sectionFieldModels = [];
-          if (section.fields.length > 0) {
-            // Create fields for each section
-            sectionFieldModels = await LeadTemplateField.create(section.fields);
+          console.log("starting section ",section.name);
+          let sectionRowModels = [];
+          if (section.rows.length > 0) {
+            for (var row of section.rows) {
+              console.log("starting row ", row.index);
+              let sectionFieldModels = [];
+              if (row.fields.length > 0) {
+                for (var field of row.fields) {
+                  console.log("starting row ", row.index);
+                  // Create fields
+                  const newField = await LeadTemplateField.create({
+                    ...field
+                  });
+                  sectionFieldModels.push(newField);
+                }
+              }
+              // Create rows
+              const newSectionRow = await LeadTemplateSectionRow.create({
+                ...row,
+                fields: sectionFieldModels.map((field:any) => field._id)
+              })
+              sectionRowModels.push(newSectionRow);
+            }
             // Create each section
             let newSection = await LeadTemplateSection.create({
               ...section,
-              fields: sectionFieldModels.map((field:any) => field._id)
+              rows: sectionRowModels.map((row:any) => row._id)
             });
             sectionModels.push(newSection);
           }

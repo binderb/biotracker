@@ -76,21 +76,27 @@ const typeDefs = gql`
   }
 
   type LeadTemplateSection {
+    _id: ID
+    name: String!
+    index: Int!
+    rows: [LeadTemplateSectionRow]!
+    extensible: Boolean!
+    groupedWithPrevious: Boolean
+  }
+
+  type LeadTemplateSectionRow {
     _id: ID,
-    name: String!,
-    index: Int!,
-    fields: [LeadTemplateField]!,
-    extensible: Boolean!,
-    enstensibleGroupName: String
+    index: Int!
+    fields: [LeadTemplateField]!
+    extensible: Boolean!
   }
 
   type LeadTemplateField {
     _id: ID,
-    name: String!,
-    index: Int!,
-    type: String!,
-    data: String,
-    extensible: Boolean!,
+    index: Int!
+    type: String!
+    params: [String]
+    data: [String]
   }
 
   type Query {

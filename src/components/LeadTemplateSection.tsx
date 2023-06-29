@@ -1,22 +1,27 @@
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChangeEvent, useState } from "react";
-import LeadTemplateField from "./LeadTemplateField";
+import LeadTemplateSectionRow from "./LeadTemplateSectionRow";
+import _ from 'lodash';
 
 interface TemplateField {
-  name: string,
-  index: number,
-  type: string,
-  data: string,
-  extensible: boolean,
+  index: number
+  type: string
+  params: Array<string>
+  data: Array<string>
+}
+
+interface TemplateSectionRow {
+  index: number
+  fields: Array<TemplateField>
+  extensible: boolean
 }
 
 interface TemplateSection {
   name: string
   index: number
-  fields: Array<TemplateField>
+  rows: Array<TemplateSectionRow>
   extensible: boolean
-  extensibleGroupName: string
 }
 
 interface Props {
@@ -46,15 +51,14 @@ export default function LeadTemplateSection ({sections, index, setSections, hand
     setSections(newSections);
   }
 
-  function handleAddField() {
-    const newSections = [...sections];
-    newSections[index].fields.push({
-      name: '',
-      index: newSections[index].fields.length,
-      type: 'textarea',
-      data: '',
+  function handleAddRow() {
+    const newSections = _.cloneDeep(sections);
+    const newElement: any = {
+      index: sections[index].rows.length,
+      fields: [],
       extensible: false
-    });
+    }
+    newSections[index].rows = [...newSections[index].rows, newElement];
     setSections(newSections);
   }
 
@@ -71,22 +75,21 @@ export default function LeadTemplateSection ({sections, index, setSections, hand
           <input name='animalHeart' type='checkbox' checked={sectionExtensible} onChange={(e) => handleSectionExtensibleUpdate(e)}></input>
         </label>
         <div className='flex gap-2 items-center justify-between'>
-          <div className='font-bold'>Fields:</div>
-          <button className='std-button-lite flex gap-2 items-center' onClick={handleAddField}><FontAwesomeIcon icon={faPlus}/>Add Field</button>
+          <div className='font-bold'>Rows:</div>
+          <button className='std-button-lite flex gap-2 items-center' onClick={handleAddRow}><FontAwesomeIcon icon={faPlus}/>Add Row</button>
         </div>
         
         <div className='std-input flex flex-col w-full p-2 border border-1 border-secondary/80 rounded-lg gap-2'>
-          { sectionData.fields.length > 0 ? 
+          { sectionData.rows.length > 0 ? 
             <>
-            { sectionData.fields.map( (field:TemplateField, fieldIndex:number) => (
-              <>
-                <LeadTemplateField key={index} sections={sections} index={index} fieldIndex={fieldIndex} setSections={setSections} />
-              </>
+            { sectionData.rows.map( (row:TemplateSectionRow, rowIndex:number) => (
+              // <div key={index}></div>
+              <LeadTemplateSectionRow key={`row-${rowIndex}`} sections={sections} index={index} rowIndex={rowIndex} setSections={setSections} />
             ))}
             </>
           :
             <>
-            No fields yet.
+            No rows yet.
             </>
           }
         </div>

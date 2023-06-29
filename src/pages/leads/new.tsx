@@ -2,9 +2,9 @@ import Navbar from "@/components/Navbar";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { initializeApollo, addApolloState } from "../../../utils/apolloClient";
-import { GET_CLIENTS, GET_LEAD_TEMPLATES, GET_USERS } from "@/utils/queries";
+import { GET_CLIENTS, GET_LEAD_TEMPLATES, GET_LEAD_TEMPLATE_LATEST, GET_USERS } from "@/utils/queries";
 import { useSession } from "next-auth/react";
-import { ChangeEvent, MouseEventHandler, useState } from "react";
+import { ChangeEvent, MouseEventHandler, useEffect, useState } from "react";
 import { useMutation, useQuery } from "@apollo/client";
 import Link from "next/link";
 import { faX } from "@fortawesome/free-solid-svg-icons";
@@ -29,6 +29,9 @@ export async function getServerSideProps(context:any) {
   const apolloClient = initializeApollo();
   await apolloClient.query({
     query: GET_CLIENTS,
+  });
+  await apolloClient.query({
+    query: GET_LEAD_TEMPLATES,
   });
   await apolloClient.query({
     query: GET_USERS,
@@ -59,67 +62,47 @@ export default function NewLead () {
   const [drafterList, setDrafterList] = useState(initialDrafters);
   const [addNewLead, { error, data: addNewLeadData }] = useMutation(ADD_NEW_LEAD);
   const { data: templateData } = useQuery(GET_LEAD_TEMPLATES);
-
-  // Maybe make this a more generic interface in the future?
-  // Like a JSON object based on a loaded template?
-  const [purpose, setPurpose] = useState('');
-  const [endpoints, setEndpoints] = useState({
-    primary: '',
-    secondary: '',
-    tertiary: ''
-  });
-  const [testArticleInfo, setTestArticleInfo] = useState({
-    description: '',
-    size: '',
-    concentration: ''
-  });
-  const [controlArticleInfo, setControlArticleInfo] = useState({
-    description: '',
-    size: '',
-    concentration: ''
-  });
-  const [ancillaryProductInfo, setAncillaryProductInfo] = useState({
-    description: '',
-    size: '',
-    concentration: ''
-  });
-  const [testSystemInfo, setTestSystemInfo] = useState({
-    type: {
-      animalHeart: false,
-      humanHeart: false,
-      humanCadaver: false
-    },
-    specs: {
-      animalHeartSpecs: {
-        pig: false,
-        cow: false,
-        antelope: false,
-        elk: false
-      },
-      humanHeartSpecs: {
-        fresh: false,
-        MROSourced: false
-      },
-      humanCadaverSpecs: {
-        full: false,
-        torso: false,
-        leg: false
-      }
-    },
-    quantity: {
-      animalHeartQuantity: '',
-      humanHeartQuantity: '',
-      humanCadaverQuantity: ''
+  const templates = templateData.getLeadTemplates;
+  const [currentTemplate, setCurrentTemplate] = useState('');
+  const [firstNote, setFirstNote] = useState('');
+  const { data: currentTemplateData } = useQuery(GET_LEAD_TEMPLATE_LATEST, {
+    variables: {
+      getLeadTemplateLatestRevisionId: currentTemplate
     }
   });
-  const [methods, setMethods] = useState({
-    surgical: '',
-    imaging: '',
-    flow: ''
-  });
-  const [specialInstructions, setSpecialInstructions] = useState('');
-  const [firstNote, setFirstNote] = useState('');
+  const templateObject = currentTemplateData?.getLeadTemplateLatestRevision;
+  const [content, setContent] = useState<any>(null);
 
+  useEffect( () => {
+    setContent(templateObject ? {
+      name: templateObject.name,
+      sections: templateObject.revisions[0].sections.map( (section:any) => {
+        return { 
+          "name": section.name,
+          "index": section.index,
+          "extensible": section.extensible,
+          "rows": section.rows.map( (row:any) => {
+            return {
+              "index": row.index,
+              "extensible": row.extensible,
+              "fields" : row.fields.map( (field:any) => {
+                return {
+                  "type" : field.type,
+                  "extensible" : field.extensible,
+                  "params" : field.params,
+                  "data" : field.data
+                }
+              })
+            }
+          })
+        };
+      }),
+    } : null);
+  },[templateObject]);
+
+  useEffect( () => {
+    console.log(content);
+  },[content]);
 
   function handleUpdateLeadName (e:ChangeEvent<HTMLInputElement>) {
     setLeadName(e.target.value);
@@ -127,6 +110,10 @@ export default function NewLead () {
 
   function handleClientChange (e:ChangeEvent<HTMLSelectElement>) {
     setClient(e.target.value);
+  }
+
+  function handleTemplateChange (e:ChangeEvent<HTMLSelectElement>) {
+    setCurrentTemplate(e.target.value);
   }
 
   function handleDrafterToAddChange (e:ChangeEvent<HTMLSelectElement>) {
@@ -145,68 +132,57 @@ export default function NewLead () {
     setDrafterList(newDrafterList);
   }
 
-  function handleTestSystemUpdate (e:any) {
-    let newTestSystemInfo = {...testSystemInfo};
-    switch (e.target.name) {
-      case 'animalHeart':
-        testSystemInfo.type.animalHeart = e.target.checked;
-        break;
-      case 'humanHeart':
-        testSystemInfo.type.humanHeart = e.target.checked;
-        break;
-      case 'humanCadaver':
-        testSystemInfo.type.humanCadaver = e.target.checked;
-        break;
-      case 'antelope':
-        testSystemInfo.specs.animalHeartSpecs.antelope = e.target.checked;
-        break;
-      case 'cow':
-        testSystemInfo.specs.animalHeartSpecs.cow = e.target.checked;
-        break;
-      case 'elk':
-        testSystemInfo.specs.animalHeartSpecs.elk = e.target.checked;
-        break;
-      case 'pig':
-        testSystemInfo.specs.animalHeartSpecs.pig = e.target.checked;
-        break;
-      case 'fresh':
-        testSystemInfo.specs.humanHeartSpecs.fresh = e.target.checked;
-        break;
-      case 'mrosourced':
-        testSystemInfo.specs.humanHeartSpecs.MROSourced = e.target.checked;
-        break;
-      case 'full':
-        testSystemInfo.specs.humanCadaverSpecs.full = e.target.checked;
-        break;
-      case 'torso':
-        testSystemInfo.specs.humanCadaverSpecs.torso = e.target.checked;
-        break;
-      case 'leg':
-        testSystemInfo.specs.humanCadaverSpecs.leg = e.target.checked;
-        break;
-      case 'animalHeartQuantity':
-        testSystemInfo.quantity.animalHeartQuantity = e.target.value;
-        break;
-      case 'humanHeartQuantity':
-        testSystemInfo.quantity.humanHeartQuantity = e.target.value;
-        break;
-      case 'humanCadaverQuantity':
-        testSystemInfo.quantity.humanCadaverQuantity = e.target.value;
-        break;
-      default:
-        break;
-    }
-    setTestSystemInfo(newTestSystemInfo);
-  }
-
   function handleChangeStep (delta:number) {
     const newCreatorStep = creatorStep + delta;
     if (newCreatorStep === 1 || newCreatorStep === 2 || newCreatorStep === 3) setErrStatus('');
-    if (newCreatorStep === 2 && (!client || !leadName)) {
+    if (newCreatorStep === 2 && (!client || !leadName || !currentTemplate)) {
       setErrStatus('Please select a value for all fields before proceeding!');
       return;
     }
     setCreatorStep(newCreatorStep);
+  }
+
+  function handleUpdateLeadInputField(e:ChangeEvent<HTMLInputElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
+    const newContent = {...content};
+    if (type === 'checkbox' || type === 'multicheckbox') {
+      const newData = [...newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
+      newData.splice(dataIndex,1,e.target.checked);
+      newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
+    } else { 
+      const newData = [...newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
+      newData.splice(dataIndex,1,e.target.value);
+      newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
+    }
+    setContent(newContent);
+  }
+
+  function handleUpdateLeadTextArea(e:ChangeEvent<HTMLTextAreaElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
+    const newContent = {...content};
+    const newData = [...newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
+    newData.splice(dataIndex,1,e.target.value);
+    newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
+    setContent(newContent);
+  }
+
+  function handleAddExtensibleRow(e:any,sectionIndex:number,rowIndex:number) {
+    e.preventDefault();
+    const newRow = {
+      ...content.sections[sectionIndex].rows[rowIndex], 
+      index: content.sections[sectionIndex].rows[rowIndex].index+1,
+      fields: [
+        ...content.sections[sectionIndex].rows[rowIndex].fields.map( (field:any) => {return {...field, data: ''};})
+      ]
+    };
+    const newContent = {...content};
+    newContent.sections[sectionIndex].rows.push(newRow);
+    setContent(newContent);
+  }
+
+  function handleDeleteExtensibleRow(e:any, sectionIndex: number, rowIndex: number) {
+    e.preventDefault();
+    const newContent = {...content};
+    newContent.sections[sectionIndex].rows.splice(rowIndex,1);
+    setContent(newContent);
   }
 
   async function handleSubmitNewLead () {
@@ -215,16 +191,7 @@ export default function NewLead () {
       author: session?.user.id,
       drafters: drafterList.map((drafter:any) => drafter.id || drafter._id),
       client: clients.filter((clientObject:any) => clientObject.code === client)[0]._id,
-      content: JSON.stringify({
-        purpose: purpose,
-        endpoints: endpoints,
-        testArticleInfo: testArticleInfo,
-        controlArticleInfo: controlArticleInfo,
-        ancillaryProductInfo: ancillaryProductInfo,
-        testSystemInfo: testSystemInfo,
-        methods: methods,
-        specialInstructions: specialInstructions
-      }),
+      content: JSON.stringify(content),
       firstNote: firstNote
     }
     try {
@@ -251,8 +218,8 @@ export default function NewLead () {
       </div>
       { status === 'authenticated' && session.user.role === 'admin' ?
         <main className="flex items-top p-4">
-          <div id="create-study" className='bg-secondaryHighlight p-4 rounded-xl flex-grow'>
-          <h1 className='mb-2'>Create New Lead</h1>
+          <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-lg flex-grow'>
+          <h5>Create New Lead</h5>
           { (creatorStep === 1) &&
             <section id='step-1'>
             <h2 className='mb-2'>Basic Setup (Step 1 of 3)</h2>
@@ -272,6 +239,15 @@ export default function NewLead () {
                 ))}
               </select>
               <div>Don&apos;t have a client code? <Link className='std-link' href='/client-manager'>Create one</Link> before starting this process!</div>
+            </div>
+            <div className='flex items-center mb-2'>
+              <div className='mr-2'>Lead Template:</div>
+              <select className='std-input mr-2' onChange={handleTemplateChange} value={currentTemplate}>
+                <option value=''>-- Choose --</option> 
+                {templates.map( (template:any) => (
+                  <option value={template._id} key={template.name}>{`${template.name}`}</option>  
+                ))}
+              </select>
             </div>
             <div className='flex flex-col justify-center mb-2'>
               <div className='mr-2'>Who should be included in the drafting process?</div>
@@ -313,7 +289,79 @@ export default function NewLead () {
                 Use the form below to add whatever details are known about the lead. These fields can be edited later by you and your drafting team, so just include the information you currently have. 
               </div>
               <form>
-                <section>
+                <div className='mr-2 font-bold'>Sponsor Information:</div>
+                <div className='flex border border-black rounded-md items-center p-4 mt-2 mb-4'>
+                  <div className='mr-2'>Client:</div>
+                  <div>{client}</div>
+                </div>
+                {content.sections.map( (section:any, sectionIndex:number) => (
+                  <section key={sectionIndex}>
+                    <div className='mr-2 font-bold'>{section.name}:</div>
+                    <div className='flex flex-col border border-black rounded-md p-4 mt-2 mb-4 gap-2'>
+                    {section.rows.map( (row:any, rowIndex:number) => (
+                      <div key={rowIndex} className='flex gap-2 items-center'>
+                        {row.fields.map((field:any, fieldIndex:number) => (
+                          <>
+                            {field.type === 'label' && (
+                              <>
+                                { row.fields.length > 1 && !row.extensible &&
+                                  <div className='font-bold'>{field.params[0]}:</div>
+                                }
+                                { row.extensible &&
+                                  <div className='font-bold'>{field.params[0]} {section.rows.indexOf(row)+1}:</div>
+                                }
+                              </>
+                            )}
+                            {field.type === 'textarea' && (
+                              <>
+                                <div className='flex flex-col gap-2'>
+                                  <textarea className='resize-none std-input w-full h-[100px]' value={field.data} onChange={(e) => handleUpdateLeadTextArea(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
+                                </div>
+                              </>
+                            )}
+                            {field.type === 'input' && (
+                              <input type='text' className='std-input flex-grow w-full' value={field.data} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
+                            )}
+                            {field.type === 'checkbox' && (
+                              <label className='form-control'>
+                              <input type='checkbox' checked={field.data[0]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
+                              {field.params[0]}
+                              </label>
+                            )}
+                            {field.type === 'multicheckbox' && (
+                              <div className='flex flex-col gap-2 justify-start items-start'>
+                                { field.params.map( (param:string, i:number) => (
+                                    <label key={i} className='form-control'>
+                                    <input type='checkbox' checked={field.data[i]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, i, field.type)} />
+                                    {param}
+                                    </label>
+                                ))}
+                              </div>
+                            )}
+                          
+                          </>
+                        ))}
+                        {/* ROW DELETE BUTTON */}
+                        { row.extensible && rowIndex > 0 &&
+                            <>
+                            <button className='secondary-button-lite' onClick={(e) => handleDeleteExtensibleRow(e, sectionIndex, rowIndex)}><FontAwesomeIcon icon={faX}/></button>
+                            </>
+                          }
+                          {/* ROW ADD BUTTON */}
+                          {row.extensible && section.rows.indexOf(row) == section.rows.length-1 &&
+                            <>
+                            <div className='flex'>
+                              <button className='std-button-lite' onClick={(e) => handleAddExtensibleRow(e, sectionIndex, rowIndex)}>Add</button>
+                            </div>
+                            </>
+                          }
+                      </div>
+                    ))}
+                    </div>
+                  </section>
+                ))}
+
+                {/* <section>
                   <div className='mr-2 font-bold'>Sponsor Information:</div>
                   <div className='flex border border-black rounded-md items-center p-4 mt-2 mb-4'>
                     <div className='mr-2'>Client:</div>
@@ -627,11 +675,14 @@ export default function NewLead () {
                   <div className='flex border border-black rounded-md items-center p-4 mt-2 mb-4'>
                     <textarea className='std-input resize-none h-[150px] w-full' value={specialInstructions} onChange={(e) => setSpecialInstructions(e.target.value)} />
                   </div>
-                </section>
+                </section> */}
 
               </form>
-              <button className='std-button mr-1' onClick={() => handleChangeStep(-1)}>Back</button>
-              <button className='std-button' onClick={() => handleChangeStep(1)}>Next</button>
+              <div className='flex gap-2'>
+                <button className='std-button' onClick={() => handleChangeStep(-1)}>Back</button>
+                <button className='std-button' onClick={() => handleChangeStep(1)}>Next</button>
+                {/* <button className='std-button' onClick={() => console.log(JSON.stringify(content))}>Test Content</button> */}
+              </div>
               {/* <button className='std-button' onClick={handleSubmitNewStudy}>Submit</button> */}
               <div className='my-2 text-[#800] whitespace-pre font-mono'>{errStatus}</div>          
             </section>

@@ -142,35 +142,46 @@ export default function LeadManager (props:any) {
     }
   }
 
-  function handleUpdateLeadInputField(e:ChangeEvent<HTMLInputElement>,sectionIndex:number,fieldIndex:number,type:string) {
+  function handleUpdateLeadInputField(e:ChangeEvent<HTMLInputElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
     const newContent = {...content};
-    if (type === 'checkbox') newContent.sections[sectionIndex].fields[fieldIndex].data = e.target.checked;
-    else newContent.sections[sectionIndex].fields[fieldIndex].data = e.target.value;
+    if (type === 'checkbox' || type === 'multicheckbox') {
+      const newData = [...newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
+      newData.splice(dataIndex,1,e.target.checked);
+      newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
+    } else { 
+      const newData = [...newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
+      newData.splice(dataIndex,1,e.target.value);
+      newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
+    }
     setContent(newContent);
   }
 
-  function handleUpdateLeadTextArea(e:ChangeEvent<HTMLTextAreaElement>,sectionIndex:number,fieldIndex:number,type:string) {
+  function handleUpdateLeadTextArea(e:ChangeEvent<HTMLTextAreaElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
     const newContent = {...content};
-    newContent.sections[sectionIndex].fields[fieldIndex].data = e.target.value;
+    const newData = [...newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
+    newData.splice(dataIndex,1,e.target.value);
+    newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
     setContent(newContent);
   }
 
-  function handleAddExtensibleField(e:any,sectionIndex:number, fieldIndex:number) {
+  function handleAddExtensibleRow(e:any,sectionIndex:number,rowIndex:number) {
     e.preventDefault();
-    const newField = {
-      ...content.sections[sectionIndex].fields[fieldIndex], 
-      index: content.sections[sectionIndex].fields[fieldIndex].index+1,
-      data: ''
+    const newRow = {
+      ...content.sections[sectionIndex].rows[rowIndex], 
+      index: content.sections[sectionIndex].rows[rowIndex].index+1,
+      fields: [
+        ...content.sections[sectionIndex].rows[rowIndex].fields.map( (field:any) => {return {...field, data: ''};})
+      ]
     };
     const newContent = {...content};
-    newContent.sections[sectionIndex].fields.push(newField);
+    newContent.sections[sectionIndex].rows.push(newRow);
     setContent(newContent);
   }
 
-  function handleDeleteExtensibleField(e:any, sectionIndex: number, fieldIndex: number) {
+  function handleDeleteExtensibleRow(e:any, sectionIndex: number, rowIndex: number) {
     e.preventDefault();
     const newContent = {...content};
-    newContent.sections[sectionIndex].fields.splice(fieldIndex,1);
+    newContent.sections[sectionIndex].rows.splice(rowIndex,1);
     setContent(newContent);
   }
 
@@ -219,9 +230,12 @@ export default function LeadManager (props:any) {
     let changeSum = 0;
     if (leadStatus !== leadData.status) changeSum++;
     content.sections.map( (section:any, sectionIndex:number) => {
-      if (leadContent.sections[sectionIndex].fields.length !== section.fields.length) changeSum++;
-      section.fields.map( (field:any, fieldIndex:number) => {
-        if (leadContent.sections[sectionIndex].fields[fieldIndex]?.data !== field.data) changeSum++;
+      if (leadContent.sections[sectionIndex].rows.length !== section.rows.length) changeSum++;
+      section.rows.map( (row:any, rowIndex:number) => {
+        row.fields.map( (field:any, fieldIndex:number) => {
+          //console.log(`${leadContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex]?.data} <-> ${field.data}`);
+          if (leadContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex]?.data.toString() !== field.data.toString()) changeSum++;
+        });
       });
     });
     setChanges(changeSum);
@@ -294,7 +308,6 @@ export default function LeadManager (props:any) {
                       <select className='std-input' value={leadStatus} onChange={(e) => setLeadStatus(e.target.value)}>
                         <option value='active'>Active</option>
                         <option value='inactive'>Inactive</option>
-                        <option value='inactive'>Completed</option>
                       </select>
                     </div>
                   </section>
@@ -307,59 +320,71 @@ export default function LeadManager (props:any) {
                   </section>
 
                   {content.sections.map( (section:any, sectionIndex:number) => (
-                    <section key={sectionIndex}>
-                      <div className='mr-2 font-bold'>{section.name}:</div>
-                      <div className='flex flex-col border border-black rounded-md p-4 mt-2 mb-4 gap-2'>
-                        {section.fields.map( (field:any, fieldIndex:number) => (
-                          <section key={fieldIndex}>
+                  <section key={sectionIndex}>
+                    <div className='mr-2 font-bold'>{section.name}:</div>
+                    <div className='flex flex-col border border-black rounded-md p-4 mt-2 mb-4 gap-2'>
+                    {section.rows.map( (row:any, rowIndex:number) => (
+                      <div key={rowIndex} className='flex gap-2 items-center'>
+                        {row.fields.map((field:any, fieldIndex:number) => (
+                          <>
+                            {field.type === 'label' && (
+                              <>
+                                { row.fields.length > 1 && !row.extensible &&
+                                  <div className='font-bold'>{field.params[0]}:</div>
+                                }
+                                { row.extensible &&
+                                  <div className='font-bold'>{field.params[0]} {section.rows.indexOf(row)+1}:</div>
+                                }
+                              </>
+                            )}
                             {field.type === 'textarea' && (
                               <>
                                 <div className='flex flex-col gap-2'>
-                                  { section.fields.length > 1 &&
-                                    <div className='font-bold'>{field.name}:</div>
-                                  }
-                                  <textarea className='resize-none std-input w-full h-[100px]' value={field.data} onChange={(e) => handleUpdateLeadTextArea(e, sectionIndex, fieldIndex, field.type)} />
+                                  <textarea className='resize-none std-input w-full h-[100px]' value={field.data} onChange={(e) => handleUpdateLeadTextArea(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
                                 </div>
                               </>
                             )}
                             {field.type === 'input' && (
-                              <>
-                                <div className='flex items-center gap-2'>
-                                  { section.fields.length > 1 && !field.extensible &&
-                                    <div className='font-bold'>{field.name}:</div>
-                                  }
-                                  { field.extensible &&
-                                    <div className='font-bold'>{field.name} {section.fields.indexOf(field)+1}:</div>
-                                  }
-                                  <input type='text' className='std-input flex-grow' value={field.data} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, fieldIndex, field.type)} />
-                                  { field.extensible && fieldIndex > 0 &&
-                                    <>
-                                    <button className='secondary-button-lite' onClick={(e) => handleDeleteExtensibleField(e, sectionIndex, fieldIndex)}><FontAwesomeIcon icon={faX}/></button>
-                                    </>
-                                  }
-                                </div>
-                              </>
+                              <input type='text' className='std-input flex-grow w-full' value={field.data} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
                             )}
                             {field.type === 'checkbox' && (
-                              <>
-                                <label className='form-control'>
-                                <input name='humanHeart' type='checkbox' checked={field.data} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, fieldIndex, field.type)}></input>
-                                {field.name}
-                                </label>
-                              </>
+                              <label className='form-control'>
+                              <input type='checkbox' checked={field.data[0]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
+                              {field.params[0]}
+                              </label>
                             )}
-                            {field.extensible && section.fields.indexOf(field) == section.fields.length-1 &&
-                              <>
-                              <div className='flex'>
-                                <button className='std-button-lite' onClick={(e) => handleAddExtensibleField(e, sectionIndex, fieldIndex)}>Add</button>
+                            {field.type === 'multicheckbox' && (
+                              <div className='flex flex-col gap-2 justify-start items-start'>
+                                { field.params.map( (param:string, i:number) => (
+                                    <label key={i} className='form-control'>
+                                    <input type='checkbox' checked={field.data[i]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, i, field.type)} />
+                                    {param}
+                                    </label>
+                                ))}
                               </div>
-                              </>
-                            }
-                          </section>
+                            )}
+                          
+                          </>
                         ))}
+                        {/* ROW DELETE BUTTON */}
+                        { row.extensible && rowIndex > 0 &&
+                            <>
+                            <button className='secondary-button-lite' onClick={(e) => handleDeleteExtensibleRow(e, sectionIndex, rowIndex)}><FontAwesomeIcon icon={faX}/></button>
+                            </>
+                          }
+                          {/* ROW ADD BUTTON */}
+                          {row.extensible && section.rows.indexOf(row) == section.rows.length-1 &&
+                            <>
+                            <div className='flex'>
+                              <button className='std-button-lite' onClick={(e) => handleAddExtensibleRow(e, sectionIndex, rowIndex)}>Add</button>
+                            </div>
+                            </>
+                          }
                       </div>
-                    </section>
-                  ))}
+                    ))}
+                    </div>
+                  </section>
+                ))}
                 </form>
               </section>
             </div>

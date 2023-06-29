@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { addApolloState, initializeApollo } from "../../../../utils/apolloClient";
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faX } from "@fortawesome/free-solid-svg-icons";
 import LeadTemplateSection from "@/components/LeadTemplateSection";
@@ -13,19 +13,23 @@ import { useMutation } from "@apollo/client";
 import { useRouter } from "next/router";
 
 interface TemplateField {
-  name: string,
-  index: number,
-  type: string,
-  data: string,
-  extensible: boolean,
+  index: number
+  type: string
+  params: Array<string>
+  data: Array<string>
+}
+
+interface TemplateSectionRow {
+  index: number
+  fields: Array<TemplateField>
+  extensible: boolean
 }
 
 interface TemplateSection {
   name: string
-  index: number,
-  fields: Array<TemplateField>
+  index: number
+  rows: Array<TemplateSectionRow>
   extensible: boolean
-  extensibleGroupName: string
 }
 
 export async function getServerSideProps(context:any) {
@@ -67,16 +71,14 @@ export default function NewLeadTemplate () {
   const [addLeadTemplate, { error, data: addNewLeadData }] = useMutation(ADD_LEAD_TEMPLATE);
 
   function handleAddSection () {
-    setSections([
-      ...sections,
-      {
-        name: '',
-        index: sections.length,
-        fields: new Array<TemplateField>,
-        extensible: false,
-        extensibleGroupName: ''
-      }
-    ])
+    const newSection : TemplateSection = {
+      name: '',
+      index: sections.length,
+      rows: [] as TemplateSectionRow[],
+      extensible: false,
+    }
+    const newSections = [...sections, newSection];
+    setSections(newSections);
   }
 
   function handleDeleteSection (index:number) {
@@ -91,7 +93,8 @@ export default function NewLeadTemplate () {
           sections: JSON.stringify(sections)
         }
       });
-      router.push('/leads/templates');
+      console.log(JSON.stringify(sections));
+      //router.push('/leads/templates');
     } catch (err:any) {
       setErrStatus(err.message);
     }
@@ -145,9 +148,7 @@ export default function NewLeadTemplate () {
                     { sections.length > 0 ? 
                       <>
                       {sections.map((section:TemplateSection, index:number) => 
-                        <>
-                          <LeadTemplateSection key={index} index={index} sections={sections} setSections={setSections} handleDeleteSection={handleDeleteSection} />
-                        </>
+                        <LeadTemplateSection key={index} index={index} sections={sections} setSections={setSections} handleDeleteSection={handleDeleteSection} />
                       )}
                       </>
                       :

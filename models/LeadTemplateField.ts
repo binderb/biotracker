@@ -1,15 +1,14 @@
 import { Schema, model, models } from 'mongoose';
 
 const leadTemplateFieldSchema = new Schema({
-  name: String!,
   index: Number!,
   type: {
     type: String!,
-    enum: ['textarea', 'multitextarea', 'input', 'multiinput', 'checkbox', 'multicheckbox'],
+    enum: ['label', 'textarea', 'multitextarea', 'input', 'multiinput', 'checkbox', 'multicheckbox'],
     default: 'textarea'
   },
-  data: String,
-  extensible: Boolean!,
+  params: [String],
+  data: [String],
 });
 
 const LeadTemplateField = models?.LeadTemplateField || model('LeadTemplateField', leadTemplateFieldSchema);

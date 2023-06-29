@@ -139,15 +139,18 @@ export const GET_LEAD_TEMPLATE_LATEST = gql`
         createdAt
         sections {
           _id
-          enstensibleGroupName
           extensible
-          fields {
+          rows {
             _id
-            data
-            extensible
             index
-            name
-            type
+            extensible
+            fields {
+              _id
+              data
+              params
+              index
+              type
+            }
           }
           index
           name

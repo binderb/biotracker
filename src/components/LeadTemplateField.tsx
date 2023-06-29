@@ -1,63 +1,61 @@
 import { ChangeEvent, useState } from "react"
 
 interface TemplateField {
-  name: string,
-  index: number,
-  type: string,
-  data: string,
-  extensible: boolean,
+  index: number
+  type: string
+  params: Array<string>
+  data: Array<string>
+}
+
+interface TemplateSectionRow {
+  index: number
+  fields: Array<TemplateField>
+  extensible: boolean
 }
 
 interface TemplateSection {
   name: string
   index: number
-  fields: Array<TemplateField>
+  rows: Array<TemplateSectionRow>
   extensible: boolean
-  extensibleGroupName: string
 }
 
 interface Props {
   sections: Array<TemplateSection>
   index: number
+  rowIndex: number
   fieldIndex: number
   setSections: Function
 }
 
-export default function LeadTemplateField ({sections, index, fieldIndex, setSections}:Props) {
+export default function LeadTemplateField ({sections, index, rowIndex, fieldIndex, setSections}:Props) {
 
-  const [fieldName, setFieldName] = useState(sections[index].fields[fieldIndex].name);
-  const [fieldType, setFieldType] = useState(sections[index].fields[fieldIndex].type);
-  const [fieldExtensible, setFieldExtensible] = useState(sections[index].fields[fieldIndex].extensible);
-  const fieldTypeOptions = ['textarea', 'multitextarea', 'input', 'multiinput', 'checkbox', 'multicheckbox'];
-
-  function handleFieldNameUpdate (e:ChangeEvent<HTMLInputElement>) {
-    setFieldName(e.target.value);
-    const newSections = [...sections];
-    newSections[index].fields[fieldIndex].name = e.target.value;
-    setSections(newSections);
-  }
+  const [fieldType, setFieldType] = useState(sections[index].rows[rowIndex].fields[fieldIndex].type);
+  const [fieldParams, setFieldParams] = useState(sections[index].rows[rowIndex].fields[fieldIndex].params)
+  const fieldTypeOptions = ['label', 'textarea', 'multitextarea', 'input', 'multiinput', 'checkbox', 'multicheckbox'];
 
   function handleFieldTypeUpdate (e:ChangeEvent<HTMLSelectElement>) {
     setFieldType(e.target.value);
+    if (e.target.value.indexOf('multi') < 0) {
+      setFieldParams([]);
+    }
     const newSections = [...sections];
-    newSections[index].fields[fieldIndex].type = e.target.value;
+    newSections[index].rows[rowIndex].fields[fieldIndex].type = e.target.value;
     setSections(newSections);
   }
 
-  function handleFieldExtensibleUpdate (e:ChangeEvent<HTMLInputElement>) {
-    setFieldExtensible(e.target.checked);
+  function handleFieldParamsUpdate (e:ChangeEvent<HTMLInputElement>) {
+    const multiValues = e.target.value.split(',');
+    setFieldParams(multiValues);
     const newSections = [...sections];
-    newSections[index].fields[fieldIndex].extensible = e.target.checked;
+    newSections[index].rows[rowIndex].fields[fieldIndex].params = multiValues;
+    newSections[index].rows[rowIndex].fields[fieldIndex].data = new Array<string>(multiValues.length);
     setSections(newSections);
   }
 
   return (
     <>
     <div className='flex flex-col gap-2 std-input rounded-lg'>
-        <div className='flex gap-2 items-center'>
-          <div className='font-bold'>Field Name:</div>
-          <input type="text" className='std-input' value={fieldName} onChange={(e)=>handleFieldNameUpdate(e)} />
-        </div>
         <div className='flex gap-2 items-center'>
           <div className='font-bold'>Type:</div>
           <select className='std-input' value={fieldType} onChange={(e)=>handleFieldTypeUpdate(e)}>
@@ -66,14 +64,22 @@ export default function LeadTemplateField ({sections, index, fieldIndex, setSect
             ))}
           </select>
         </div>
-        <label className='flex gap-2 py-2 font-bold'>
-          Extensible Section:
-          <input name='animalHeart' type='checkbox' checked={fieldExtensible} onChange={(e) => handleFieldExtensibleUpdate(e)}></input>
-        </label>
+        { fieldType === 'label' &&
+        <div className='flex items-center gap-2'>
+          <div className='font-bold'>Label Text (no commas):</div>
+          <input type="text" className='std-input' value={fieldParams?.join(',')} onChange={(e)=>handleFieldParamsUpdate(e)} />
+        </div>
+        }
+        { fieldType === 'checkbox' &&
+        <div className='flex items-center gap-2'>
+          <div className='font-bold'>Checkbox Label (no commas):</div>
+          <input type="text" className='std-input' value={fieldParams?.join(',')} onChange={(e)=>handleFieldParamsUpdate(e)} />
+        </div>
+        }
         { fieldType === 'multicheckbox' &&
         <div className='flex flex-col items-start gap-2'>
-          <div className='font-bold'>Checkbox Names (separated by commas):</div>
-          <input type="text" className='std-input w-full' value={fieldName} onChange={(e)=>handleFieldNameUpdate(e)} />
+          <div className='font-bold'>Checkbox Labels (separated by commas):</div>
+          <input type="text" className='std-input w-full' value={fieldParams?.join(',')} onChange={(e)=>handleFieldParamsUpdate(e)} />
         </div>
         }
     </div>
