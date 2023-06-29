@@ -234,7 +234,7 @@ export default function LeadManager (props:any) {
       section.rows.map( (row:any, rowIndex:number) => {
         row.fields.map( (field:any, fieldIndex:number) => {
           //console.log(`${leadContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex]?.data} <-> ${field.data}`);
-          if (leadContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex]?.data.toString() !== field.data.toString()) changeSum++;
+          if (leadContent.sections[sectionIndex].rows[rowIndex]?.fields[fieldIndex]?.data.toString() !== field.data.toString()) changeSum++;
         });
       });
     });
