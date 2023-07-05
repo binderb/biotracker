@@ -280,8 +280,8 @@ export default function LeadManager (props:any) {
           </button>
         </div>
       </div>
-      <section className='max-md:flex max-md:flex-col-reverse md:grid md:grid-cols-2 xl:grid-cols-5 gap-2 px-4 overflow-y-hidden'>
-        <div id="discussion" className='bg-secondary/20 border border-secondary/80 xl:col-span-2 p-4 rounded-lg md:overflow-y-hidden h-full'>
+      <section className='max-md:flex max-md:flex-col-reverse md:grid md:grid-cols-12 gap-2 px-4 overflow-y-hidden'>
+        <div id="discussion" className='bg-secondary/20 border border-secondary/80 md:col-span-5 xl:col-span-4 p-4 rounded-lg md:overflow-y-hidden h-full'>
           <h5>Discussion</h5>
           <div className='flex flex-col gap-2'>
             <div className='flex justify-between items-center'>
@@ -296,7 +296,7 @@ export default function LeadManager (props:any) {
             </div>
           </div>
         </div>
-        <div id="edit-study" className='bg-secondary/20 border border-secondary/80 xl:col-span-3 p-4 rounded-lg md:overflow-y-hidden h-full'>
+        <div id="edit-study" className='bg-secondary/20 border border-secondary/80 md:col-span-7 xl:col-span-8 p-4 rounded-lg md:overflow-y-hidden h-full'>
         <h5>Lead Details</h5>
           <div className='md:overflow-y-hidden h-[calc(100%-40px)]'>
             <div className='md:overflow-y-auto h-full pr-4'>
@@ -321,35 +321,56 @@ export default function LeadManager (props:any) {
 
                   {content.sections.map( (section:any, sectionIndex:number) => (
                   <section key={sectionIndex}>
-                    <div className='mr-2 font-bold'>{section.name}:</div>
-                    <div className='flex flex-col border border-black rounded-md p-4 mt-2 mb-4 gap-2'>
+                    <div className='font-bold py-4'>{section.name}:</div>
+                    {/* <div className='flex flex-col border border-black rounded-md p-4 mt-2 mb-4 gap-2'> */}
+                    <div className='border border-secondary rounded-lg p-2 overflow-x-auto'>
+                    <table className='w-full'><tbody>
                     {section.rows.map( (row:any, rowIndex:number) => (
-                      <div key={rowIndex} className='flex gap-2 items-center'>
+                      // <div key={rowIndex} className='flex gap-2 items-center'>
+                      <tr key={rowIndex}>
                         {row.fields.map((field:any, fieldIndex:number) => (
                           <>
                             {field.type === 'label' && (
-                              <>
+                              <td key={fieldIndex} className='align-top py-1'>
                                 { row.fields.length > 1 && !row.extensible &&
                                   <div className='font-bold'>{field.params[0]}:</div>
                                 }
                                 { row.extensible &&
                                   <div className='font-bold'>{field.params[0]} {section.rows.indexOf(row)+1}:</div>
                                 }
-                              </>
+                              </td>
                             )}
                             {field.type === 'textarea' && (
+                              <td className='align-middle py-1'>
                               <textarea className='resize-none std-input w-full h-[100px]' value={field.data} onChange={(e) => handleUpdateLeadTextArea(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
+                              </td>
                             )}
                             {field.type === 'input' && (
+                              <td className='flex gap-2 align-middle py-1'>
                               <input type='text' className='std-input flex-grow w-full' value={field.data} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
+                              {/* ROW DELETE BUTTON */}
+                              { row.extensible && rowIndex > 0 &&
+                                <button className='secondary-button-lite' onClick={(e) => handleDeleteExtensibleRow(e, sectionIndex, rowIndex)}><FontAwesomeIcon icon={faX}/></button>
+                              }
+                              {/* ROW ADD BUTTON */}
+                              {row.extensible && section.rows.indexOf(row) == section.rows.length-1 &&
+                                <div className='flex'>
+                                  <button className='std-button-lite' onClick={(e) => handleAddExtensibleRow(e, sectionIndex, rowIndex)}>Add</button>
+                                </div>
+                              }
+                              </td>
+                              
                             )}
                             {field.type === 'checkbox' && (
+                              <td className='align-middle py-1'>
                               <label className='form-control'>
                               <input type='checkbox' checked={field.data[0]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
                               {field.params[0]}
                               </label>
+                              </td>
                             )}
                             {field.type === 'multicheckbox' && (
+                              <td className='align-top'>
                               <div className='flex flex-col gap-2 justify-start items-start'>
                                 { field.params.map( (param:string, i:number) => (
                                     <label key={i} className='form-control'>
@@ -358,26 +379,15 @@ export default function LeadManager (props:any) {
                                     </label>
                                 ))}
                               </div>
+                              </td>
                             )}
                           
                           </>
                         ))}
-                        {/* ROW DELETE BUTTON */}
-                        { row.extensible && rowIndex > 0 &&
-                            <>
-                            <button className='secondary-button-lite' onClick={(e) => handleDeleteExtensibleRow(e, sectionIndex, rowIndex)}><FontAwesomeIcon icon={faX}/></button>
-                            </>
-                          }
-                          {/* ROW ADD BUTTON */}
-                          {row.extensible && section.rows.indexOf(row) == section.rows.length-1 &&
-                            <>
-                            <div className='flex'>
-                              <button className='std-button-lite' onClick={(e) => handleAddExtensibleRow(e, sectionIndex, rowIndex)}>Add</button>
-                            </div>
-                            </>
-                          }
-                      </div>
+                        
+                        </tr>
                     ))}
+                    </tbody></table>
                     </div>
                   </section>
                 ))}
