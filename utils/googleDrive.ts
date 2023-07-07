@@ -2,6 +2,7 @@ const fs = require('fs').promises;
 const Readable = require('stream').Readable;
 import path from "path";
 const {authenticate} = require('@google-cloud/local-auth');
+const { OAuth2Client } = require('google-auth-library');
 const {google} = require('googleapis');
 
 // If modifying these scopes, delete token.json.
@@ -18,26 +19,35 @@ async function loadSavedCredentialsIfExist() {
   }
 }
 
-async function saveCredentials(client:any) {
-  const credentialsPath = path.join(process.cwd(),process.env.GOOGLE_CREDENTIALS_PATH!);
-  const content = await fs.readFile(credentialsPath);
-  console.log(content);
-  const keys = JSON.parse(content);
-  // const keys = JSON.parse(process.env.GOOGLE_CREDENTIALS_PATH!);
-  const key = keys.installed || keys.web;
-  const payload = JSON.stringify({
-    type: 'authorized_user',
-    client_id: key.client_id,
-    client_secret: key.client_secret,
-    refresh_token: client.credentials.refresh_token,
-  });
-  await fs.writeFile(path.join(process.cwd(),process.env.GOOGLE_TOKEN_PATH!), payload);
+export async function saveNewGoogleDriveToken(code:string) {
+  try {
+    const credentialsPath = path.join(process.cwd(),process.env.GOOGLE_CREDENTIALS_PATH!);
+    const content = await fs.readFile(credentialsPath);
+    const credentials = JSON.parse(content).web;
+    const client = new OAuth2Client(
+      credentials.client_id,
+      credentials.client_secret,
+      credentials.redirect_uris[0]
+    )
+    const { tokens } = await client.getToken(code);
+    client.setCredentials(tokens);
+
+    const payload = JSON.stringify({
+      type: 'authorized_user',
+      client_id: credentials.client_id,
+      client_secret: credentials.client_secret,
+      refresh_token: client.credentials.refresh_token,
+    });
+    await fs.writeFile(path.join(process.cwd(),process.env.GOOGLE_TOKEN_PATH!), payload);
+  } catch (err:any) {
+    throw err;
+  }
 }
 
-export async function adminAuthorizeGoogleDrive() {
+export async function getGoogleDriveAuthUrl() {
   const credentialsPath = path.join(process.cwd(),process.env.GOOGLE_CREDENTIALS_PATH!);
   const content = await fs.readFile(credentialsPath);
-  console.log(JSON.parse(content));
+  const credentials = JSON.parse(content).web;
   const SCOPES = [
     'https://www.googleapis.com/auth/drive.metadata.readonly',
     'https://www.googleapis.com/auth/drive.file',
@@ -45,17 +55,20 @@ export async function adminAuthorizeGoogleDrive() {
   ];
   let client = await loadSavedCredentialsIfExist();
   if (client) {
-    return client;
+    return 'already_authorized';
   }
   
-  client = await authenticate({
-    scopes: SCOPES,
-    keyfilePath: path.join(process.cwd(),process.env.GOOGLE_CREDENTIALS_PATH!),
+  client = new OAuth2Client(
+    credentials.client_id,
+    credentials.client_secret,
+    credentials.redirect_uris[0]
+  )
+  const authUrl = client.generateAuthUrl({
+    access_type: 'offline',
+    scope: SCOPES
   });
-  if (client.credentials) {
-    await saveCredentials(client);
-  }
-  return client;
+
+  return authUrl;
 }
 
 export async function userAuthorizeGoogleDrive() {

@@ -81,6 +81,12 @@ export const AUTHORIZE_GOOGLE_DRIVE = gql`
   }
 `;
 
+export const SAVE_GOOGLE_DRIVE_TOKEN = gql`
+  mutation saveGoogleDriveToken($authCode: String!) {
+    saveGoogleDriveToken(authCode: $authCode)
+  }
+`;
+
 export const TEST_GOOGLE_DRIVE = gql`
   mutation testGoogleDrive {
     testGoogleDrive

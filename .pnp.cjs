@@ -50,6 +50,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["dotenv", "npm:16.0.3"],\
             ["eslint", "npm:8.38.0"],\
             ["eslint-config-next", "virtual:7f7252f88b54a8c86684de21010dc70a72940d1bc3e01ac89ed82e41119b6435b71855924beecbbfff50461b713593d5fb44d55513a1fe8c2273605891f4f157#npm:13.3.0"],\
+            ["google-auth-library", "npm:8.9.0"],\
             ["googleapis", "npm:118.0.0"],\
             ["graphql", "npm:16.6.0"],\
             ["graphql-tag", "virtual:7f7252f88b54a8c86684de21010dc70a72940d1bc3e01ac89ed82e41119b6435b71855924beecbbfff50461b713593d5fb44d55513a1fe8c2273605891f4f157#npm:2.12.6"],\
@@ -2012,6 +2013,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["dotenv", "npm:16.0.3"],\
             ["eslint", "npm:8.38.0"],\
             ["eslint-config-next", "virtual:7f7252f88b54a8c86684de21010dc70a72940d1bc3e01ac89ed82e41119b6435b71855924beecbbfff50461b713593d5fb44d55513a1fe8c2273605891f4f157#npm:13.3.0"],\
+            ["google-auth-library", "npm:8.9.0"],\
             ["googleapis", "npm:118.0.0"],\
             ["graphql", "npm:16.6.0"],\
             ["graphql-tag", "virtual:7f7252f88b54a8c86684de21010dc70a72940d1bc3e01ac89ed82e41119b6435b71855924beecbbfff50461b713593d5fb44d55513a1fe8c2273605891f4f157#npm:2.12.6"],\
@@ -3640,6 +3642,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["json-bigint", "npm:1.0.0"]\
           ],\
           "linkType": "HARD"\
+        }],\
+        ["npm:5.3.0", {\
+          "packageLocation": "./.yarn/cache/gcp-metadata-npm-5.3.0-439550abc3-891ea0b902.zip/node_modules/gcp-metadata/",\
+          "packageDependencies": [\
+            ["gcp-metadata", "npm:5.3.0"],\
+            ["gaxios", "npm:5.1.0"],\
+            ["json-bigint", "npm:1.0.0"]\
+          ],\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["get-intrinsic", [\
@@ -3821,6 +3832,22 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["fast-text-encoding", "npm:1.0.6"],\
             ["gaxios", "npm:5.1.0"],\
             ["gcp-metadata", "npm:5.2.0"],\
+            ["gtoken", "npm:6.1.2"],\
+            ["jws", "npm:4.0.0"],\
+            ["lru-cache", "npm:6.0.0"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:8.9.0", {\
+          "packageLocation": "./.yarn/cache/google-auth-library-npm-8.9.0-0be0e71cd8-8e0bc5f1e9.zip/node_modules/google-auth-library/",\
+          "packageDependencies": [\
+            ["google-auth-library", "npm:8.9.0"],\
+            ["arrify", "npm:2.0.1"],\
+            ["base64-js", "npm:1.5.1"],\
+            ["ecdsa-sig-formatter", "npm:1.0.11"],\
+            ["fast-text-encoding", "npm:1.0.6"],\
+            ["gaxios", "npm:5.1.0"],\
+            ["gcp-metadata", "npm:5.3.0"],\
             ["gtoken", "npm:6.1.2"],\
             ["jws", "npm:4.0.0"],\
             ["lru-cache", "npm:6.0.0"]\
