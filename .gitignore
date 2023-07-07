@@ -2,6 +2,7 @@
 
 # Google Drive API
 credentials.json
+credentials_backup.json
 token.json
 
 # Custom branding

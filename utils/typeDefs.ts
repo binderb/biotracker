@@ -122,6 +122,7 @@ const typeDefs = gql`
     addLeadTemplate(name: String!, sections: String!): String
     addStudy(clientCode: String!, studyIndex: Int!, studyType: String!): Client
     authorizeGoogleDrive: String
+    saveGoogleDriveToken(authCode: String): String
     testGoogleDrive: String
     createDriveStudyTree(clientCode: String!, studyName: String!): String
     createDriveStudy(clientCode: String!, studyName: String!, studyData: String!): String

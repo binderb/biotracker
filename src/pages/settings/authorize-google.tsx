@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
+import { useRouter } from 'next/router';
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -33,13 +34,24 @@ export async function getServerSideProps(context:any) {
 // This gets handled by the [...nextauth] endpoint
 export default function UserManager () {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [appStatus, setAppStatus] = useState('');
   const [authorizeGoogleDrive, {data: authorizeResponse }] = useMutation(AUTHORIZE_GOOGLE_DRIVE);
   const [testGoogleDrive, {data: testResponse}] = useMutation(TEST_GOOGLE_DRIVE);
+  
+  if (status !== 'authenticated') {
+    router.push('/login');
+    return;
+  }
 
   async function handleAuthClick () {
     try {
-      await authorizeGoogleDrive();
+      const authUrlResponse = await authorizeGoogleDrive();
+      const authUrl:string = authUrlResponse.data.authorizeGoogleDrive;
+      if (authUrl === 'already_authorized') {
+        throw new Error('App is already authorized.');
+      }
+      window.location.replace(authUrl);
     } catch (err:any) {
       setAppStatus(err.message);
     }

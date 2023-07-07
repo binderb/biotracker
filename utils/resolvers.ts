@@ -6,7 +6,7 @@ import LeadChange from "../models/LeadChange";
 import Study from "../models/Study";
 import connectMongo from "./connectMongo";
 import User from "../models/User";
-import { adminAuthorizeGoogleDrive, convertToPdf, createDirectoryIfNotExists, createDirectoryWithSubdirectories, getFolderIdFromPath, listFiles, userAuthorizeGoogleDrive } from "./googleDrive";
+import { convertToPdf, createDirectoryIfNotExists, createDirectoryWithSubdirectories, getFolderIdFromPath, getGoogleDriveAuthUrl, listFiles, saveNewGoogleDriveToken, userAuthorizeGoogleDrive } from "./googleDrive";
 import { now } from "lodash";
 import LeadTemplate from "../models/LeadTemplate";
 import LeadTemplateField from "../models/LeadTemplateField";
@@ -390,8 +390,19 @@ const resolvers = {
       return client;
     },
     authorizeGoogleDrive: async () => {
-      await adminAuthorizeGoogleDrive();
-      return 'success';
+      
+      const authUrl = await getGoogleDriveAuthUrl();
+      console.log(authUrl);
+      return authUrl;
+    },
+    saveGoogleDriveToken: async (_:any, args:any) => {
+      const { authCode } = args;
+      try {
+        await saveNewGoogleDriveToken(authCode);
+        return "success";
+      } catch (err:any) {
+        throw err;
+      }
     },
     testGoogleDrive: async () => {
       const client = await userAuthorizeGoogleDrive();
