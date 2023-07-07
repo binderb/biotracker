@@ -10,6 +10,7 @@ import Link from "next/link";
 import { faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ADD_NEW_LEAD } from "@/utils/mutations";
+import { useRouter } from "next/router";
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -49,6 +50,7 @@ export async function getServerSideProps(context:any) {
 export default function NewLead () {
 
   const { data: session, status } = useSession();
+  const router = useRouter();
   const { data: clientData } = useQuery(GET_CLIENTS);
   const clients = clientData.getClients;
   const { data: userData } = useQuery(GET_USERS);
@@ -100,9 +102,10 @@ export default function NewLead () {
     } : null);
   },[templateObject]);
 
-  useEffect( () => {
-    console.log(content);
-  },[content]);
+  if (status !== 'authenticated') {
+    router.push('/login');
+    return;
+  }
 
   function handleUpdateLeadName (e:ChangeEvent<HTMLInputElement>) {
     setLeadName(e.target.value);
@@ -251,7 +254,7 @@ export default function NewLead () {
             </div>
             <div className='flex flex-col justify-center mb-2'>
               <div className='mr-2'>Who should be included in the drafting process?</div>
-              <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
+              <div className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
                 <form
                   className="flex items-center mb-2"
                   onSubmit={handleAddDrafter}
@@ -290,7 +293,7 @@ export default function NewLead () {
               </div>
               <form>
                 <div className='mr-2 font-bold'>Sponsor Information:</div>
-                <div className='flex border border-black rounded-md items-center p-4 mt-2 mb-4'>
+                <div className='flex border border-secondary rounded-md items-center p-4 mt-2 mb-4'>
                   <div className='mr-2'>Client:</div>
                   <div>{client}</div>
                 </div>
@@ -365,330 +368,11 @@ export default function NewLead () {
                     </div>
                   </section>
                 ))}
-
-                {/* <section>
-                  <div className='mr-2 font-bold'>Sponsor Information:</div>
-                  <div className='flex border border-black rounded-md items-center p-4 mt-2 mb-4'>
-                    <div className='mr-2'>Client:</div>
-                    <div>{client}</div>
-                  </div>
-                </section>
-                <section>
-                  <div className='mr-2 font-bold'>Purpose of Study:</div>
-                  <div className='flex border border-black rounded-md items-center p-4 mt-2 mb-4'>
-                    <textarea className='resize-none std-input w-full h-[100px]' value={purpose} onChange={(e)=>setPurpose(e.target.value)} />
-                  </div>
-                </section>
-                <section>
-                  <div className='mr-2 font-bold'>Endpoints:</div>
-                  <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
-                  <table className='whitespace-nowrap'>
-                      <thead>
-                        <tr>
-                        <th></th>
-                        <th className='w-full'></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div className='pr-2'>Primary Endpoint:</div>
-                          </td>
-                          <td>
-                            <input type='text' className='std-input w-full mb-2' name='leadName' value={endpoints.primary} onChange={(e) => setEndpoints({...endpoints, primary: e.target.value})} />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className='pr-2'>Secondary Endpoint:</div>
-                          </td>
-                          <td>
-                            <input type='text' className='std-input w-full mb-2' name='leadName' value={endpoints.secondary} onChange={(e) => setEndpoints({...endpoints, secondary: e.target.value})} />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className='pr-2'>Tertiary Endpoint:</div>
-                          </td>
-                          <td>
-                            <input type='text' className='std-input w-full mb-2' name='leadName' value={endpoints.tertiary} onChange={(e) => setEndpoints({...endpoints, tertiary: e.target.value})} />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-                <section>
-                  <div className='mr-2 font-bold'>Test Article Information:</div>
-                  <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
-                    <table className='whitespace-nowrap'>
-                      <thead>
-                        <tr>
-                        <th></th>
-                        <th className='w-full'></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className='pr-2 align-top'>
-                            Description:
-                          </td>
-                          <td>
-                            <textarea className='std-input resize-none w-full mb-1 h-[100px]' value={testArticleInfo.description} onChange={(e) => setTestArticleInfo({...testArticleInfo, description: e.target.value})} />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className='pr-2'>Size:</div>
-                          </td>
-                          <td>
-                            <input type='text' className='std-input mb-2' value={testArticleInfo.size} onChange={(e) => setTestArticleInfo({...testArticleInfo, size: e.target.value})} />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className='pr-2'>Concentration:</div>
-                          </td>
-                          <td>
-                            <input type='text' className='std-input mb-2' value={testArticleInfo.concentration} onChange={(e) => setTestArticleInfo({...testArticleInfo, concentration: e.target.value})} />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-                <section>
-                  <div className='mr-2 font-bold'>Control Article Information:</div>
-                  <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
-                  <table className='whitespace-nowrap'>
-                      <thead>
-                        <tr>
-                        <th></th>
-                        <th className='w-full'></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className='pr-2 align-top'>
-                            Description:
-                          </td>
-                          <td>
-                            <textarea className='std-input resize-none w-full mb-1 h-[100px]' value={controlArticleInfo.description} onChange={(e) => setControlArticleInfo({...controlArticleInfo, description: e.target.value})}/>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className='pr-2'>Size:</div>
-                          </td>
-                          <td>
-                            <input type='text' className='std-input mb-2' value={controlArticleInfo.size} onChange={(e) => setControlArticleInfo({...controlArticleInfo, size: e.target.value})} />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className='pr-2'>Concentration:</div>
-                          </td>
-                          <td>
-                            <input type='text' className='std-input mb-2' value={controlArticleInfo.concentration} onChange={(e) => setControlArticleInfo({...controlArticleInfo, concentration: e.target.value})} />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-                <section>
-                  <div className='mr-2 font-bold'>Ancillary Product(s) Information:</div>
-                  <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
-                  <table className='whitespace-nowrap'>
-                      <thead>
-                      <tr>
-                        <th></th>
-                        <th className='w-full'></th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className='pr-2 align-top'>
-                            Description:
-                          </td>
-                          <td>
-                            <textarea className='std-input resize-none w-full mb-1 h-[100px]' value={ancillaryProductInfo.description} onChange={(e) => setAncillaryProductInfo({...ancillaryProductInfo, description: e.target.value})} />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className='pr-2'>Size:</div>
-                          </td>
-                          <td>
-                            <input type='text' className='std-input mb-2' value={ancillaryProductInfo.size} onChange={(e) => setAncillaryProductInfo({...ancillaryProductInfo, size: e.target.value})} />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className='pr-2'>Concentration:</div>
-                          </td>
-                          <td>
-                            <input type='text' className='std-input mb-2' value={ancillaryProductInfo.concentration} onChange={(e) => setAncillaryProductInfo({...ancillaryProductInfo, concentration: e.target.value})} />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-                <section>
-                  <div className='mr-2 font-bold'>Test System Information:</div>
-                  <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
-                    <table className='whitespace-nowrap border-separate border-spacing-1'>
-                      <thead>
-                      <tr>
-                        <th></th>
-                        <th className='w-[33%]'></th>
-                        <th className='w-[33%]'></th>
-                        <th className='w-[33%]'></th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className='pr-2 align-top'>
-                            Type:
-                          </td>
-                          <td className='visible-cell'>
-                            <label className='form-control'>
-                              <input name='animalHeart' type='checkbox' checked={testSystemInfo.type.animalHeart} onChange={handleTestSystemUpdate}></input>
-                              Animal Heart
-                            </label>
-                          </td>
-                          <td className='visible-cell'>
-                            <label className='form-control'>
-                              <input name='humanHeart' type='checkbox' checked={testSystemInfo.type.humanHeart} onChange={handleTestSystemUpdate}></input>
-                              Human Heart
-                            </label>
-                          </td>
-                          <td className='visible-cell'>
-                            <label className='form-control'>
-                              <input name='humanCadaver' type='checkbox' checked={testSystemInfo.type.humanCadaver} onChange={handleTestSystemUpdate}></input>
-                              Human Cadaver
-                            </label>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className='pr-2 align-top'>
-                            Specs:
-                          </td>
-                          <td className='visible-cell align-top'>
-                            <label className='form-control'>
-                              <input name='antelope' type='checkbox' checked={testSystemInfo.specs.animalHeartSpecs.antelope} onChange={handleTestSystemUpdate}></input>
-                              Antelope
-                            </label>
-                            <label className='form-control'>
-                              <input name='cow' type='checkbox' checked={testSystemInfo.specs.animalHeartSpecs.cow} onChange={handleTestSystemUpdate}></input>
-                              Cow
-                            </label>
-                            <label className='form-control'>
-                              <input name='elk' type='checkbox' checked={testSystemInfo.specs.animalHeartSpecs.elk} onChange={handleTestSystemUpdate}></input>
-                              Elk
-                            </label>
-                            <label className='form-control'>
-                              <input name='pig' type='checkbox' checked={testSystemInfo.specs.animalHeartSpecs.pig} onChange={handleTestSystemUpdate}></input>
-                              Pig
-                            </label>
-                          </td>
-                          <td className='visible-cell flex-col align-top'>
-                            <label className='form-control'>
-                              <input name='fresh' type='checkbox' checked={testSystemInfo.specs.humanHeartSpecs.fresh} onChange={handleTestSystemUpdate}></input>
-                              Fresh
-                            </label>
-                            <label className='form-control'>
-                              <input name='mrosourced' type='checkbox' checked={testSystemInfo.specs.humanHeartSpecs.MROSourced} onChange={handleTestSystemUpdate}></input>
-                              MRO Sourced
-                            </label>
-                          </td>
-                          <td className='visible-cell flex-col align-top'>
-                            <label className='form-control'>
-                              <input name='full' type='checkbox' checked={testSystemInfo.specs.humanCadaverSpecs.full} onChange={handleTestSystemUpdate}></input>
-                              Full
-                            </label>
-                            <label className='form-control'>
-                              <input name='torso' type='checkbox' checked={testSystemInfo.specs.humanCadaverSpecs.torso} onChange={handleTestSystemUpdate}></input>
-                              Torso
-                            </label>
-                            <label className='form-control'>
-                              <input name='leg' type='checkbox' checked={testSystemInfo.specs.humanCadaverSpecs.leg} onChange={handleTestSystemUpdate}></input>
-                              Leg
-                            </label>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className='pr-2 align-top'>Quantity Requested:</td>
-                          <td className='visible-cell'>
-                            <textarea name='animalHeartQuantity' className='std-input resize-none w-full h-[100px]' value={testSystemInfo.quantity.animalHeartQuantity} onChange={handleTestSystemUpdate} />
-                          </td>
-                          <td className='visible-cell'>
-                            <textarea name='humanHeartQuantity' className='std-input resize-none w-full h-[100px]' value={testSystemInfo.quantity.humanHeartQuantity} onChange={handleTestSystemUpdate} />
-                          </td>
-                          <td className='visible-cell'>
-                            <textarea name='humanCadaverQuantity' className='std-input resize-none w-full h-[100px]' value={testSystemInfo.quantity.humanCadaverQuantity} onChange={handleTestSystemUpdate} />
-                          </td>
-                        </tr>
-                        
-                        
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-                <section>
-                  <div className='mr-2 font-bold'>Methods:</div>
-                  <div className='flex flex-col border border-black rounded-md justify-center p-4 mt-2 mb-4'>
-                  <table className='whitespace-nowrap'>
-                      <thead>
-                      <tr>
-                        <th></th>
-                        <th className='w-full'></th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>
-                            <div className='pr-2'>Surgical / Vascular Access Points:</div>
-                          </td>
-                          <td>
-                            <input type='text' className='std-input w-full mb-2' value={methods.surgical} onChange={(e) => setMethods({...methods, surgical: e.target.value})} />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className='pr-2'>Imaging: Types and Locations:</div>
-                          </td>
-                          <td>
-                            <input type='text' className='std-input w-full mb-2' value={methods.imaging} onChange={(e) => setMethods({...methods, imaging: e.target.value})} />
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className='pr-2'>Fluid Flow Parameters Required:</div>
-                          </td>
-                          <td>
-                            <input type='text' className='std-input w-full mb-2' value={methods.flow} onChange={(e) => setMethods({...methods, flow: e.target.value})} />
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-                <section>
-                  <div className='mr-2 font-bold'>Special Instructions:</div>
-                  <div className='flex border border-black rounded-md items-center p-4 mt-2 mb-4'>
-                    <textarea className='std-input resize-none h-[150px] w-full' value={specialInstructions} onChange={(e) => setSpecialInstructions(e.target.value)} />
-                  </div>
-                </section> */}
-
               </form>
               <div className='flex gap-2'>
                 <button className='std-button' onClick={() => handleChangeStep(-1)}>Back</button>
                 <button className='std-button' onClick={() => handleChangeStep(1)}>Next</button>
-                {/* <button className='std-button' onClick={() => console.log(JSON.stringify(content))}>Test Content</button> */}
               </div>
-              {/* <button className='std-button' onClick={handleSubmitNewStudy}>Submit</button> */}
               <div className='my-2 text-[#800] whitespace-pre font-mono'>{errStatus}</div>          
             </section>
           }

@@ -1,4 +1,5 @@
 const fs = require('fs').promises;
+const Readable = require('stream').Readable;
 import path from "path";
 const {authenticate} = require('@google-cloud/local-auth');
 const {google} = require('googleapis');
@@ -114,8 +115,6 @@ export async function createDirectoryIfNotExists(directoryName:string, parentFol
   }
 }
 
-
-
 export async function createDirectoryWithSubdirectories(directoryName:string, parentFolderId:string, subdirectoryNames:Array<string>, auth:any) {
   const drive = google.drive({ version: 'v3', auth });
 
@@ -169,4 +168,32 @@ export async function getFolderIdFromPath(path:string, auth:any) {
   }
 
   return parentFolderId;
+}
+
+export async function convertToPdf(parentFolderId:any, filename:any, fileId:any, auth:any) {
+
+  const drive = google.drive({ version: 'v3', auth });
+
+  try {
+    // Export the Google Doc as a PDF file.
+    const exportResult = await drive.files.export(
+      { fileId: fileId, mimeType: 'application/pdf' },
+      { responseType: 'stream' }
+    );
+
+    // Upload the PDF back to the same folder.
+    const metadata = { name: filename, parents: [parentFolderId] };
+    const media = { mimeType: 'application/pdf', body: exportResult.data };
+    const pdfFile = await drive.files.create({
+      resource: metadata,
+      media: media,
+    });
+
+    // Remove the original Google Doc file.
+    const cleanupResult = await drive.files.delete({ fileId });
+
+  } catch (err) {
+    // TODO(developer) - Handle error
+    throw err;
+  }
 }

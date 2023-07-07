@@ -69,6 +69,12 @@ export const CREATE_DRIVE_STUDY_TREE = gql`
   }
 `;
 
+export const CREATE_DRIVE_STUDY = gql`
+  mutation createDriveStudyTree($clientCode: String!, $studyName: String!, $studyData: String!) {
+    createDriveStudy(clientCode: $clientCode, studyName: $studyName, studyData: $studyData)
+  }
+`;
+
 export const AUTHORIZE_GOOGLE_DRIVE = gql`
   mutation authorizeGoogleDrive {
     authorizeGoogleDrive

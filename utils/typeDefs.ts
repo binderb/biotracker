@@ -124,6 +124,7 @@ const typeDefs = gql`
     authorizeGoogleDrive: String
     testGoogleDrive: String
     createDriveStudyTree(clientCode: String!, studyName: String!): String
+    createDriveStudy(clientCode: String!, studyName: String!, studyData: String!): String
   }
 `;
 

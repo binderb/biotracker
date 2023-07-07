@@ -10,9 +10,11 @@ import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import Link from "next/link";
 import { faFlagCheckered, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, CREATE_DRIVE_STUDY_TREE } from "@/utils/mutations";
+import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, CREATE_DRIVE_STUDY, CREATE_DRIVE_STUDY_TREE } from "@/utils/mutations";
 import { useParams } from 'next/navigation';
 import DiscussionBoard from "@/components/DiscussionBoard";
+import { useRouter } from "next/router";
+
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -50,6 +52,7 @@ export async function getServerSideProps(context:any) {
 export default function LeadManager (props:any) {
 
   const { data: session, status } = useSession();
+  const router = useRouter();
   const { loading, data: leadResponseData } = useQuery(GET_LEAD_LATEST, {
     variables: {
       getLeadLatestRevisionId: props.editId
@@ -78,10 +81,31 @@ export default function LeadManager (props:any) {
   const [nextStudy, setNextStudy] = useState('');
   const [studyType, setStudyType] = useState('');
   const [createDriveStudyTree, { data : driveTreeResponse }] = useMutation(CREATE_DRIVE_STUDY_TREE);
+  const [createDriveStudy, { data : driveResponse }] = useMutation(CREATE_DRIVE_STUDY);
   const [addStudy, { error, data : newStudyData }] = useMutation(ADD_STUDY, {
     refetchQueries: [{query: GET_NEXT_STUDY}, 'GetNextStudy']
   });
   const [completedPublish, setCompletedPublish] = useState(false);
+
+  useEffect( () => {
+    let changeSum = 0;
+    if (leadStatus !== leadData.status) changeSum++;
+    content.sections.map( (section:any, sectionIndex:number) => {
+      if (leadContent.sections[sectionIndex].rows.length !== section.rows.length) changeSum++;
+      section.rows.map( (row:any, rowIndex:number) => {
+        row.fields.map( (field:any, fieldIndex:number) => {
+          //console.log(`${leadContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex]?.data} <-> ${field.data}`);
+          if (leadContent.sections[sectionIndex].rows[rowIndex]?.fields[fieldIndex]?.data.toString() !== field.data.toString()) changeSum++;
+        });
+      });
+    });
+    setChanges(changeSum);
+  }, [leadStatus, leadContent, content, leadData.status]);
+
+  if (status !== 'authenticated') {
+    router.push('/login');
+    return;
+  }
 
   function handleRevertChanges () {
     setLeadStatus(leadData.status);
@@ -193,17 +217,18 @@ export default function LeadManager (props:any) {
   }
 
   async function handlePublish () {
-    setPublishErrStatus('Creating file tree in Google Drive...');
     if (studyType === '') {
       setPublishErrStatus('Please specify a study type.');
       return;
     }
+    setPublishErrStatus('Creating file tree in Google Drive...');
     const studyFullName = `${client}${nextStudy.toString().padStart(4,'0')}-${studyType}`;
     try {
-      const treeResult = await createDriveStudyTree({
+      const treeResult = await createDriveStudy({
         variables: {
           clientCode: client,
-          studyName: studyFullName
+          studyName: studyFullName,
+          studyData: JSON.stringify(content)
         }
       });    
     } catch (err:any) {
@@ -226,20 +251,7 @@ export default function LeadManager (props:any) {
     }
   }
 
-  useEffect( () => {
-    let changeSum = 0;
-    if (leadStatus !== leadData.status) changeSum++;
-    content.sections.map( (section:any, sectionIndex:number) => {
-      if (leadContent.sections[sectionIndex].rows.length !== section.rows.length) changeSum++;
-      section.rows.map( (row:any, rowIndex:number) => {
-        row.fields.map( (field:any, fieldIndex:number) => {
-          //console.log(`${leadContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex]?.data} <-> ${field.data}`);
-          if (leadContent.sections[sectionIndex].rows[rowIndex]?.fields[fieldIndex]?.data.toString() !== field.data.toString()) changeSum++;
-        });
-      });
-    });
-    setChanges(changeSum);
-  }, [leadStatus, leadContent, content, leadData.status]);
+  
 
   return (
     <>
@@ -304,7 +316,7 @@ export default function LeadManager (props:any) {
                 <form>
                   <section>
                     <div className='mr-2 font-bold'>Status:</div>
-                    <div className='flex border border-black rounded-md items-center p-4 mt-2 mb-4'>
+                    <div className='flex border border-secondary rounded-md items-center p-4 mt-2 mb-4'>
                       <select className='std-input' value={leadStatus} onChange={(e) => setLeadStatus(e.target.value)}>
                         <option value='active'>Active</option>
                         <option value='inactive'>Inactive</option>
@@ -313,7 +325,7 @@ export default function LeadManager (props:any) {
                   </section>
                   <section>
                     <div className='mr-2 font-bold'>Sponsor Information:</div>
-                    <div className='flex border border-black rounded-md items-center p-4 mt-2 mb-4'>
+                    <div className='flex border border-secondary rounded-md items-center p-4 mt-2 mb-4'>
                       <div className='mr-2'>Client:</div>
                       <div>{client}</div>
                     </div>
@@ -322,11 +334,9 @@ export default function LeadManager (props:any) {
                   {content.sections.map( (section:any, sectionIndex:number) => (
                   <section key={sectionIndex}>
                     <div className='font-bold py-4'>{section.name}:</div>
-                    {/* <div className='flex flex-col border border-black rounded-md p-4 mt-2 mb-4 gap-2'> */}
                     <div className='border border-secondary rounded-lg p-2 overflow-x-auto'>
                     <table className='w-full'><tbody>
                     {section.rows.map( (row:any, rowIndex:number) => (
-                      // <div key={rowIndex} className='flex gap-2 items-center'>
                       <tr key={rowIndex}>
                         {row.fields.map((field:any, fieldIndex:number) => (
                           <>
@@ -405,15 +415,15 @@ export default function LeadManager (props:any) {
             <div>
               This action will build a new <b>Study</b>.
             </div>
-            <div>
+            {/* <div>
               This feature requires Google Drive to be communicating with our system, and is a work in progress! Check back later; a patch to implement this functionality will be applied this week!
             </div>
             <div className='flex pt-4 gap-2'>
               <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>
                 Back
               </button>
-            </div>
-            {/* <div>
+            </div> */}
+            <div>
               A new study folder will be generated with an automatically-assigned Study ID (below), and the details for this lead will be copied onto an appropriate form and placed within the study folder.
             </div>
             <select className='std-input' onChange={(e)=>setStudyType(e.target.value)} value={studyType}>
@@ -435,7 +445,7 @@ export default function LeadManager (props:any) {
                 <button className='std-button-lite flex-grow' onClick={handlePublish}>Publish</button>
               }
             </div>
-            <div className='text-[#800]'>{publishErrStatus}</div> */}
+            <div className='text-[#800]'>{publishErrStatus}</div>
           </section>
         </section>
       </section>

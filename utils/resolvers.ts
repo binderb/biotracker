@@ -6,13 +6,13 @@ import LeadChange from "../models/LeadChange";
 import Study from "../models/Study";
 import connectMongo from "./connectMongo";
 import User from "../models/User";
-import { adminAuthorizeGoogleDrive, createDirectoryIfNotExists, createDirectoryWithSubdirectories, getFolderIdFromPath, listFiles, userAuthorizeGoogleDrive } from "./googleDrive";
+import { adminAuthorizeGoogleDrive, convertToPdf, createDirectoryIfNotExists, createDirectoryWithSubdirectories, getFolderIdFromPath, listFiles, userAuthorizeGoogleDrive } from "./googleDrive";
 import { now } from "lodash";
 import LeadTemplate from "../models/LeadTemplate";
 import LeadTemplateField from "../models/LeadTemplateField";
 import LeadTemplateSection from "../models/LeadTemplateSection";
 import LeadTemplateRevision from "../models/LeadTemplateRevision";
-import { buildFormHeader, createAndSetupDocument } from "./googleDocs";
+import { buildFormFooter, buildFormGeneralInfo, buildFormHeader, buildFormSection, createAndSetupDocument } from "./googleDocs";
 import LeadTemplateSectionRow from "../models/LeadTemplateSectionRow";
 const fs = require('fs');
 
@@ -374,13 +374,6 @@ const resolvers = {
       } catch (err:any) {
         return err.message;
       }
-
-      // Create template revision
-
-      // Create top-level template model
-
-      // "[{\"name\":\"Test section\",\"fields\":[{\"name\":\"Apple\",\"index\":0,\"type\":\"textarea\",\"data\":\"\",\"extensible\":false},{\"name\":\"Orange\",\"index\":1,\"type\":\"textarea\",\"data\":\"\",\"extensible\":false}],\"extensible\":true,\"extensibleGroupName\":\"\"}]"
-
     },
     addStudy: async (_:any, args:any) => {
       const { clientCode, studyIndex, studyType } = args;
@@ -406,6 +399,7 @@ const resolvers = {
       return files;
     },
     createDriveStudyTree: async (_:any, args:any) => {
+      // ONLY FOR STUDY CREATOR (DEPRECATED)
       const { clientCode, studyName } = args;
       const auth = await userAuthorizeGoogleDrive();
       const studyFolderId = await getFolderIdFromPath(`/Studies`, auth);
@@ -417,6 +411,26 @@ const resolvers = {
       // return 'Study folder tree created in Google Drive!';
       const formFileId = await createAndSetupDocument(studyName, clientFolderId, auth);
       await buildFormHeader(formFileId, auth);
+      
+      console.log('Completed actions successfully.');
+    },
+    createDriveStudy: async (_:any, args:any) => {
+      const { clientCode, studyName, studyData } = args;
+      const studyContent = JSON.parse(studyData);
+      const auth = await userAuthorizeGoogleDrive();
+      const studyFolderId = await getFolderIdFromPath(`/Studies`, auth);
+      const clientFolderId = await createDirectoryIfNotExists(clientCode, studyFolderId, auth);
+      // const newStudyFolderId = await createDirectoryWithSubdirectories(studyName, clientFolderId, ['Data','Forms','Protocol','Quote'], client);
+      // const formResult = await createStudyForm(`${studyName}`, newStudyFolderId, client);
+      // return 'Study folder tree created in Google Drive!';
+      const formFileId = await createAndSetupDocument(studyName, clientFolderId, auth);
+      await buildFormHeader(formFileId, auth);
+      await buildFormFooter(formFileId, auth);
+      await buildFormGeneralInfo(formFileId, auth, studyName, studyContent);
+      for (let section of studyContent.sections) {
+        await buildFormSection(formFileId, auth, section);
+      }
+      await convertToPdf(clientFolderId, studyName, formFileId, auth);
       
       console.log('Completed actions successfully.');
     }
