@@ -99,6 +99,14 @@ const typeDefs = gql`
     data: [String]
   }
 
+  type GoogleDriveConfig {
+    _id: ID
+    accountEmail: String
+    studiesDriveId: String
+    studiesDriveName: String
+    studiesPath: String
+  }
+
   type Query {
     getUsers: [User]
     getClients: [Client]
@@ -109,6 +117,7 @@ const typeDefs = gql`
     getLeadLatestRevision(id: ID!): Lead
     getLeadTemplates: [LeadTemplate]
     getLeadTemplateLatestRevision(id: ID!): LeadTemplate
+    getGoogleDriveConfig: GoogleDriveConfig
   }
 
   type Mutation {
@@ -123,7 +132,9 @@ const typeDefs = gql`
     addStudy(clientCode: String!, studyIndex: Int!, studyType: String!): Client
     authorizeGoogleDrive: String
     saveGoogleDriveToken(authCode: String): String
-    testGoogleDrive: String
+    testGoogleDrive(drive: String!, path: String!): String
+    saveGoogleDriveConfig(accountEmail: String, studiesDriveId: String, studiesDriveName: String, studiesPath: String): String
+    deleteGoogleDriveConfig: String
     createDriveStudyTree(clientCode: String!, studyName: String!): String
     createDriveStudy(clientCode: String!, studyName: String!, studyData: String!): String
   }

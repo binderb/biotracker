@@ -46,16 +46,16 @@ export default function CallbackGoogle (props:any) {
               authCode: props.code
             }
           });
-          console.log('success!');
+          router.push('/settings/authorize-google');
         } catch (err:any) {
-          throw err;
+          console.log(err.message);
         }
       }
     }
 
     saveToken();
     
-  },[props.code, saveGoogleDriveToken]);
+  },[props.code, router, saveGoogleDriveToken]);
 
   if ( status !== 'authenticated' || !props.code ) {
     router.push('/');

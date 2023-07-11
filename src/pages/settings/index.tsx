@@ -35,12 +35,15 @@ export default function UserManager () {
   return (
     <>
       <Navbar />
+      <div className='mt-4'>
+        <Link className='std-link ml-4' href='/'>&larr; Back</Link>
+      </div>
       { status === 'authenticated' && (session.user.role === 'dev' || session.user.role === 'admin') ?
        <main className="flex flex-col p-4">
        <div>Here are the current options for app customization.</div>
        <div className="flex py-2">
          <Link className='std-button mr-1' href='./settings/user-manager'>Manage Team Members</Link>
-         <Link className='std-button mr-1' href='./settings/authorize-google'>Authorize Google Drive</Link>
+         <Link className='std-button mr-1' href='./settings/authorize-google'>Google Drive Settings</Link>
        </div>
      </main>
       :

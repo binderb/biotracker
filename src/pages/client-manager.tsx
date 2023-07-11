@@ -25,7 +25,6 @@ export async function getServerSideProps(context:any) {
   }
 
   const apolloClient = initializeApollo();
-  console.log('initializing apollo');
   const initialData = await apolloClient.query({
     query: GET_CLIENTS,
   });
