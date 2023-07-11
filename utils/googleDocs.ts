@@ -8,12 +8,15 @@ export async function createAndSetupDocument (documentName:string, parentFolderI
   const resource = {
     name: documentName,
     mimeType: 'application/vnd.google-apps.document',
-    parents: [parentFolderId]
+    parents: [parentFolderId],
   };
   const createdFile = await drive.files.create({
-    requestBody: resource
+    requestBody: resource,
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true
   });
   const fileId = createdFile.data.id;
+  console.log("new file id: ", fileId)
 
   await docs.documents.batchUpdate({
     documentId: fileId,
@@ -89,7 +92,9 @@ export async function createAndSetupDocument (documentName:string, parentFolderI
 export async function buildFormHeader (fileId:string, auth:any) {
 
   const docs = google.docs({ version: 'v1', auth });
-  let document = await docs.documents.get({ documentId: fileId });
+  let document = await docs.documents.get({ 
+    documentId: fileId,
+  });
   const headerId = Object.keys(document.data.headers)[0];
 
   // Set font in header.

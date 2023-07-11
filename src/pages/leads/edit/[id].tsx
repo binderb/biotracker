@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { ChangeEvent, MouseEventHandler, useEffect, useState } from "react";
 import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import Link from "next/link";
-import { faFlagCheckered, faX } from "@fortawesome/free-solid-svg-icons";
+import { faCog, faFlagCheckered, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, CREATE_DRIVE_STUDY, CREATE_DRIVE_STUDY_TREE } from "@/utils/mutations";
 import { useParams } from 'next/navigation';
@@ -251,6 +251,10 @@ export default function LeadManager (props:any) {
     }
   }
 
+  function handleShowSettings () {
+
+  }
+
   
 
   return (
@@ -289,6 +293,9 @@ export default function LeadManager (props:any) {
           <button className='std-button-lite flex items-center gap-2' onClick={handleShowPublish}>
             <FontAwesomeIcon icon={faFlagCheckered} />
             Publish
+          </button>
+          <button className='secondary-button-lite flex items-center gap-2' onClick={handleShowSettings}>
+            <FontAwesomeIcon icon={faCog} />
           </button>
         </div>
       </div>
@@ -408,6 +415,47 @@ export default function LeadManager (props:any) {
         </div>
       </section>
       </main>
+      <section className={`absolute ${publishVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
+        <section className='flex bg-white rounded-lg p-0 col-start-3 col-span-8 md:col-start-4 md:col-span-6 lg:col-start-5 lg:col-span-4'>
+          <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
+            <h5>Publish Lead</h5>
+            <div>
+              This action will build a new <b>Study</b>.
+            </div>
+            {/* <div>
+              This feature requires Google Drive to be communicating with our system, and is a work in progress! Check back later; a patch to implement this functionality will be applied this week!
+            </div>
+            <div className='flex pt-4 gap-2'>
+              <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>
+                Back
+              </button>
+            </div> */}
+            <div>
+              A new study folder will be generated with an automatically-assigned Study ID (below), and the details for this lead will be copied onto an appropriate form and placed within the study folder.
+            </div>
+            <select className='std-input' onChange={(e)=>setStudyType(e.target.value)} value={studyType}>
+                <option value=''>-- Choose Type Classification --</option>
+                <option value='HU'>HU - Human Cadaver</option>
+                <option value='IVT'>IVT - In Vitro</option>
+                <option value='INT'>INT - Animal Interventional</option>
+                <option value='SUR'>SUR - Animal Surgical</option>
+              </select>
+            <div className='flex gap-2 items-center'>
+              <div className='font-bold'>Study ID:</div>
+              <div>{`${client}${nextStudy.toString().padStart(4,'0')}-${studyType ? `${studyType}` : 'XXX'}`}</div>
+            </div>
+            <div className='flex gap-2'>
+              <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>
+                {completedPublish ? 'Done' : 'Cancel'}
+              </button>
+              { !completedPublish && 
+                <button className='std-button-lite flex-grow' onClick={handlePublish}>Publish</button>
+              }
+            </div>
+            <div className='text-[#800]'>{publishErrStatus}</div>
+          </section>
+        </section>
+      </section>
       <section className={`absolute ${publishVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
         <section className='flex bg-white rounded-lg p-0 col-start-3 col-span-8 md:col-start-4 md:col-span-6 lg:col-start-5 lg:col-span-4'>
           <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>

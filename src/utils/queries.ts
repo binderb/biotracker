@@ -160,36 +160,14 @@ export const GET_LEAD_TEMPLATE_LATEST = gql`
   }
 `;
 
-// export const GET_LEAD_LATEST = gql`
-//   query GetLeads($getLeadLatestRevisionId: ID!) {
-//     getLeadLatestRevision(id: $getLeadLatestRevisionId) {
-//       _id
-//       name
-//       status
-//       client {
-//         code
-//       }
-//       revisions {
-//         _id
-//         content
-//         createdAt
-//         author {
-//           _id
-//           first
-//           last
-//           username
-//         }
-//       }
-//       notes {
-//         _id
-//         author {
-//           _id
-//           first
-//           last
-//           username
-//         }
-//         content
-//       }
-//     }
-//   }
-// `;
+export const GET_GOOGLE_DRIVE_CONFIG = gql`
+  query Query {
+    getGoogleDriveConfig {
+      _id
+      accountEmail
+      studiesDriveName
+      studiesDriveId
+      studiesPath
+    }
+  }
+`;

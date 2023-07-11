@@ -88,7 +88,19 @@ export const SAVE_GOOGLE_DRIVE_TOKEN = gql`
 `;
 
 export const TEST_GOOGLE_DRIVE = gql`
-  mutation testGoogleDrive {
-    testGoogleDrive
+  mutation testGoogleDrive($drive: String!, $path: String!) {
+    testGoogleDrive(drive: $drive, path: $path)
+  }
+`;
+
+export const SAVE_GOOGLE_DRIVE_CONFIG = gql`
+  mutation saveGoogleDriveConfig($accountEmail: String, $studiesDriveId: String, $studiesDriveName: String, $studiesPath: String) {
+    saveGoogleDriveConfig(accountEmail: $accountEmail, studiesDriveId: $studiesDriveId, studiesDriveName: $studiesDriveName, studiesPath: $studiesPath)
+  }
+`;
+
+export const DELETE_GOOGLE_DRIVE_CONFIG = gql`
+  mutation deleteGoogleDriveConfig {
+    deleteGoogleDriveConfig
   }
 `;

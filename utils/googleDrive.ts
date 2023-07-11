@@ -30,8 +30,10 @@ export async function saveNewGoogleDriveToken(code:string) {
       credentials.redirect_uris[0]
     )
     const { tokens } = await client.getToken(code);
+    if (!tokens.refresh_token) {
+      throw new Error("Refresh token not received.");
+    }
     client.setCredentials(tokens);
-
     const payload = JSON.stringify({
       type: 'authorized_user',
       client_id: credentials.client_id,
@@ -39,6 +41,14 @@ export async function saveNewGoogleDriveToken(code:string) {
       refresh_token: client.credentials.refresh_token,
     });
     await fs.writeFile(path.join(process.cwd(),process.env.GOOGLE_TOKEN_PATH!), payload);
+    // Update config database entry.
+    const drive = google.drive({version: 'v3', auth: client});
+    const userResponse = await drive.about.get({
+      fields: 'user(emailAddress)'
+    });
+    const accountEmail = userResponse.data.user.emailAddress;
+    return accountEmail;
+
   } catch (err:any) {
     throw err;
   }
@@ -51,7 +61,8 @@ export async function getGoogleDriveAuthUrl() {
   const SCOPES = [
     'https://www.googleapis.com/auth/drive.metadata.readonly',
     'https://www.googleapis.com/auth/drive.file',
-    'https://www.googleapis.com/auth/documents'
+    'https://www.googleapis.com/auth/documents',
+    'https://www.googleapis.com/auth/drive.readonly'
   ];
   let client = await loadSavedCredentialsIfExist();
   if (client) {
@@ -65,6 +76,7 @@ export async function getGoogleDriveAuthUrl() {
   )
   const authUrl = client.generateAuthUrl({
     access_type: 'offline',
+    prompt: 'consent',
     scope: SCOPES
   });
 
@@ -84,29 +96,56 @@ export async function userAuthorizeGoogleDrive() {
  * Lists the names and IDs of up to 10 files.
  * @param {OAuth2Client} authClient An authorized OAuth2 client.
  */
-export async function listFiles(authClient:any) {
-  const drive = google.drive({version: 'v3', auth: authClient});
-  const folderId = await getFolderIdFromPath('/Studies',authClient);
-  const res = await drive.files.list({
-    pageSize: 10,
-    q: `'${folderId}' in parents and trashed=false`,
-    fields: 'nextPageToken, files(id, name)',
-  });
-  const files = res.data.files;
-  if (files.length === 0) {
-    return 'No files found.';
-  } else {
-    return `Files in Studies Folder:\n${res.data.files.map((file:any) => `${file.name} \n`)}`;
+export async function listFiles(driveName:string,path:string,auth:any) {
+  const drive = google.drive({version: 'v3', auth: auth});
+  try {
+    const drives = await drive.drives.list({
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true
+    });
+    const targetDrive = drives.data.drives.find((drive:any) => drive.name === driveName);
+    if (!targetDrive) {
+      throw new Error('No drive with the provided name exists on the connected account.');
+    }
+    const driveId = targetDrive.id;
+    const folderId = await getFolderIdFromPath(driveId, path, auth);
+    console.log(folderId);
+    const query = `'${folderId}' in parents and trashed=false`;
+    const results = await drive.files.list({
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
+      q: query,
+    });
+    return JSON.stringify(results.data.files.map((file:any) => file.name));
+  } catch (err:any) {
+    return err;
   }
+  // const folderId = await getFolderIdFromPath(path, auth);
+  // const res = await drive.files.list({
+  //   pageSize: 10,
+  //   supportsAllDrives: true,
+  //   includeItemsFromAllDrives: true,
+  //   q: `'${folderId}' in parents and trashed=false`,
+  //   fields: 'nextPageToken, files(id, name)',
+  // });
+  // const files = res.data.files;
+  // console.log(files);
+  // if (files.length === 0) {
+  //   return 'No files found.';
+  // } else {
+  //   return `Files in "${path}":\n${res.data.files.map((file:any) => `${file.name} \n`)}`;
+  // }
 }
 
 export async function createDirectoryIfNotExists(directoryName:string, parentFolderId:string, auth:any) {
   const drive = google.drive({ version: 'v3', auth });
-
+  
   // Check if the directory already exists
   const query = `mimeType='application/vnd.google-apps.folder' and trashed=false and name='${directoryName}' and '${parentFolderId}' in parents`;
   const res = await drive.files.list({
     q: query,
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
     fields: 'files(id)',
     spaces: 'drive',
   });
@@ -122,6 +161,8 @@ export async function createDirectoryIfNotExists(directoryName:string, parentFol
     };
     const res = await drive.files.create({
       resource: directoryMetadata,
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
       fields: 'id',
     });
     return res.data.id;
@@ -139,9 +180,12 @@ export async function createDirectoryWithSubdirectories(directoryName:string, pa
   };
   const res = await drive.files.create({
     resource: directoryMetadata,
+    supportsAllDrives: true,
+    includeItemsFromAllDrives: true,
     fields: 'id',
   });
   const directoryId = res.data.id;
+  console.log('specific study directory id: ',directoryId);
 
   // Create the subdirectories
   for (const subdirectoryName of subdirectoryNames) {
@@ -151,6 +195,8 @@ export async function createDirectoryWithSubdirectories(directoryName:string, pa
       parents: [directoryId],
     };
     await drive.files.create({
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
       resource: subdirectoryMetadata,
     });
   }
@@ -158,29 +204,55 @@ export async function createDirectoryWithSubdirectories(directoryName:string, pa
   return directoryId;
 }
 
-export async function getFolderIdFromPath(path:string, auth:any) {
+export async function getFolderIdFromPath(driveId:string, path:string, auth:any) {
   const drive = google.drive({ version: 'v3', auth });
 
   // Split the path into its component parts
   const pathParts = path.split('/').filter((part) => part !== '');
-
+  console.log(pathParts);
   let parentFolderId = null;
-  for (let i = 0; i < pathParts.length; i++) {
-    const res:any = await drive.files.list({
-      q: `name='${pathParts[i]}' and mimeType='application/vnd.google-apps.folder' and trashed = false${parentFolderId ? ` and '${parentFolderId}' in parents` : ''}`,
-      fields: 'nextPageToken, files(id, name)',
-    });
+  if (pathParts.length > 0) {
+    for (let i = 0; i < pathParts.length; i++) {
+      const query = `'${driveId}' in parents and name='${pathParts[i]}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+      console.log(query);
+      const res = await drive.files.list({
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true,
+        q: query,
+        fields: 'nextPageToken, files(id, name)',
+      });
+      console.log(res.data);
 
-    if (res.data.files.length === 0) {
-      throw new Error(`Folder not found: ${path}`);
-    } else if (res.data.files.length > 1) {
-      throw new Error(`Multiple folders found with name '${pathParts[i]}' in parent folder with ID '${parentFolderId}'`);
+      if (res.data.files.length === 0) {
+        throw new Error(`Folder not found on target drive: ${path}`);
+      } else if (res.data.files.length > 1) {
+        throw new Error(`Multiple folders found with name '${pathParts[i]}' in target drive with ID '${parentFolderId}'`);
+      }
+
+      parentFolderId = res.data.files[0].id;
     }
-
-    parentFolderId = res.data.files[0].id;
+  } else {
+    return driveId;
   }
-
   return parentFolderId;
+}
+
+export async function getDriveIdFromName (driveName:String, auth:any) {
+  const drive = google.drive({version: 'v3', auth: auth});
+  try {
+    const drives = await drive.drives.list({
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true
+    });
+    const targetDrive = drives.data.drives.find((drive:any) => drive.name === driveName);
+    if (!targetDrive) {
+      throw new Error('No drive with the provided name exists on the connected account.');
+    }
+    const driveId = targetDrive.id;
+    return driveId;
+  } catch (err:any) {
+    throw err;
+  }
 }
 
 export async function convertToPdf(parentFolderId:any, filename:any, fileId:any, auth:any) {
@@ -190,7 +262,12 @@ export async function convertToPdf(parentFolderId:any, filename:any, fileId:any,
   try {
     // Export the Google Doc as a PDF file.
     const exportResult = await drive.files.export(
-      { fileId: fileId, mimeType: 'application/pdf' },
+      { 
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true,
+        fileId: fileId, 
+        mimeType: 'application/pdf' 
+      },
       { responseType: 'stream' }
     );
 
@@ -198,15 +275,20 @@ export async function convertToPdf(parentFolderId:any, filename:any, fileId:any,
     const metadata = { name: filename, parents: [parentFolderId] };
     const media = { mimeType: 'application/pdf', body: exportResult.data };
     const pdfFile = await drive.files.create({
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
       resource: metadata,
       media: media,
     });
 
     // Remove the original Google Doc file.
-    const cleanupResult = await drive.files.delete({ fileId });
+    const cleanupResult = await drive.files.delete({ 
+      fileId: fileId,
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true 
+    });
 
   } catch (err) {
-    // TODO(developer) - Handle error
     throw err;
   }
 }
