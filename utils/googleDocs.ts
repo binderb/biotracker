@@ -894,193 +894,165 @@ export async function buildFormSection (fileId: string, auth: any, section: any)
   // Shrink text size on previous line for compactness.
   // Modify padding in table for compactness.
   // Paint the first row grey.
-  await docs.documents.batchUpdate({
-    documentId: fileId,
-    requestBody: {
-      requests: [
-        {
-          updateTextStyle: {
-            textStyle: {
-              fontSize: {
-                magnitude: 6,
-                unit: 'PT'
-              }
-            },
-            range: {
-              startIndex: insertionIndex,
-              endIndex: insertionIndex+1
-            },
-            fields: 'fontSize'
+  const tableBuildRequests:any[] = [
+    {
+      updateTextStyle: {
+        textStyle: {
+          fontSize: {
+            magnitude: 6,
+            unit: 'PT'
           }
         },
-        {
-          updateTableCellStyle: {
-            tableCellStyle: {
-              contentAlignment: "TOP",
-              paddingLeft: {
-                magnitude: 2,
-                unit: 'PT'
-              },
-              paddingRight: {
-                magnitude: 2,
-                unit: 'PT'
-              },
-              paddingTop: {
-                magnitude: 2,
-                unit: 'PT'
-              },
-              paddingBottom: {
-                magnitude: 2,
-                unit: 'PT'
-              },
-            },
-            tableRange: {
-              columnSpan: numberOfColumns,
-              rowSpan: numberOfRows,
-              tableCellLocation: {
-                tableStartLocation: {
-                  index: insertionIndex+1
-                }
-              }
-            },
-            fields: 'contentAlignment,paddingLeft,paddingRight,paddingTop,paddingBottom'
+        range: {
+          startIndex: insertionIndex,
+          endIndex: insertionIndex+1
+        },
+        fields: 'fontSize'
+      }
+    },
+    {
+      updateTableCellStyle: {
+        tableCellStyle: {
+          contentAlignment: "TOP",
+          paddingLeft: {
+            magnitude: 2,
+            unit: 'PT'
+          },
+          paddingRight: {
+            magnitude: 2,
+            unit: 'PT'
+          },
+          paddingTop: {
+            magnitude: 2,
+            unit: 'PT'
+          },
+          paddingBottom: {
+            magnitude: 2,
+            unit: 'PT'
+          },
+        },
+        tableRange: {
+          columnSpan: numberOfColumns,
+          rowSpan: numberOfRows,
+          tableCellLocation: {
+            tableStartLocation: {
+              index: insertionIndex+1
+            }
           }
         },
-        {
-          updateTableCellStyle: {
-            tableCellStyle: {
-              backgroundColor: {
-                color: {
-                  rgbColor: {
-                    red: (217/255),
-                    green: (217/255),
-                    blue: (217/255)
-                  }
-                }
+        fields: 'contentAlignment,paddingLeft,paddingRight,paddingTop,paddingBottom'
+      }
+    },
+    {
+      updateTableCellStyle: {
+        tableCellStyle: {
+          backgroundColor: {
+            color: {
+              rgbColor: {
+                red: (217/255),
+                green: (217/255),
+                blue: (217/255)
               }
-            },
-            tableRange: {
-              columnSpan: 1,
-              rowSpan: 1,
-              tableCellLocation: {
-                tableStartLocation: {
-                  index: insertionIndex+1
-                }
-              }
-            },
-            fields: 'backgroundColor'
+            }
           }
         },
-      ]
-    }
-  });
+        tableRange: {
+          columnSpan: 1,
+          rowSpan: 1,
+          tableCellLocation: {
+            tableStartLocation: {
+              index: insertionIndex+1
+            }
+          }
+        },
+        fields: 'backgroundColor'
+      }
+    },
+  ];
 
   // If necessary, merge the columns of the first row.
   // If necessary, paint the first column of non-first rows grey.
   // If necessary, set the width of the first column of non-first rows to 1.5in.
   if (numberOfColumns > 1) {
-    await docs.documents.batchUpdate({
-      documentId: fileId,
-      requestBody: {
-        requests: [
-          {
-            mergeTableCells: {
-              tableRange: {
-                columnSpan: numberOfColumns,
-                rowSpan: 1,
-                tableCellLocation: {
-                  columnIndex: 0,
-                  rowIndex: 0,
-                  tableStartLocation: {
-                    index: insertionIndex+1
-                  }
-                }
+    tableBuildRequests.push(
+      {
+        mergeTableCells: {
+          tableRange: {
+            columnSpan: numberOfColumns,
+            rowSpan: 1,
+            tableCellLocation: {
+              columnIndex: 0,
+              rowIndex: 0,
+              tableStartLocation: {
+                index: insertionIndex+1
               }
             }
-          },
-          {
-            updateTableCellStyle: {
-              tableCellStyle: {
-                backgroundColor: {
-                  color: {
-                    rgbColor: {
-                      red: (217/255),
-                      green: (217/255),
-                      blue: (217/255)
-                    }
-                  }
-                },
-              },
-              tableRange: {
-                columnSpan: 1,
-                rowSpan: numberOfRows-1,
-                tableCellLocation: {
-                  tableStartLocation: {
-                    index: insertionIndex+1
-                  },
-                  columnIndex: 0,
-                  rowIndex: 1
+          }
+        }
+      },
+      {
+        updateTableCellStyle: {
+          tableCellStyle: {
+            backgroundColor: {
+              color: {
+                rgbColor: {
+                  red: (217/255),
+                  green: (217/255),
+                  blue: (217/255)
                 }
-              },
-              fields: 'backgroundColor'
-            }
+              }
+            },
           },
-          {
-            updateTableColumnProperties: {
-              tableColumnProperties: {
-                width: {
-                  magnitude: (1.5*72),
-                  unit: "PT"
-                },
-                widthType: "FIXED_WIDTH"
-              },
-              fields: 'width,widthType',
-              columnIndices: [0],
+          tableRange: {
+            columnSpan: 1,
+            rowSpan: numberOfRows-1,
+            tableCellLocation: {
               tableStartLocation: {
                 index: insertionIndex+1
               },
+              columnIndex: 0,
+              rowIndex: 1
             }
           },
-        ]
-      }
-    });
+          fields: 'backgroundColor'
+        }
+      },
+      {
+        updateTableColumnProperties: {
+          tableColumnProperties: {
+            width: {
+              magnitude: (1.5*72),
+              unit: "PT"
+            },
+            widthType: "FIXED_WIDTH"
+          },
+          fields: 'width,widthType',
+          columnIndices: [0],
+          tableStartLocation: {
+            index: insertionIndex+1
+          },
+        }
+      },
+    );
   }
 
-  document = await docs.documents.get({documentId: fileId});
 
-  // Insert section titles.
   await docs.documents.batchUpdate({
     documentId: fileId,
     requestBody: {
-      requests: [
-        {
-          insertText: {
-            text: section.name,
-            location: {
-              index: document.data.body.content.filter((e:Object) => e.hasOwnProperty('table'))[document.data.body.content.filter((e:Object) => e.hasOwnProperty('table')).length-1].table.tableRows[0].tableCells[0].startIndex+1
-            }
-          }
-        },
-        {
-          updateTextStyle: {
-            textStyle: {
-              bold: true
-            },
-            fields: "bold",
-            range: {
-              startIndex: document.data.body.content.filter((e:Object) => e.hasOwnProperty('table'))[document.data.body.content.filter((e:Object) => e.hasOwnProperty('table')).length-1].table.tableRows[0].tableCells[0].startIndex+1,
-              endIndex: document.data.body.content.filter((e:Object) => e.hasOwnProperty('table'))[document.data.body.content.filter((e:Object) => e.hasOwnProperty('table')).length-1].table.tableRows[0].tableCells[0].startIndex+1+section.name.length
-            },
-          }
-        },
-      ]
+      requests: tableBuildRequests
     }
   });
 
+  
+
+  document = await docs.documents.get({documentId: fileId});
+
   // Insert section data.
-  for (let rowIndex = 0; rowIndex < section.rows.length; rowIndex++) {
+  const requests:any[] = [];
+  for (let rowIndex = section.rows.length-1; rowIndex >= 0; rowIndex--) {
     const row = section.rows[rowIndex];
-    for (let fieldIndex=0; fieldIndex < row.fields.length; fieldIndex++) {
+    for (let fieldIndex=row.fields.length-1; fieldIndex >= 0; fieldIndex--) {
       const field = row.fields[fieldIndex];
       document = await docs.documents.get({documentId: fileId});
       const fieldInsertionIndex = document.data.body.content.filter((e:Object) => e.hasOwnProperty('table'))[document.data.body.content.filter((e:Object) => e.hasOwnProperty('table')).length-1].table.tableRows[1+rowIndex].tableCells[fieldIndex].startIndex+1;
@@ -1114,24 +1086,48 @@ export async function buildFormSection (fileId: string, auth: any, section: any)
       }
 
       if (cellText !== '') {
-        await docs.documents.batchUpdate({
-          documentId: fileId,
-          requestBody: {
-            requests: [
-              {
-                insertText: {
-                  text: cellText,
-                  location: {
-                    index: fieldInsertionIndex
-                  }
-                }
-              },
-            ]
+        requests.push({
+          insertText: {
+            text: cellText,
+            location: {
+              index: fieldInsertionIndex
+            }
           }
-        });
+        })
       }
     };
   };
+
+  // Insert section titles.
+  requests.push(
+    {
+      insertText: {
+        text: section.name,
+        location: {
+          index: document.data.body.content.filter((e:Object) => e.hasOwnProperty('table'))[document.data.body.content.filter((e:Object) => e.hasOwnProperty('table')).length-1].table.tableRows[0].tableCells[0].startIndex+1
+        }
+      }
+    },
+    {
+      updateTextStyle: {
+        textStyle: {
+          bold: true
+        },
+        fields: "bold",
+        range: {
+          startIndex: document.data.body.content.filter((e:Object) => e.hasOwnProperty('table'))[document.data.body.content.filter((e:Object) => e.hasOwnProperty('table')).length-1].table.tableRows[0].tableCells[0].startIndex+1,
+          endIndex: document.data.body.content.filter((e:Object) => e.hasOwnProperty('table'))[document.data.body.content.filter((e:Object) => e.hasOwnProperty('table')).length-1].table.tableRows[0].tableCells[0].startIndex+1+section.name.length
+        },
+      }
+    },
+  );
+
+  await docs.documents.batchUpdate({
+    documentId: fileId,
+    requestBody: {
+      requests: requests
+    }
+  });
 
   document = await docs.documents.get({documentId: fileId});
   // console.log(JSON.stringify(document.data));

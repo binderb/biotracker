@@ -1,7 +1,5 @@
 const fs = require('fs').promises;
-const Readable = require('stream').Readable;
 import path from "path";
-const {authenticate} = require('@google-cloud/local-auth');
 const { OAuth2Client } = require('google-auth-library');
 const {google} = require('googleapis');
 
@@ -185,23 +183,26 @@ export async function createDirectoryWithSubdirectories(directoryName:string, pa
     fields: 'id',
   });
   const directoryId = res.data.id;
+  const directoryIds = [directoryId];
   console.log('specific study directory id: ',directoryId);
 
   // Create the subdirectories
+
   for (const subdirectoryName of subdirectoryNames) {
     const subdirectoryMetadata = {
       name: subdirectoryName,
       mimeType: 'application/vnd.google-apps.folder',
       parents: [directoryId],
     };
-    await drive.files.create({
+    const newId = await drive.files.create({
       supportsAllDrives: true,
       includeItemsFromAllDrives: true,
       resource: subdirectoryMetadata,
     });
+    directoryIds.push(newId);
   }
 
-  return directoryId;
+  return directoryIds;
 }
 
 export async function getFolderIdFromPath(driveId:string, path:string, auth:any) {
