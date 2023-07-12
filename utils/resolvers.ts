@@ -492,9 +492,9 @@ const resolvers = {
         console.log('study folder id: ', studyFolderId);
         const clientFolderId = await createDirectoryIfNotExists(clientCode, studyFolderId, auth);
         console.log('client folder id: ', clientFolderId);
-        const newStudyFolderId = await createDirectoryWithSubdirectories(studyName, clientFolderId, ['Data','Forms','Protocol','Quote'], auth);
-        console.log('new study folder id: ',newStudyFolderId)
-        const formFileId = await createAndSetupDocument(studyName, newStudyFolderId, auth);
+        const newStudyFolderIds = await createDirectoryWithSubdirectories(studyName, clientFolderId, ['Data','Forms','Protocol'], auth);
+        console.log('new study folder id: ',newStudyFolderIds[0])
+        const formFileId = await createAndSetupDocument(studyName, newStudyFolderIds[0], auth);
         console.log('form file id: ', formFileId)
         await buildFormHeader(formFileId, auth);
         await buildFormFooter(formFileId, auth);
@@ -502,7 +502,7 @@ const resolvers = {
         for (let section of studyContent.sections) {
           await buildFormSection(formFileId, auth, section);
         }
-        await convertToPdf(newStudyFolderId, studyName, formFileId, auth);
+        await convertToPdf(newStudyFolderIds[0], studyName, formFileId, auth);
         console.log('Completed actions successfully.');
       } catch (err:any) {
         throw err;
