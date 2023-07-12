@@ -188,9 +188,9 @@ export async function createDirectoryWithSubdirectories(directoryName:string, pa
 
   // Create the subdirectories
 
-  for (const subdirectoryName of subdirectoryNames) {
+  for (let i=0; i<subdirectoryNames.length; i++) {
     const subdirectoryMetadata = {
-      name: subdirectoryName,
+      name: subdirectoryNames[i],
       mimeType: 'application/vnd.google-apps.folder',
       parents: [directoryId],
     };
@@ -199,7 +199,7 @@ export async function createDirectoryWithSubdirectories(directoryName:string, pa
       includeItemsFromAllDrives: true,
       resource: subdirectoryMetadata,
     });
-    directoryIds.push(newId);
+    directoryIds.push(newId.data.id);
   }
 
   return directoryIds;
