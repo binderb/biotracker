@@ -476,9 +476,11 @@ export default function LeadManager (props:any) {
             </div>
             <select className='std-input' onChange={(e)=>setStudyType(e.target.value)} value={studyType}>
                 <option value=''>-- Choose Type Classification --</option>
+                <option value='AH'>AH - Animal Heart</option>
+                <option value='HH'>HH - Human Heart</option>
                 <option value='HU'>HU - Human Cadaver</option>
-                <option value='IVT'>IVT - In Vitro</option>
                 <option value='INT'>INT - Animal Interventional</option>
+                <option value='IVT'>IVT - In Vitro</option>
                 <option value='SUR'>SUR - Animal Surgical</option>
               </select>
             <div className='flex gap-2 items-center'>
