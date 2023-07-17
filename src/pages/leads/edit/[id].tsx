@@ -463,14 +463,6 @@ export default function LeadManager (props:any) {
             <div>
               This action will build a new <b>Study</b>.
             </div>
-            {/* <div>
-              This feature requires Google Drive to be communicating with our system, and is a work in progress! Check back later; a patch to implement this functionality will be applied this week!
-            </div>
-            <div className='flex pt-4 gap-2'>
-              <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>
-                Back
-              </button>
-            </div> */}
             <div>
               A new study folder will be generated with an automatically-assigned Study ID (below), and the details for this lead will be copied onto an appropriate form and placed within the study folder.
             </div>
