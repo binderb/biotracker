@@ -26,6 +26,6 @@ Tech Stack:
 
 All code for this project was written by the developer.
 
-## License
+<!-- ## License
 
-Please refer to the LICENSE in the repo.
+Please refer to the LICENSE in the repo. -->
