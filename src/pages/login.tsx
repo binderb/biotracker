@@ -44,7 +44,7 @@ export default function Login () {
     <>
     {/* <Navbar /> */}
     <main className='flex flex-col items-center p-4'>
-      <Image alt='logo' className="my-3 w-auto h-[100px]" src="/logo.png" width='100' height='100' />
+      <Image alt='logo' className="my-3 w-auto h-[100px]" src={`${config.imageBasePath}/logo.png`} width='100' height='100' />
       <div className="font-light text-[32px] mb-6">
         Login | {config.webTitle}
       </div>

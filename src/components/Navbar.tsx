@@ -14,7 +14,7 @@ export default function Navbar () {
         <div className='flex items-center gap-2'>
           <a className='flex items-center gap-2'>
             <Image 
-              src='/logo.png'
+              src={`${config.imageBasePath}/logo.png`}
               alt='logo'
               width='24'
               height='24'
