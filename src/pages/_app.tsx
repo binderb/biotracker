@@ -23,7 +23,7 @@ export default function App({ Component, pageProps: {session, ...pageProps} }: A
           }
         `}
       </style>
-      <SessionProvider session={session} >
+      <SessionProvider session={session} basePath={process.env.NEXTAUTH_URL} >
       <ApolloProvider client={apolloClient}>
         <Component {...pageProps} />
       </ApolloProvider>
