@@ -2,6 +2,7 @@ import { useSession, signIn, signOut } from "next-auth/react";
 import Link from "next/link";
 import Image from "next/image";
 import config from "../../config";
+import logo from '../../public/logo.png';
 
 export default function Navbar () {
 
@@ -14,7 +15,7 @@ export default function Navbar () {
         <div className='flex items-center gap-2'>
           <a className='flex items-center gap-2'>
             <Image 
-              src={`${config.imageBasePath}/logo.png`}
+              src={logo}
               alt='logo'
               width='24'
               height='24'
