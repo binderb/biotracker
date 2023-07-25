@@ -4,9 +4,6 @@ import merge from 'deepmerge'
 import isEqual from 'lodash/isEqual';
 import config from '../config';
 
-const isDevelopment = process.env.NODE_ENV === 'development';
-const { uri:graphqlURI } = isDevelopment ? config.development : config.production;
-
 let apolloClient:ApolloClient<NormalizedCacheObject>;
 export const APOLLO_STATE_PROP_NAME = '__APOLLO_STATE__';
 
@@ -14,7 +11,7 @@ function createApolloClient() {
   return new ApolloClient({
     ssrMode: typeof window === 'undefined',
     link: new HttpLink({
-      uri: graphqlURI,
+      uri: config.graphqlURI,
       credentials: 'same-origin',
     }),
     cache: new InMemoryCache({

@@ -4,6 +4,7 @@ import type { AppProps, AppInitialProps } from 'next/app'
 import { ApolloProvider } from '@apollo/client';
 import { useApollo } from '../../utils/apolloClient';
 import { SessionProvider } from 'next-auth/react';
+import config from "../../config";
 
 const sourceSansPro = Source_Sans_Pro({
   subsets: ['latin'],
@@ -23,7 +24,7 @@ export default function App({ Component, pageProps: {session, ...pageProps} }: A
           }
         `}
       </style>
-      <SessionProvider session={session} >
+      <SessionProvider session={session} basePath={config.nextAuthBasePath} >
       <ApolloProvider client={apolloClient}>
         <Component {...pageProps} />
       </ApolloProvider>

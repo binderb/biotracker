@@ -8,6 +8,7 @@ token.json
 # Custom branding
 public/*
 !public/placeholder.md
+config.ts
 
 # dependencies
 /node_modules
