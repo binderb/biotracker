@@ -8,14 +8,15 @@ import connectMongo from "./connectMongo";
 import User from "../models/User";
 import { convertToPdf, createDirectoryIfNotExists, createDirectoryWithSubdirectories, getDriveIdFromName, getFolderIdFromPath, getGoogleDriveAuthUrl, listFiles, saveNewGoogleDriveToken, userAuthorizeGoogleDrive } from "./googleDrive";
 import { now } from "lodash";
-import LeadTemplate from "../models/LeadTemplate";
-import LeadTemplateField from "../models/LeadTemplateField";
-import LeadTemplateSection from "../models/LeadTemplateSection";
-import LeadTemplateRevision from "../models/LeadTemplateRevision";
+import FormTemplateField from "../models/FormTemplateField";
+import FormTemplateRow from "../models/FormTemplateRow";
+import FormTemplateSection from "../models/FormTemplateSection";
+import FormTemplateRevision from "../models/FormTemplateRevision";
+import FormTemplate from "../models/FormTemplate";
 import { buildFormFooter, buildFormGeneralInfo, buildFormHeader, buildFormSection, createAndSetupDocument } from "./googleDocs";
-import LeadTemplateSectionRow from "../models/LeadTemplateSectionRow";
 import GoogleDriveConfig from "../models/GoogleDriveConfig";
 import path from "path";
+import { Types } from 'mongoose';
 const fs = require('fs').promises;
 
 const resolvers = {
@@ -67,6 +68,16 @@ const resolvers = {
         return 1;
       }
     },
+    getNextForm: async (_:any, args:any) => {
+      const { category } = args;
+      try {
+        await connectMongo();
+        const formsOfCategory = await FormTemplate.find({formCategory: category});
+        return formsOfCategory.length + 1;
+      } catch (err:any) {
+        throw err;
+      }
+    },
     getLeads: async () => {
       await connectMongo();
       return Lead.find()
@@ -81,7 +92,8 @@ const resolvers = {
             path: 'author',
             model: 'User'
           }
-        });
+        })
+        .populate('studies');
     },
     getLeadLatestRevision: async (_:any, args:any) => {
       const { id } = args;
@@ -89,6 +101,10 @@ const resolvers = {
       const lead = await Lead.findById(id,{'revisions': {$slice: -1} })
         .populate('client')
         .populate('revisions')
+        .populate({
+          path: 'author',
+          model: 'User'
+        })
         .populate({
           path: 'revisions',
           model: 'LeadRevision',
@@ -107,38 +123,55 @@ const resolvers = {
           },
           model: 'LeadNote',
           populate: {
-            path: 'author',
-            model: 'User'
+            path: 'author revision',
+            // model: 'User'
           }
-        });
+        })
+        .populate('studies');
       return lead;
     },
-    getLeadTemplates: async () => {
+    getStudyPlanForms: async () => {
       await connectMongo();
-      return LeadTemplate.find();
+      return FormTemplate.find({formCategory:'SP'});
     },
-    getLeadTemplateLatestRevision: async (_:any, args:any) => {
+    getStudyPlanFormLatestRevision: async (_:any, args:any) => {
       const { id } = args;
-      await connectMongo();
-      const leadTemplate = await LeadTemplate.findById(id,{'revisions': {$slice: -1} })
-        .populate('revisions')
-        .populate({
-          path: 'revisions',
-          model: 'LeadTemplateRevision',
-          populate: {
-            path: 'sections',
-            model: 'LeadTemplateSection',
+      try {
+        await connectMongo();
+        const leadTemplate = await FormTemplate.findById(id,{'revisions': {$slice: -1} })
+          .populate('revisions')
+          .populate({
+            path: 'revisions',
+            model: 'FormTemplateRevision',
             populate: {
-              path: 'rows',
-              model: 'LeadTemplateSectionRow',
+              path: 'sections',
+              model: 'FormTemplateSection',
               populate: {
-                path: 'fields',
-                model: 'LeadTemplateField'
+                path: 'rows',
+                model: 'FormTemplateRow',
+                populate: {
+                  path: 'fields',
+                  model: 'FormTemplateField'
+                }
               }
             }
-          }
+          });
+        return leadTemplate;
+      } catch (err:any) {
+        throw err;
+      }
+    },
+    getFormDetailsFromRevisionId: async (_:any, args:any) => {
+      const { revisionId } = args;
+      try {
+        await connectMongo();
+        const formTemplate = await FormTemplate.findOne({
+          'revisions': { $in: new Types.ObjectId(revisionId)}
         });
-      return leadTemplate;
+        return formTemplate;
+      } catch (err:any) {
+        throw err;
+      }
     },
     getGoogleDriveConfig: async () => {
       try {
@@ -242,6 +275,7 @@ const resolvers = {
     },
     addLead: async (_:any, args:any) => {
       const { name, author, drafters, client, content, firstNote } = args;
+      console.log('starting to generate lead.');
       await connectMongo();
       try {
         // Create Lead Revision
@@ -333,11 +367,14 @@ const resolvers = {
       }
       return `success`;
     },
-    addLeadTemplate: async (_:any, args:any) => {
-      const { name, sections } = args;
+    addForm: async (_:any, args:any) => {
+      const { name, formCategory, metadata, sections } = args;
       const sectionData = JSON.parse(sections);
+      console.log('metadata: ', metadata);
       try {
         await connectMongo();
+        const formsOfCategory = await FormTemplate.find({formCategory: formCategory});
+        const nextFormIndex = formsOfCategory.length + 1;
         const sectionModels = [];
         for (var section of sectionData) {
           console.log("starting section ",section.name);
@@ -350,21 +387,21 @@ const resolvers = {
                 for (var field of row.fields) {
                   console.log("starting row ", row.index);
                   // Create fields
-                  const newField = await LeadTemplateField.create({
+                  const newField = await FormTemplateField.create({
                     ...field
                   });
                   sectionFieldModels.push(newField);
                 }
               }
               // Create rows
-              const newSectionRow = await LeadTemplateSectionRow.create({
+              const newSectionRow = await FormTemplateRow.create({
                 ...row,
                 fields: sectionFieldModels.map((field:any) => field._id)
               })
               sectionRowModels.push(newSectionRow);
             }
             // Create each section
-            let newSection = await LeadTemplateSection.create({
+            let newSection = await FormTemplateSection.create({
               ...section,
               rows: sectionRowModels.map((row:any) => row._id)
             });
@@ -372,14 +409,16 @@ const resolvers = {
           }
         }
         // Create template revision
-        const revision = await LeadTemplateRevision.create({
+        const revision = await FormTemplateRevision.create({
           createdAt: new Date(),
           sections: sectionModels.map((section:any) => section._id)
         });
         // Create top-level template model
-        const template = await LeadTemplate.create({
+        const template = await FormTemplate.create({
           name: name,
-          active: true,
+          formCategory: formCategory,
+          formIndex: nextFormIndex,
+          metadata: metadata,
           revisions: revision._id
         })
       } catch (err:any) {
@@ -387,18 +426,37 @@ const resolvers = {
       }
     },
     addStudy: async (_:any, args:any) => {
-      const { clientCode, studyIndex, studyType } = args;
+      const { clientCode, studyType, leadId } = args;
       await connectMongo();
+      let studyIndex = 1;
       const client = await Client.findOne({code: clientCode});
       if (!client) {
         throw new Error("Client code not found!");
       }
+      if (client.studies) {
+        const studies = client.studies.map((e:any) => e.index);
+        if (studies.length > 0) {
+          studyIndex = studies.length + 1;
+        }
+      }
       const newStudy = await Study.create({
         type: studyType,
-        index: studyIndex
+        index: studyIndex,
+        leadId: new Types.ObjectId(leadId)
       });
       await Client.findOneAndUpdate({code: clientCode},{$addToSet: {studies: newStudy._id}});
-      return client;
+      const associatedLead = await Lead.findOneAndUpdate({_id: leadId}, {
+        $set: {published: true},
+        $addToSet: {studies: newStudy._id}
+      }, {new: true});
+      const associatedRevision = await LeadRevision.findOneAndUpdate({_id: associatedLead.revisions[associatedLead.revisions.length-1]}, {
+        $set: {
+          published: true
+        }},
+        {new: true}
+      );
+      console.log(associatedRevision);
+      return 'success';
     },
     authorizeGoogleDrive: async () => {
       const authUrl = await getGoogleDriveAuthUrl();
@@ -477,7 +535,7 @@ const resolvers = {
       
     //   console.log('Completed actions successfully.');
     // },
-    createDriveStudy: async (_:any, args:any) => {
+    publishLeadToDrive: async (_:any, args:any) => {
       try {
         const { clientCode, studyName, studyData } = args;
         const studyContent = JSON.parse(studyData);

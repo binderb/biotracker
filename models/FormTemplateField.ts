@@ -1,6 +1,6 @@
 import { Schema, model, models } from 'mongoose';
 
-const leadTemplateFieldSchema = new Schema({
+const formTemplateFieldSchema = new Schema({
   index: Number!,
   type: {
     type: String!,
@@ -11,6 +11,6 @@ const leadTemplateFieldSchema = new Schema({
   data: [String],
 });
 
-const LeadTemplateField = models?.LeadTemplateField || model('LeadTemplateField', leadTemplateFieldSchema);
+const FormTemplateField = models?.FormTemplateField || model('FormTemplateField', formTemplateFieldSchema);
 
-export default LeadTemplateField;
+export default FormTemplateField;

@@ -7,10 +7,11 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus, faX } from "@fortawesome/free-solid-svg-icons";
-import LeadTemplateSection from "@/components/LeadTemplateSection";
-import { ADD_LEAD_TEMPLATE } from "@/utils/mutations";
-import { useMutation } from "@apollo/client";
+import StudyPlanTemplateSection from "@/components/leads/StudyPlanTemplateSection";
+import { ADD_FORM } from "@/utils/mutations";
+import { useMutation, useQuery } from "@apollo/client";
 import { useRouter } from "next/router";
+import { GET_NEXT_FORM } from "@/utils/queries";
 
 interface TemplateField {
   index: number
@@ -19,7 +20,7 @@ interface TemplateField {
   data: Array<string>
 }
 
-interface TemplateSectionRow {
+interface TemplateRow {
   index: number
   fields: Array<TemplateField>
   extensible: boolean
@@ -28,7 +29,7 @@ interface TemplateSectionRow {
 interface TemplateSection {
   name: string
   index: number
-  rows: Array<TemplateSectionRow>
+  rows: Array<TemplateRow>
   extensible: boolean
 }
 
@@ -48,9 +49,13 @@ export async function getServerSideProps(context:any) {
   }
 
   const apolloClient = initializeApollo();
-  // await apolloClient.query({
-  //   query: GET_CLIENTS,
-  // });
+  await apolloClient.query({
+    query: GET_NEXT_FORM,
+    variables: {
+      category: 'SP'
+    },
+    fetchPolicy: 'network-only'
+  });
 
   return addApolloState(apolloClient, {
     props: {
@@ -60,21 +65,29 @@ export async function getServerSideProps(context:any) {
 
 }
 
-export default function NewLeadTemplate () {
+export default function NewStudyPlanForm () {
 
   const { data: session, status } = useSession();
-  const [leadTemplateName, setLeadTemplateName] = useState('');
+  const [templateName, setTemplateName] = useState('');
+  const [studyType, setStudyType] = useState('');
   const [sections, setSections] = useState<TemplateSection[]>([]);
   const [errStatus, setErrStatus] = useState('');
   const router = useRouter();
-
-  const [addLeadTemplate, { error, data: addNewLeadData }] = useMutation(ADD_LEAD_TEMPLATE);
+  const { loading, error: nextFormError, data: nextFormData } = useQuery(GET_NEXT_FORM, {
+    variables: {
+      category: 'SP'
+    },
+  });
+  const nextFormIndex = nextFormData.getNextForm;
+  const [addForm, { error, data: addNewLeadData }] = useMutation(ADD_FORM, {
+    refetchQueries: [{query: GET_NEXT_FORM}]
+  });
 
   function handleAddSection () {
     const newSection : TemplateSection = {
       name: '',
       index: sections.length,
-      rows: [] as TemplateSectionRow[],
+      rows: [] as TemplateRow[],
       extensible: false,
     }
     const newSections = [...sections, newSection];
@@ -85,11 +98,19 @@ export default function NewLeadTemplate () {
     setSections(sections.filter( (_, i) => i !== index));
   }
 
-  async function handleCreateLeadTemplate() {
+  async function handleCreateStudyPlanForm() {
     try {
-      const returnVal = await addLeadTemplate({
+      console.log(studyType);
+      const metadata = JSON.stringify({
+        studyTypeCode: studyType
+      });
+      console.log(metadata)
+      const returnVal = await addForm({
         variables: {
-          name: leadTemplateName,
+          name: templateName,
+          formCategory: 'SP',
+          formIndex: nextFormIndex,
+          metadata: metadata,
           sections: JSON.stringify(sections)
         }
       });
@@ -109,7 +130,7 @@ export default function NewLeadTemplate () {
     <>
       <Navbar />
       <div className='mt-4'>
-        <Link className='std-link ml-4' href='/leads/templates'>&larr; Back</Link>
+        <Link className='std-link ml-4' href='/leads/study-plans'>&larr; Back</Link>
       </div>
       { status === 'authenticated' && (session.user.role === 'dev' || session.user.role === 'admin') ?
         <main className="flex flex-col items-top p-4 gap-2">
@@ -126,7 +147,7 @@ export default function NewLeadTemplate () {
             </div>
             <div className='flex gap-2'>
               
-              <button className='std-button-lite flex items-center gap-2' onClick={handleCreateLeadTemplate}>
+              <button className='std-button-lite flex items-center gap-2' onClick={handleCreateStudyPlanForm}>
                 Create
               </button>
             </div>
@@ -134,21 +155,38 @@ export default function NewLeadTemplate () {
           <div className='flex items-top gap-2'>
           {/* Template Editor */}
             <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl flex-grow'>
-              <h5>New Lead Template</h5>
-              <div className='flex items-center mb-4 gap-2 justify-between'>
+              <h5>New Study Plan Form</h5>
+              <div className='flex items-center mb-4 gap-2 justify-start'>
                 <div className='flex items-center gap-2'>
-                <div className='font-bold'>Template Name:</div>
-                <input type='text' className='std-input' name='leadName' value={leadTemplateName} onChange={(e)=>setLeadTemplateName(e.target.value)} />
+                  <div className='font-bold'>Form Name:</div>
+                  <input type='text' className='std-input' name='leadName' value={templateName} onChange={(e)=>setTemplateName(e.target.value)} />
+                </div>
+                <div className='flex items-center gap-2'>
+                  <div className='font-bold'>Form ID:</div>
+                  <div className='font-monospace'>{`F-SP-${nextFormIndex.toString().padStart(4,'0')}`}</div>
                 </div>
                 <button className='std-button-lite flex items-center gap-2' onClick={handleAddSection}><FontAwesomeIcon icon={faPlus}></FontAwesomeIcon>Add Section</button>
               </div>
+              <div className='flex items-center mb-4 gap-2 justify-start'>
+                <div className='font-bold'>Associated with Study Type:</div>
+                <select className='std-input' onChange={(e)=>setStudyType(e.target.value)} value={studyType}>
+                  <option value=''>-- Choose --</option>
+                  <option value='AH'>AH - Animal Heart</option>
+                  <option value='HH'>HH - Human Heart</option>
+                  <option value='HU'>HU - Human Cadaver</option>
+                  <option value='INT'>INT - Animal Interventional</option>
+                  <option value='IVT'>IVT - In Vitro</option>
+                  <option value='SUR'>SUR - Animal Surgical</option>
+                </select>
+              </div>
+              
               <section className='flex flex-col gap-2'>
                 <div className='font-bold'>Template Layout:</div>
                   <div className='flex flex-col border border-secondary/80 rounded-lg p-4 my-2 gap-2'>
                     { sections.length > 0 ? 
                       <>
                       {sections.map((section:TemplateSection, index:number) => 
-                        <LeadTemplateSection key={index} index={index} sections={sections} setSections={setSections} handleDeleteSection={handleDeleteSection} />
+                        <StudyPlanTemplateSection key={index} index={index} sections={sections} setSections={setSections} handleDeleteSection={handleDeleteSection} />
                       )}
                       </>
                       :

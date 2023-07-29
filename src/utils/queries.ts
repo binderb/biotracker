@@ -42,6 +42,12 @@ export const GET_NEXT_STUDY = gql`
   }
 `;
 
+export const GET_NEXT_FORM = gql`
+  query GetNextForm($category: String!) {
+    getNextForm(category: $category)
+  }
+`;
+
 export const GET_LEADS = gql`
   query GetLeads {
     getLeads {
@@ -75,13 +81,18 @@ export const GET_LEADS = gql`
           username
         }
       }
-
+      published
+      studies {
+        _id
+        index
+        type
+      }
     }
   }
 `;
 
 export const GET_LEAD_LATEST = gql`
-  query GetLeads($getLeadLatestRevisionId: ID!) {
+  query GetLeadLatest($getLeadLatestRevisionId: ID!) {
     getLeadLatestRevision(id: $getLeadLatestRevisionId) {
       _id
       name
@@ -99,6 +110,7 @@ export const GET_LEAD_LATEST = gql`
         author {
           _id
         }
+        published
       }
       notes {
         _id
@@ -106,6 +118,7 @@ export const GET_LEAD_LATEST = gql`
         content
         revision {
           _id
+          published
         }
         newRevision
         author {
@@ -115,25 +128,31 @@ export const GET_LEAD_LATEST = gql`
           username
         }
       }
+      published
+      studies {
+        _id
+        index
+        type
+      }
     }
   }
 `;
 
-export const GET_LEAD_TEMPLATES = gql`
-  query GetLeadTemplates {
-    getLeadTemplates {
+export const GET_STUDY_PLAN_FORMS = gql`
+  query Query {
+    getStudyPlanForms {
       _id
       name
     }
   }
 `;
 
-export const GET_LEAD_TEMPLATE_LATEST = gql`
-  query Query($getLeadTemplateLatestRevisionId: ID!) {
-    getLeadTemplateLatestRevision(id: $getLeadTemplateLatestRevisionId) {
+export const GET_STUDY_PLAN_FORM_LATEST = gql`
+  query Query ($getStudyPlanFormLatestRevisionId: ID!) {
+    getStudyPlanFormLatestRevision(id: $getStudyPlanFormLatestRevisionId) {
       _id
-      active
       name
+      metadata
       revisions {
         _id
         createdAt
@@ -159,6 +178,18 @@ export const GET_LEAD_TEMPLATE_LATEST = gql`
     }
   }
 `;
+
+export const GET_FORM_DETAILS_FROM_REVISION_ID = gql`
+  query Query ($revisionId: ID!) {
+    getFormDetailsFromRevisionId(revisionId: $revisionId) {
+      _id
+      name
+      metadata
+    }
+  }
+`;
+
+
 
 export const GET_GOOGLE_DRIVE_CONFIG = gql`
   query Query {

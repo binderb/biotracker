@@ -49,17 +49,15 @@ export const ADD_LEAD_NOTE = gql`
   }
 `;
 
-export const ADD_LEAD_TEMPLATE = gql`
-  mutation addLeadTemplate($name: String!, $sections: String!) {
-    addLeadTemplate(name: $name, sections: $sections)
+export const ADD_FORM = gql`
+  mutation addForm($name: String!, $formCategory: String!, $metadata: String, $sections: String!) {
+    addForm(name: $name, formCategory: $formCategory, metadata: $metadata, sections: $sections)
   }
 `;
 
 export const ADD_STUDY = gql`
-  mutation addStudy($clientCode: String!, $studyIndex: Int!, $studyType: String!) {
-    addStudy(clientCode: $clientCode, studyIndex: $studyIndex, studyType: $studyType) {
-      code
-    }
+  mutation addStudy($clientCode: String!, $studyType: String!, $leadId: ID!) {
+    addStudy(clientCode: $clientCode, studyType: $studyType, leadId: $leadId)
   }
 `;
 
@@ -69,9 +67,9 @@ export const CREATE_DRIVE_STUDY_TREE = gql`
   }
 `;
 
-export const CREATE_DRIVE_STUDY = gql`
-  mutation createDriveStudyTree($clientCode: String!, $studyName: String!, $studyData: String!) {
-    createDriveStudy(clientCode: $clientCode, studyName: $studyName, studyData: $studyData)
+export const PUBLISH_LEAD_TO_DRIVE = gql`
+  mutation publishLeadToDrive($clientCode: String!, $studyName: String!, $studyData: String!) {
+    publishLeadToDrive(clientCode: $clientCode, studyName: $studyName, studyData: $studyData)
   }
 `;
 

@@ -7,7 +7,7 @@ interface TemplateField {
   data: Array<string>
 }
 
-interface TemplateSectionRow {
+interface TemplateRow {
   index: number
   fields: Array<TemplateField>
   extensible: boolean
@@ -16,7 +16,7 @@ interface TemplateSectionRow {
 interface TemplateSection {
   name: string
   index: number
-  rows: Array<TemplateSectionRow>
+  rows: Array<TemplateRow>
   extensible: boolean
 }
 
@@ -28,7 +28,7 @@ interface Props {
   setSections: Function
 }
 
-export default function LeadTemplateField ({sections, index, rowIndex, fieldIndex, setSections}:Props) {
+export default function StudyPlanTemplateField ({sections, index, rowIndex, fieldIndex, setSections}:Props) {
 
   const [fieldType, setFieldType] = useState(sections[index].rows[rowIndex].fields[fieldIndex].type);
   const [fieldParams, setFieldParams] = useState(sections[index].rows[rowIndex].fields[fieldIndex].params)

@@ -3,17 +3,18 @@ import Navbar from "@/components/Navbar";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../api/auth/[...nextauth]';
 import { initializeApollo, addApolloState } from "../../../../utils/apolloClient";
-import { GET_CLIENTS, GET_USERS, GET_LEAD_LATEST, GET_LEADS, GET_NEXT_STUDY } from "@/utils/queries";
+import { GET_CLIENTS, GET_USERS, GET_LEAD_LATEST, GET_LEADS, GET_NEXT_STUDY, GET_FORM_DETAILS_FROM_REVISION_ID } from "@/utils/queries";
 import { useSession } from "next-auth/react";
 import { ChangeEvent, MouseEventHandler, useEffect, useState } from "react";
-import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
+import { useApolloClient, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import Link from "next/link";
-import { faCog, faFlagCheckered, faX } from "@fortawesome/free-solid-svg-icons";
+import { faCog, faFileExport, faFlagCheckered, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, CREATE_DRIVE_STUDY, CREATE_DRIVE_STUDY_TREE } from "@/utils/mutations";
+import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, PUBLISH_LEAD_TO_DRIVE, CREATE_DRIVE_STUDY_TREE } from "@/utils/mutations";
 import { useParams } from 'next/navigation';
-import DiscussionBoard from "@/components/DiscussionBoard";
+import DiscussionBoard from "@/components/leads/DiscussionBoard";
 import { useRouter } from "next/router";
+import LeadEditor from "@/components/leads/LeadEditor";
 
 
 export async function getServerSideProps(context:any) {
@@ -52,6 +53,7 @@ export async function getServerSideProps(context:any) {
 export default function LeadManager (props:any) {
 
   const { data: session, status } = useSession();
+  const apolloClient = useApolloClient();
   const router = useRouter();
   const { loading, data: leadResponseData } = useQuery(GET_LEAD_LATEST, {
     variables: {
@@ -66,10 +68,16 @@ export default function LeadManager (props:any) {
   const [successStatus, setSuccessStatus] = useState('');
   const [client, setClient] = useState(leadData.client.code);
   const [addLeadRevision, { error: leadRevisionError, data: addLeadRevisionData }] = useMutation(ADD_LEAD_REVISION, {
-    refetchQueries: [GET_LEAD_LATEST, GET_LEADS]
+    refetchQueries: [{query: GET_LEAD_LATEST,
+      variables: {
+        getLeadLatestRevisionId: props.editId
+      }},{query: GET_LEADS}]
   });
   const [addLeadNote, { error: leadNoteError, data: addLeadNoteData }] = useMutation(ADD_LEAD_NOTE, {
-    refetchQueries: [GET_LEAD_LATEST, GET_LEADS]
+    refetchQueries: [{query: GET_LEAD_LATEST,
+      variables: {
+        getLeadLatestRevisionId: props.editId
+      }},{query: GET_LEADS}]
   });
   const [note, setNote] = useState('');
   const [changes, setChanges] = useState(0);
@@ -78,10 +86,16 @@ export default function LeadManager (props:any) {
   const [getNextStudy, { data: newIdData }] = useLazyQuery(GET_NEXT_STUDY, {
     fetchPolicy: 'network-only'
   });
+  const [getFormDetails, {data: formDetailsData}] = useLazyQuery(GET_FORM_DETAILS_FROM_REVISION_ID);
   const [nextStudy, setNextStudy] = useState('');
-  const [studyType, setStudyType] = useState('');
+  const [studyIds, setStudyIds] = useState(new Array<string>);
   const [createDriveStudyTree, { data : driveTreeResponse }] = useMutation(CREATE_DRIVE_STUDY_TREE);
-  const [createDriveStudy, { data : driveResponse }] = useMutation(CREATE_DRIVE_STUDY);
+  const [publishLeadToDrive, { data : driveResponse }] = useMutation(PUBLISH_LEAD_TO_DRIVE, {
+    refetchQueries: [{query: GET_LEAD_LATEST,
+      variables: {
+        getLeadLatestRevisionId: props.editId
+      }}]
+  });
   const [addStudy, { error, data : newStudyData }] = useMutation(ADD_STUDY, {
     refetchQueries: [{query: GET_NEXT_STUDY}, 'GetNextStudy']
   });
@@ -90,15 +104,17 @@ export default function LeadManager (props:any) {
   useEffect( () => {
     let changeSum = 0;
     if (leadStatus !== leadData.status) changeSum++;
-    content.sections.map( (section:any, sectionIndex:number) => {
-      if (leadContent.sections[sectionIndex].rows.length !== section.rows.length) changeSum++;
-      section.rows.map( (row:any, rowIndex:number) => {
-        row.fields.map( (field:any, fieldIndex:number) => {
-          //console.log(`${leadContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex]?.data} <-> ${field.data}`);
-          if (leadContent.sections[sectionIndex].rows[rowIndex]?.fields[fieldIndex]?.data.toString() !== field.data.toString()) changeSum++;
+    for (let i=0;i<content.length;i++) {
+      content[i].sections.map( (section:any, sectionIndex:number) => {
+        if (leadContent[i].sections[sectionIndex].rows.length !== section.rows.length) changeSum++;
+        section.rows.map( (row:any, rowIndex:number) => {
+          row.fields.map( (field:any, fieldIndex:number) => {
+            if (leadContent[i].sections[sectionIndex].rows[rowIndex]?.fields[fieldIndex]?.data.toString() !== field.data.toString()) changeSum++;
+          });
         });
       });
-    });
+    }
+    
     setChanges(changeSum);
   }, [leadStatus, leadContent, content, leadData.status]);
 
@@ -166,88 +182,56 @@ export default function LeadManager (props:any) {
     }
   }
 
-  function handleUpdateLeadInputField(e:ChangeEvent<HTMLInputElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
-    const newContent = {...content};
-    if (type === 'checkbox' || type === 'multicheckbox') {
-      const newData = [...newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
-      newData.splice(dataIndex,1,e.target.checked);
-      newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
-    } else { 
-      const newData = [...newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
-      newData.splice(dataIndex,1,e.target.value);
-      newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
-    }
-    setContent(newContent);
-  }
-
-  function handleUpdateLeadTextArea(e:ChangeEvent<HTMLTextAreaElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
-    const newContent = {...content};
-    const newData = [...newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
-    newData.splice(dataIndex,1,e.target.value);
-    newContent.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
-    setContent(newContent);
-  }
-
-  function handleAddExtensibleRow(e:any,sectionIndex:number,rowIndex:number) {
-    e.preventDefault();
-    const newRow = {
-      ...content.sections[sectionIndex].rows[rowIndex], 
-      index: content.sections[sectionIndex].rows[rowIndex].index+1,
-      fields: [
-        ...content.sections[sectionIndex].rows[rowIndex].fields.map( (field:any) => {return {...field, data: ''};})
-      ]
-    };
-    const newContent = {...content};
-    newContent.sections[sectionIndex].rows.push(newRow);
-    setContent(newContent);
-  }
-
-  function handleDeleteExtensibleRow(e:any, sectionIndex: number, rowIndex: number) {
-    e.preventDefault();
-    const newContent = {...content};
-    newContent.sections[sectionIndex].rows.splice(rowIndex,1);
-    setContent(newContent);
-  }
-
   async function handleShowPublish () {
-    const nextStudyResponse = await getNextStudy({variables: {clientCode: client}});
-    setNextStudy(nextStudyResponse?.data.getNextStudy);
-    setCompletedPublish(false);
-    setPublishVisible(true);
+    if (changes === 0) {
+      const nextStudyResponse = await getNextStudy({variables: {clientCode: client}});
+      setNextStudy(nextStudyResponse?.data.getNextStudy);
+      const studyIds = Array<string>();
+      for (let i=0;i<content.length;i++) {
+        console.log(content[i].revisionId);
+        const formDetailsResponse = await getFormDetails({variables: {revisionId: content[i].studyPlanFormRevisionId}})
+        const formMetadata = formDetailsResponse?.data?.getFormDetailsFromRevisionId.metadata;
+        studyIds.push(`${client}${(nextStudyResponse?.data.getNextStudy+i).toString().padStart(4,'0')}-${JSON.parse(formMetadata).studyTypeCode}`)
+      }
+      setStudyIds(studyIds);
+      setCompletedPublish(false);
+      setPublishVisible(true);
+    } else {
+      setSuccessStatus('');
+      setErrStatus('Please commit your most recent changes before publishing.');
+    }
   }
 
   async function handlePublish () {
-    if (studyType === '') {
-      setPublishErrStatus('Please specify a study type.');
-      return;
-    }
-    setPublishErrStatus('Creating file tree in Google Drive...');
-    const studyFullName = `${client}${nextStudy.toString().padStart(4,'0')}-${studyType}`;
     try {
-      const treeResult = await createDriveStudy({
-        variables: {
-          clientCode: client,
-          studyName: studyFullName,
-          studyData: JSON.stringify(content)
-        }
-      });    
-    } catch (err:any) {
-      setPublishErrStatus(err.message);
-      return;
-    }
-    setPublishErrStatus('Updating database...');
-    try {
-      const newStudy = await addStudy({
-        variables: {
-          clientCode: client,
-          studyIndex: nextStudy,
-          studyType: studyType
-        }
+      for (let i=0;i<content.length;i++) {
+        setPublishErrStatus(`Creating file tree(s) in Google Drive for ${studyIds[i]}...`);
+        const formDetailsResponse = await getFormDetails({variables: {revisionId: content[i].studyPlanFormRevisionId}})
+        const studyTypeCode = JSON.parse(formDetailsResponse?.data?.getFormDetailsFromRevisionId.metadata).studyTypeCode;
+        const treeResult = await publishLeadToDrive({
+          variables: {
+            clientCode: client,
+            studyName: studyIds[i],
+            studyData: JSON.stringify(content[i])
+          }
+        }); 
+        setPublishErrStatus(`Updating database for ${studyIds[i]}...`);
+        const newStudy = await addStudy({
+          variables: {
+            clientCode: client,
+            studyType: studyTypeCode,
+            leadId: leadData._id
+          }
+        });
+        setPublishErrStatus(`Completed publishing study: ${studyIds[i]}`);
+      }
+      await apolloClient.refetchQueries({
+        include: [GET_LEADS, GET_LEAD_LATEST]
       });
-      setPublishErrStatus(`Completed adding new study: ${studyFullName}`);
+      setPublishErrStatus(`Completed publishing lead.`);
       setCompletedPublish(true);
     } catch (err:any) {
-      setPublishErrStatus(err.message);
+      setPublishErrStatus(JSON.stringify(err));
     }
   }
 
@@ -286,26 +270,38 @@ export default function LeadManager (props:any) {
           }
         </div>
         <div className='flex gap-2'>
-          <button className='secondary-button-lite' disabled={changes === 0} onClick={handleRevertChanges}>Revert to Saved</button>
-          <button className='std-button-lite flex items-center gap-2' disabled={changes === 0} onClick={handleSubmitLeadRevision}>
-            Commit Changes
-          </button>
           <button className='std-button-lite flex items-center gap-2' onClick={handleShowPublish}>
-            <FontAwesomeIcon icon={faFlagCheckered} />
-            Publish
+            {
+              leadData.published ?
+                <>
+                  <FontAwesomeIcon icon={faFileExport} />
+                  Re-Publish
+                </>
+              :
+                <>
+                  <FontAwesomeIcon icon={faFlagCheckered} />
+                  Publish
+                </>
+            }
+            
           </button>
           <button className='secondary-button-lite flex items-center gap-2' onClick={handleShowSettings}>
             <FontAwesomeIcon icon={faCog} />
           </button>
         </div>
       </div>
-      <section className='max-md:flex max-md:flex-col-reverse md:grid md:grid-cols-12 gap-2 px-4 overflow-y-hidden'>
+      <section className='max-md:flex max-md:flex-col-reverse md:grid md:grid-cols-12 gap-2 px-4 overflow-y-hidden h-full'>
         <div id="discussion" className='bg-secondary/20 border border-secondary/80 md:col-span-5 xl:col-span-4 p-4 rounded-lg md:overflow-y-hidden h-full'>
           <h5>Discussion</h5>
           <div className='flex flex-col gap-2'>
             <div className='flex justify-between items-center'>
               <div className='font-bold'>Note:</div>
-              <button className='std-button-lite' disabled={changes !== 0 || !note.trim()} onClick={handleSubmitBareNote}>Post Without Changes</button>
+              <div className='flex gap-2 items-center'>
+                <button className='std-button-lite' disabled={changes !== 0 || !note.trim()} onClick={handleSubmitBareNote}>Post Without Changes</button>
+                <button className='std-button-lite flex items-center gap-2' disabled={changes === 0} onClick={handleSubmitLeadRevision}>
+                  Commit Changes
+                </button>
+              </div>
             </div>
             <textarea className='std-input mb-4 h-[150px] resize-none' value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
@@ -316,11 +312,14 @@ export default function LeadManager (props:any) {
           </div>
         </div>
         <div id="edit-study" className='bg-secondary/20 border border-secondary/80 md:col-span-7 xl:col-span-8 p-4 rounded-lg md:overflow-y-hidden h-full'>
-        <h5>Lead Details</h5>
+        <div className='flex justify-between items-center pb-2'>
+          <h5>Lead Details</h5>
+          <button className='secondary-button-lite' disabled={changes === 0} onClick={handleRevertChanges}>Revert to Saved</button>
+        </div>
+        
           <div className='md:overflow-y-hidden h-[calc(100%-40px)]'>
             <div className='md:overflow-y-auto h-full pr-4'>
               <section id='step-1'>
-                <form>
                   <section>
                     <div className='mr-2 font-bold'>Status:</div>
                     <div className='flex border border-secondary rounded-md items-center p-4 mt-2 mb-4'>
@@ -330,85 +329,11 @@ export default function LeadManager (props:any) {
                       </select>
                     </div>
                   </section>
-                  <section>
-                    <div className='mr-2 font-bold'>Sponsor Information:</div>
-                    <div className='flex border border-secondary rounded-md items-center p-4 mt-2 mb-4'>
-                      <div className='mr-2'>Client:</div>
-                      <div>{client}</div>
-                    </div>
-                  </section>
-
-                  {content.sections.map( (section:any, sectionIndex:number) => (
-                  <section key={sectionIndex}>
-                    <div className='font-bold py-4'>{section.name}:</div>
-                    <div className='border border-secondary rounded-lg p-2 overflow-x-auto'>
-                    <table className='w-full'><tbody>
-                    {section.rows.map( (row:any, rowIndex:number) => (
-                      <tr key={rowIndex}>
-                        {row.fields.map((field:any, fieldIndex:number) => (
-                          <>
-                            {field.type === 'label' && (
-                              <td key={fieldIndex} className='align-top py-1'>
-                                { row.fields.length > 1 && !row.extensible &&
-                                  <div className='font-bold'>{field.params[0]}:</div>
-                                }
-                                { row.extensible &&
-                                  <div className='font-bold'>{field.params[0]} {section.rows.indexOf(row)+1}:</div>
-                                }
-                              </td>
-                            )}
-                            {field.type === 'textarea' && (
-                              <td className='align-middle py-1'>
-                              <textarea className='resize-none std-input w-full h-[100px]' value={field.data} onChange={(e) => handleUpdateLeadTextArea(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
-                              </td>
-                            )}
-                            {field.type === 'input' && (
-                              <td className='flex gap-2 align-middle py-1'>
-                              <input type='text' className='std-input flex-grow w-full' value={field.data} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
-                              {/* ROW DELETE BUTTON */}
-                              { row.extensible && rowIndex > 0 &&
-                                <button className='secondary-button-lite' onClick={(e) => handleDeleteExtensibleRow(e, sectionIndex, rowIndex)}><FontAwesomeIcon icon={faX}/></button>
-                              }
-                              {/* ROW ADD BUTTON */}
-                              {row.extensible && section.rows.indexOf(row) == section.rows.length-1 &&
-                                <div className='flex'>
-                                  <button className='std-button-lite' onClick={(e) => handleAddExtensibleRow(e, sectionIndex, rowIndex)}>Add</button>
-                                </div>
-                              }
-                              </td>
-                              
-                            )}
-                            {field.type === 'checkbox' && (
-                              <td className='align-middle py-1'>
-                              <label className='form-control'>
-                              <input type='checkbox' checked={field.data[0]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
-                              {field.params[0]}
-                              </label>
-                              </td>
-                            )}
-                            {field.type === 'multicheckbox' && (
-                              <td className='align-top'>
-                              <div className='flex flex-col gap-2 justify-start items-start'>
-                                { field.params.map( (param:string, i:number) => (
-                                    <label key={i} className='form-control'>
-                                    <input type='checkbox' checked={field.data[i]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, i, field.type)} />
-                                    {param}
-                                    </label>
-                                ))}
-                              </div>
-                              </td>
-                            )}
-                          
-                          </>
-                        ))}
-                        
-                        </tr>
-                    ))}
-                    </tbody></table>
-                    </div>
-                  </section>
-                ))}
-                </form>
+                  <LeadEditor 
+                    client={client}
+                    content={content}
+                    setContent={setContent}
+                  />
               </section>
             </div>
           </div>
@@ -417,64 +342,92 @@ export default function LeadManager (props:any) {
       </main>
       <section className={`absolute ${publishVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
         <section className='flex bg-white rounded-lg p-0 col-start-3 col-span-8 md:col-start-4 md:col-span-6 lg:col-start-5 lg:col-span-4'>
-          <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
-            <h5>Publish Lead</h5>
-            <div>
-              This action will build a new <b>Study</b>.
-            </div>
-            {/* <div>
-              This feature requires Google Drive to be communicating with our system, and is a work in progress! Check back later; a patch to implement this functionality will be applied this week!
-            </div>
-            <div className='flex pt-4 gap-2'>
-              <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>
-                Back
-              </button>
-            </div> */}
-            <div>
-              A new study folder will be generated with an automatically-assigned Study ID (below), and the details for this lead will be copied onto an appropriate form and placed within the study folder.
-            </div>
-            <select className='std-input' onChange={(e)=>setStudyType(e.target.value)} value={studyType}>
-                <option value=''>-- Choose Type Classification --</option>
-                <option value='HU'>HU - Human Cadaver</option>
-                <option value='IVT'>IVT - In Vitro</option>
-                <option value='INT'>INT - Animal Interventional</option>
-                <option value='SUR'>SUR - Animal Surgical</option>
-              </select>
-            <div className='flex gap-2 items-center'>
-              <div className='font-bold'>Study ID:</div>
-              <div>{`${client}${nextStudy.toString().padStart(4,'0')}-${studyType ? `${studyType}` : 'XXX'}`}</div>
-            </div>
-            <div className='flex gap-2'>
-              <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>
-                {completedPublish ? 'Done' : 'Cancel'}
-              </button>
-              { !completedPublish && 
-                <button className='std-button-lite flex-grow' onClick={handlePublish}>Publish</button>
+          {leadData.published && !completedPublish &&
+            <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
+              <h5>Re-Publish Lead</h5>
+              <div>
+                You have already published this lead at least once before, so this action will <b>update</b> the current Study Plan(s) that already exist in your linked directory on Google Drive, replacing their PDFs with updated versions.
+              </div>
+              <div>
+                If you have added additional Study Plans since this lead was last published, new corresponding study folders and documents will be generated (see below).
+              </div>
+              {
+                leadData.studies.map((study:any, index:number) => (
+                  <div key={index} className='flex flex-col justify-center items-start'>
+                    <div className='flex gap-2 items-center'>
+                      <div className='font-bold'>Existing Study:</div>
+                      <div>
+                        {`${client}${study.index.toString().padStart(4,'0')}-${study.type}`}
+                      </div>
+                    </div>
+                </div>
+                ))
               }
-            </div>
-            <div className='text-[#800]'>{publishErrStatus}</div>
-          </section>
+              <div className='text-[#800]'>
+                This feature is still in development!
+              </div>
+              <div className='flex gap-2 pt-2'>
+                <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>Cancel</button>
+                {/* <button className='std-button-lite flex-grow' onClick={handlePublish}>Re-Publish</button> */}
+              </div>
+              <div className='text-[#800]'>{publishErrStatus}</div>
+            </section>
+          }
+          {!leadData.published && !completedPublish &&
+            <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
+              <h5>Publish Lead</h5>
+              <div>
+                This action will build a new <b>Study</b> for each Study Plan that is included in this lead.
+              </div>
+              <div>
+                A new study folder will be generated with an automatically-assigned Study ID for each plan (below), and the details for each plan will be typeset into a PDF form and placed within the study folder.
+              </div>
+              {
+                content.map((plan:any, index:number) => (
+                  <div key={index} className='flex flex-col justify-center items-start'>
+                    <div className='flex gap-2 items-center'>
+                      <div className='font-bold'>Study Plan Form:</div>
+                      <div>
+                        {plan.name}
+                      </div>
+                    </div>
+                    <div className='flex gap-2 items-center'>
+                      <div className='font-bold'>Generated ID:</div>
+                      <div>
+                        {studyIds[index]}
+                      </div>
+                    </div>
+                </div>
+                ))
+              }
+              <div className='flex gap-2 pt-2'>
+                <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>Cancel</button>
+                <button className='std-button-lite flex-grow' onClick={handlePublish}>Publish</button>
+              </div>
+              <div className='text-[#800]'>{publishErrStatus}</div>
+            </section>
+          }
+          {completedPublish && 
+            <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
+              <h5>Publish Completed</h5>
+              <div className='flex gap-2 pt-2'>
+                <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>Done</button>
+              </div>
+              <div className='text-[#800]'>{publishErrStatus}</div>
+            </section>
+          }
         </section>
       </section>
-      <section className={`absolute ${publishVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
+      {/* <section className={`absolute ${publishVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
         <section className='flex bg-white rounded-lg p-0 col-start-3 col-span-8 md:col-start-4 md:col-span-6 lg:col-start-5 lg:col-span-4'>
           <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
             <h5>Publish Lead</h5>
             <div>
-              This action will build a new <b>Study</b>.
+              This action will build a new <b>Study</b> for each Study Plan that is included in this lead.
             </div>
             <div>
-              A new study folder will be generated with an automatically-assigned Study ID (below), and the details for this lead will be copied onto an appropriate form and placed within the study folder.
+              A new study folder will be generated with an automatically-assigned Study ID for each plan (below), and the details for each plan will be typeset into a PDF form and placed within the study folder.
             </div>
-            <select className='std-input' onChange={(e)=>setStudyType(e.target.value)} value={studyType}>
-                <option value=''>-- Choose Type Classification --</option>
-                <option value='AH'>AH - Animal Heart</option>
-                <option value='HH'>HH - Human Heart</option>
-                <option value='HU'>HU - Human Cadaver</option>
-                <option value='INT'>INT - Animal Interventional</option>
-                <option value='IVT'>IVT - In Vitro</option>
-                <option value='SUR'>SUR - Animal Surgical</option>
-              </select>
             <div className='flex gap-2 items-center'>
               <div className='font-bold'>Study ID:</div>
               <div>{`${client}${nextStudy.toString().padStart(4,'0')}-${studyType ? `${studyType}` : 'XXX'}`}</div>
@@ -490,7 +443,7 @@ export default function LeadManager (props:any) {
             <div className='text-[#800]'>{publishErrStatus}</div>
           </section>
         </section>
-      </section>
+      </section> */}
     </>
   );
 }

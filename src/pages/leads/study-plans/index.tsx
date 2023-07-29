@@ -3,7 +3,7 @@ import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { addApolloState, initializeApollo } from "../../../../utils/apolloClient";
-import { GET_LEAD_TEMPLATES } from "@/utils/queries";
+import { GET_STUDY_PLAN_FORMS } from "@/utils/queries";
 import { useSession } from "next-auth/react";
 import { useQuery } from "@apollo/client";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -27,7 +27,7 @@ export async function getServerSideProps(context:any) {
 
   const apolloClient = initializeApollo();
   const initialData = await apolloClient.query({
-    query: GET_LEAD_TEMPLATES,
+    query: GET_STUDY_PLAN_FORMS,
   });
 
   return addApolloState(apolloClient, {
@@ -41,8 +41,8 @@ export async function getServerSideProps(context:any) {
 export default function LeadTemplateManager () {
 
   const { data: session, status } = useSession();
-  const { data: leadTemplateData, loading } = useQuery(GET_LEAD_TEMPLATES);
-  const leadTemplates = leadTemplateData.getLeadTemplates;
+  const { data: studyPlanFormsData, loading } = useQuery(GET_STUDY_PLAN_FORMS);
+  const studyPlanForms = studyPlanFormsData.getStudyPlanForms;
   const router = useRouter();
 
   if (status !== 'authenticated') {
@@ -58,13 +58,13 @@ export default function LeadTemplateManager () {
       </div>
       <main className='px-4'>
         <div className='flex mt-4 mb-2 gap-2'>
-          <Link className="std-button" href="/leads/templates/new"><FontAwesomeIcon icon={faPlus} className="mr-2"></FontAwesomeIcon>New Lead Template</Link>
+          <Link className="std-button" href="/leads/study-plans/new"><FontAwesomeIcon icon={faPlus} className="mr-2"></FontAwesomeIcon>New Study Plan Form</Link>
         </div>
       <div className='flex flex-col mt-4 bg-secondary/20 border border-secondary/80 rounded-lg p-4'>
-          <h5>Current Lead Templates:</h5>
+          <h5>Current Study Plan Forms:</h5>
           <ul className='flex flex-col gap-2'>
-            {leadTemplates.length > 0 ? 
-              leadTemplates.map((template:any) => (
+            {studyPlanForms.length > 0 ? 
+              studyPlanForms.map((template:any) => (
                 <li key={template._id} className='std-input rounded-md flex justify-between items-center'>
                   {template.name}
                   <div className='flex gap-2'>

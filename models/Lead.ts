@@ -8,7 +8,9 @@ const leadSchema = new Schema({
   drafters: [{ type: Schema.Types.ObjectId, ref: 'User' }]!,
   client: { type: Schema.Types.ObjectId, ref: 'Client' }!,
   revisions: [{ type: Schema.Types.ObjectId, ref: 'LeadRevision' }]!,
-  notes: [{ type: Schema.Types.ObjectId, ref: 'LeadNote' }]!
+  notes: [{ type: Schema.Types.ObjectId, ref: 'LeadNote' }]!,
+  published: {type: Boolean!, default: false},
+  studies: [{ type: Schema.Types.ObjectId, ref: 'Study' }]
 });
 
 const Lead = models?.Lead || model('Lead', leadSchema);
