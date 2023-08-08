@@ -66,26 +66,14 @@ export default function NewLead () {
   const [addNewLead, { error, data: addNewLeadData }] = useMutation(ADD_NEW_LEAD);
   const { data: studyPlanFormsData } = useQuery(GET_STUDY_PLAN_FORMS);
   const studyPlanForms = studyPlanFormsData.getStudyPlanForms;
-  // const [currentTemplate, setCurrentTemplate] = useState('');
   const [firstNote, setFirstNote] = useState('');
   const [getLatestStudyPlanFormRevision, { data }] = useLazyQuery(GET_STUDY_PLAN_FORM_LATEST);
-  // const { data: currentTemplateData } = useQuery(GET_LEAD_TEMPLATE_LATEST, {
-  //   variables: {
-  //     getLeadTemplateLatestRevisionId: currentTemplate
-  //   }
-  // });
-  // const templateObject = currentTemplateData?.getLeadTemplateLatestRevision;
   const [templateList, setTemplateList] = useState<any>([]);
   const [content, setContent] = useState<any>(null);
 
   useEffect( () => {
     const fetchTemplateObjects = async () => {
       const newContent = [];
-      // Need to change this approach. Instead, check for
-      // the presence of each entry in the list within "content",
-      // and push the existing data into the new array if found.
-      // Only insert a "blank" plan object if "content" doesn't already
-      // have one of the same type.
       try {
         for (let i=0; i<templateList.length; i++) {
           // Check to see if this plan template already exists in content

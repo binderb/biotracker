@@ -99,6 +99,9 @@ export const GET_LEAD_LATEST = gql`
       status
       drafters {
         _id
+        first
+        last
+        username
       }
       client {
         _id

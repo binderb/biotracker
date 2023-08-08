@@ -32,7 +32,7 @@ export default function StudyPlanTemplateField ({sections, index, rowIndex, fiel
 
   const [fieldType, setFieldType] = useState(sections[index].rows[rowIndex].fields[fieldIndex].type);
   const [fieldParams, setFieldParams] = useState(sections[index].rows[rowIndex].fields[fieldIndex].params)
-  const fieldTypeOptions = ['label', 'textarea', 'multitextarea', 'input', 'multiinput', 'checkbox', 'multicheckbox'];
+  const fieldTypeOptions = ['label', 'textarea', 'multitextarea', 'input', 'multiinput', 'checkbox', 'multicheckbox', 'date'];
 
   function handleFieldTypeUpdate (e:ChangeEvent<HTMLSelectElement>) {
     setFieldType(e.target.value);

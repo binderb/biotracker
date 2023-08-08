@@ -105,6 +105,7 @@ const resolvers = {
           path: 'author',
           model: 'User'
         })
+        .populate('drafters')
         .populate({
           path: 'revisions',
           model: 'LeadRevision',
@@ -306,6 +307,20 @@ const resolvers = {
       }
       return `success`;
 
+    },
+    updateLeadDrafters: async (_:any, args:any) => {
+      const { leadId, drafters } = args;
+      try {
+        await connectMongo();
+        await Lead.findOneAndUpdate({_id: leadId}, {
+          $set: {
+            drafters: drafters
+          }
+        });
+      } catch (err:any) {
+        throw new Error(JSON.stringify(err));
+      }
+      return `success`;
     },
     addLeadRevision: async (_:any, args:any) => {
       const { id, author, status, content, note } = args;

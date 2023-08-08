@@ -1,6 +1,8 @@
 import { faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 interface Props {
   client: any
@@ -11,6 +13,12 @@ interface Props {
 export default function LeadEditor ({client, content, setContent}:Props) {
 
   const [currentStudyPlanIndex, setCurrentStudyPlanIndex] = useState(0);
+
+  useEffect( () => {
+    if (currentStudyPlanIndex >= content.length-1) {
+      setCurrentStudyPlanIndex(content.length-1);
+    }
+  },[currentStudyPlanIndex, setCurrentStudyPlanIndex, content]);
 
   function handleUpdateLeadInputField(e:ChangeEvent<HTMLInputElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
     const newContent = [...content];
@@ -31,6 +39,15 @@ export default function LeadEditor ({client, content, setContent}:Props) {
     const newContent = [...content];
     const newData = [...newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
     newData.splice(dataIndex,1,e.target.value);
+    newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
+    setContent(newContent);
+  }
+
+  function handleUpdateLeadDateField(date:string, sectionIndex:number, rowIndex:number, fieldIndex:number, dataIndex:number) {
+    console.log(date);
+    const newContent = [...content];
+    const newData = [...newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
+    newData.splice(dataIndex,1,date);
     newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
     setContent(newContent);
   }
@@ -68,7 +85,7 @@ export default function LeadEditor ({client, content, setContent}:Props) {
           </div>
           <section className='flex items-center gap-2 pb-4'>
             <div className="font-bold">Study Plan:</div>
-            <select className="std-input flex-grow" onChange={(e) => setCurrentStudyPlanIndex(parseInt(e.target.value))} value={currentStudyPlanIndex}>
+            <select className="std-input flex-grow" value={currentStudyPlanIndex} onChange={(e) => setCurrentStudyPlanIndex(parseInt(e.target.value))}>
               { content.map((plan:any, index:number) => (
                 <option key={index} value={index}>
                   {plan.name}
@@ -77,7 +94,7 @@ export default function LeadEditor ({client, content, setContent}:Props) {
             </select>
           </section>
           
-          {content[currentStudyPlanIndex].sections.map( (section:any, sectionIndex:number) => (
+          {content[currentStudyPlanIndex]?.sections.map( (section:any, sectionIndex:number) => (
             <section key={sectionIndex}>
               <div className='mr-2 font-bold'>{section.name}:</div>
               <div className='border border-secondary rounded-lg p-2 overflow-x-auto my-2'>
@@ -136,6 +153,11 @@ export default function LeadEditor ({client, content, setContent}:Props) {
                               </label>
                           ))}
                         </div>
+                        </td>
+                      )}
+                      {field.type === 'date' && (
+                        <td className='align-top'>
+                          <DatePicker className='std-input' dateFormat='MM/dd/yyyy' selected={field.data[0] ? new Date(field.data[0]) : null} onChange={(date:any) => handleUpdateLeadDateField(date, sectionIndex, rowIndex, fieldIndex, 0)} />
                         </td>
                       )}
                     

@@ -3,14 +3,14 @@ import Navbar from "@/components/Navbar";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../api/auth/[...nextauth]';
 import { initializeApollo, addApolloState } from "../../../../utils/apolloClient";
-import { GET_CLIENTS, GET_USERS, GET_LEAD_LATEST, GET_LEADS, GET_NEXT_STUDY, GET_FORM_DETAILS_FROM_REVISION_ID } from "@/utils/queries";
+import { GET_CLIENTS, GET_USERS, GET_LEAD_LATEST, GET_LEADS, GET_NEXT_STUDY, GET_FORM_DETAILS_FROM_REVISION_ID, GET_STUDY_PLAN_FORMS, GET_STUDY_PLAN_FORM_LATEST } from "@/utils/queries";
 import { useSession } from "next-auth/react";
 import { ChangeEvent, MouseEventHandler, useEffect, useState } from "react";
 import { useApolloClient, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import Link from "next/link";
 import { faCog, faFileExport, faFlagCheckered, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, PUBLISH_LEAD_TO_DRIVE, CREATE_DRIVE_STUDY_TREE } from "@/utils/mutations";
+import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, PUBLISH_LEAD_TO_DRIVE, CREATE_DRIVE_STUDY_TREE, UPDATE_LEAD_DRAFTERS } from "@/utils/mutations";
 import { useParams } from 'next/navigation';
 import DiscussionBoard from "@/components/leads/DiscussionBoard";
 import { useRouter } from "next/router";
@@ -38,6 +38,12 @@ export async function getServerSideProps(context:any) {
     variables: {
       getLeadLatestRevisionId: context.params.id
     }
+  });
+  await apolloClient.query({
+    query: GET_STUDY_PLAN_FORMS,
+  });
+  await apolloClient.query({
+    query: GET_USERS,
   });
 
   return addApolloState(apolloClient, {
@@ -67,6 +73,7 @@ export default function LeadManager (props:any) {
   const [errStatus, setErrStatus] = useState('');
   const [successStatus, setSuccessStatus] = useState('');
   const [client, setClient] = useState(leadData.client.code);
+  const { data: getLeadsResponseData } = useQuery(GET_LEADS);
   const [addLeadRevision, { error: leadRevisionError, data: addLeadRevisionData }] = useMutation(ADD_LEAD_REVISION, {
     refetchQueries: [{query: GET_LEAD_LATEST,
       variables: {
@@ -100,18 +107,36 @@ export default function LeadManager (props:any) {
     refetchQueries: [{query: GET_NEXT_STUDY}, 'GetNextStudy']
   });
   const [completedPublish, setCompletedPublish] = useState(false);
+  const [settingsVisible, setSettingsVisible] = useState(false);
+  const [settingsErrStatus, setSettingsErrStatus] = useState('');
+  const [drafterToAdd, setDrafterToAdd] = useState('');
+  const [templateToAdd, setTemplateToAdd] = useState('');
+  const { data: userData } = useQuery(GET_USERS);
+  const users = userData.getUsers;
+  const { data: studyPlanFormsData } = useQuery(GET_STUDY_PLAN_FORMS);
+  const studyPlanForms = studyPlanFormsData.getStudyPlanForms;
+  const [templateList, setTemplateList] = useState(leadContent);
+  const [drafterList, setDrafterList] = useState(leadData.drafters);
+  const [updateLeadDrafters] = useMutation(UPDATE_LEAD_DRAFTERS);
+  const [getLatestStudyPlanFormRevision] = useLazyQuery(GET_STUDY_PLAN_FORM_LATEST);
+
 
   useEffect( () => {
     let changeSum = 0;
     if (leadStatus !== leadData.status) changeSum++;
     for (let i=0;i<content.length;i++) {
       content[i].sections.map( (section:any, sectionIndex:number) => {
-        if (leadContent[i].sections[sectionIndex].rows.length !== section.rows.length) changeSum++;
-        section.rows.map( (row:any, rowIndex:number) => {
-          row.fields.map( (field:any, fieldIndex:number) => {
-            if (leadContent[i].sections[sectionIndex].rows[rowIndex]?.fields[fieldIndex]?.data.toString() !== field.data.toString()) changeSum++;
+        if (leadContent.length-1 >= i) {
+          if (leadContent[i].sections[sectionIndex].rows.length !== section.rows.length) changeSum++;
+          section.rows.map( (row:any, rowIndex:number) => {
+            row.fields.map( (field:any, fieldIndex:number) => {
+              if (leadContent[i].sections[sectionIndex].rows[rowIndex]?.fields[fieldIndex]?.data.toString() !== field.data.toString()) changeSum++;
+            });
           });
-        });
+        } else {
+          // There's a newly-added study plan, since the content array is longer than leadContent.
+          changeSum++;
+        }
       });
     }
     
@@ -125,6 +150,7 @@ export default function LeadManager (props:any) {
 
   function handleRevertChanges () {
     setLeadStatus(leadData.status);
+    setTemplateList(leadContent);
     setContent(leadContent);
   }
 
@@ -236,7 +262,110 @@ export default function LeadManager (props:any) {
   }
 
   function handleShowSettings () {
+    setSettingsVisible(true);
+  }
 
+  function handleAddTemplate (e:ChangeEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const templateObject = studyPlanForms.filter((template:any) => template.name === templateToAdd)[0];
+    setTemplateList([...templateList, templateObject]);
+    setTemplateToAdd('');
+  }
+
+  function handleRemoveTemplate (name:string) {
+    const newTemplateList = templateList.filter((template:any) => template.name !== name);
+    setTemplateList(newTemplateList);
+  }
+
+  function handleAddDrafter (e:ChangeEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const drafterObject = users.filter((user:any) => user.username === drafterToAdd)[0];
+    setDrafterList([...drafterList, drafterObject]);
+    setDrafterToAdd('');
+  }
+
+  function handleRemoveDrafter (username:string) {
+    const newDrafterList = drafterList.filter((drafter:any) => drafter.username !== username);
+    setDrafterList(newDrafterList);
+  }
+
+  async function handleSaveSettings () {
+    // Write new update lead mutation that sets drafters.
+    try {
+      // Update study plans
+      const newContent = [];
+      for (let i=0; i<templateList.length; i++) {
+        // Check to see if this plan template already exists in content
+        const existingTemplate = content ? content.filter((plan:any) => plan.name === templateList[i].name) : [];
+        if (existingTemplate.length > 0) {
+          console.log('found!');
+          console.log(existingTemplate[0]);
+          newContent.push(existingTemplate[0]);
+        } else {
+          console.log('not found!');
+          console.log(templateList[i]._id)
+          const planResponse = await getLatestStudyPlanFormRevision({
+            variables: {
+              getStudyPlanFormLatestRevisionId: templateList[i]._id
+            }
+          });
+          if (planResponse.data?.getStudyPlanFormLatestRevision) {
+            const templateObject = planResponse.data?.getStudyPlanFormLatestRevision;
+            console.log(templateObject);
+            newContent.push({
+              name: templateObject.name,
+              studyPlanFormRevisionId: templateObject.revisions[0]._id,
+              sections: templateObject.revisions[0].sections.map( (section:any) => {
+                return { 
+                  "name": section.name,
+                  "index": section.index,
+                  "extensible": section.extensible,
+                  "rows": section.rows.map( (row:any) => {
+                    return {
+                      "index": row.index,
+                      "extensible": row.extensible,
+                      "fields" : row.fields.map( (field:any) => {
+                        return {
+                          "type" : field.type,
+                          "extensible" : field.extensible,
+                          "params" : field.params,
+                          "data" : field.data
+                        }
+                      })
+                    }
+                  })
+                };
+              })
+            });
+          }
+        }
+      }
+      setContent(newContent);
+      // Update drafter list
+      await updateLeadDrafters({
+        variables: {
+          leadId: props.editId,
+          drafters: drafterList.map((drafter:any) => drafter._id)
+        }
+      });
+      await apolloClient.refetchQueries({
+        include: [GET_LEADS, GET_LEAD_LATEST]
+      });
+      setSettingsVisible(false);
+      setSettingsErrStatus('');
+    } catch (err:any) {
+      setSettingsErrStatus(JSON.stringify(err));
+    }
+
+    // How to handle adding plans? That data is stored in a revision's "content".
+    // Could just provide a pop-up that notifies the user that a new commit will be
+    // created, and then do just that.
+
+    // Since the user might have already made changes, better to just make the appropriate changes to the "content" variable.
+
+
+    // Once this is implemented, ALSO need to make sure the "re-publish" option can
+    // handle assigning new study IDs to plans that were added since the last publish.
   }
 
   
@@ -418,32 +547,75 @@ export default function LeadManager (props:any) {
           }
         </section>
       </section>
-      {/* <section className={`absolute ${publishVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
-        <section className='flex bg-white rounded-lg p-0 col-start-3 col-span-8 md:col-start-4 md:col-span-6 lg:col-start-5 lg:col-span-4'>
+      <section className={`absolute ${settingsVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
+        <section className='flex bg-white rounded-lg p-0 col-start-2 col-span-10 md:col-start-3 md:col-span-8 lg:col-start-4 lg:col-span-6'>
           <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
-            <h5>Publish Lead</h5>
-            <div>
-              This action will build a new <b>Study</b> for each Study Plan that is included in this lead.
-            </div>
-            <div>
-              A new study folder will be generated with an automatically-assigned Study ID for each plan (below), and the details for each plan will be typeset into a PDF form and placed within the study folder.
-            </div>
-            <div className='flex gap-2 items-center'>
-              <div className='font-bold'>Study ID:</div>
-              <div>{`${client}${nextStudy.toString().padStart(4,'0')}-${studyType ? `${studyType}` : 'XXX'}`}</div>
-            </div>
+            <h5>Lead Settings</h5>
+            <section className='flex flex-col justify-center mb-2'>
+              <div className='mr-2'>Choose what types of studies will be included in the lead. Study plans cannot be deleted once they are added to the lead, but they can be marked as not performed.</div>
+              <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
+                <form className="flex items-center mb-2" onSubmit={handleAddTemplate}>
+                  <div className="font-bold mr-2">Study Plan Forms:</div>
+                  <button className="std-button-lite mr-2" disabled={templateToAdd === ''}>Add</button>
+                  <select className="std-input flex-grow" onChange={(e) => setTemplateToAdd(e.target.value)} value={templateToAdd}>
+                    <option value=''>-- Choose --</option>
+                    { studyPlanForms.map((template:any, index:number) => (<option key={index} value={template.name} disabled={templateList.filter((templatelistitem:any) => template.name === templatelistitem.name).length > 0}>
+                      {template.name}
+                    </option>))}
+                  </select>
+                </form>
+                <div className="font-bold mb-2">Study Plans Included:</div>
+                <ul>
+                  { templateList.length > 0 ? templateList.map((template:any, index:number) => (
+                    <li key={index} className='flex justify-between items-center std-input rounded-md mb-2'>
+                      {template.name}
+                      <button className='secondary-button-lite' onClick={()=>handleRemoveTemplate(template.name)} disabled={leadContent.filter((e:any) => e.name === template.name).length > 0}><FontAwesomeIcon icon={faX} size='xs' /></button>
+                    </li>
+                  ))
+                  :
+                  'Please add at least one study plan.'
+                  }
+                </ul>
+              </section>
+            </section>
+            <section className='flex flex-col justify-center mb-2'>
+              <div className='mr-2'>Manage team members with editing access. Removing a team member will preserve all their contributions, but they will be unable to access this lead until they are added again.</div>
+              <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
+                <form className="flex items-center mb-2" onSubmit={handleAddDrafter}>
+                  <div className="font-bold mr-2">Add Members:</div>
+                  <button className="std-button-lite mr-2" disabled={drafterToAdd === ''}>Add</button>
+                  <select className="std-input flex-grow" onChange={(e) => setDrafterToAdd(e.target.value)} value={drafterToAdd}>
+                    <option value=''>-- Choose --</option>
+                    { users.map((user:any) => (<option key={user.username} value={user.username} disabled={drafterList.filter((drafter:any) => drafter.username === user.username).length > 0}>
+                      {`${user.first} ${user.last}`}
+                    </option>))}
+                  </select>
+                </form>
+                <div className="font-bold mb-2">Team members with editing access:</div>
+                <ul>
+                  { drafterList.map((drafter:any) => (
+                    <li key={drafter.username} className='flex justify-between items-center std-input rounded-md mb-2'>
+                      <div>
+                      {drafter.username === session.user.username ? `${drafter.first} ${drafter.last} (author)` : `${drafter.first} ${drafter.last}`}
+                      </div>
+                      <button className='secondary-button-lite' onClick={()=>handleRemoveDrafter(drafter.username)} disabled={drafter.username === session.user.username}><FontAwesomeIcon icon={faX} size='xs' /></button>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </section>
             <div className='flex gap-2'>
-              <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>
-                {completedPublish ? 'Done' : 'Cancel'}
+              <button className='secondary-button-lite flex-grow' onClick={() => {setSettingsErrStatus(''); setSettingsVisible(false); setDrafterList(leadData.drafters); setTemplateList(leadContent);}}>
+                Cancel
               </button>
-              { !completedPublish && 
-                <button className='std-button-lite flex-grow' onClick={handlePublish}>Publish</button>
-              }
+              <button className='std-button-lite flex-grow' onClick={handleSaveSettings}>
+                Save Changes
+              </button>
             </div>
-            <div className='text-[#800]'>{publishErrStatus}</div>
+            <div className='text-[#800]'>{settingsErrStatus}</div>
           </section>
         </section>
-      </section> */}
+      </section>
     </>
   );
 }
