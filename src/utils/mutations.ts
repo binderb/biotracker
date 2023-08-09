@@ -74,8 +74,14 @@ export const CREATE_DRIVE_STUDY_TREE = gql`
 `;
 
 export const PUBLISH_LEAD_TO_DRIVE = gql`
-  mutation publishLeadToDrive($clientCode: String!, $studyName: String!, $studyData: String!) {
-    publishLeadToDrive(clientCode: $clientCode, studyName: $studyName, studyData: $studyData)
+  mutation publishLeadToDrive($clientCode: String!, $studyName: String!, $formRevisionId: String!, $formData: String!, $studyData: String!) {
+    publishLeadToDrive(clientCode: $clientCode, studyName: $studyName, formRevisionId: $formRevisionId, formData: $formData, studyData: $studyData)
+  }
+`;
+
+export const UPDATE_LEAD_ON_DRIVE = gql`
+  mutation updateLeadOnDrive($clientCode: String!, $studyName: String!, $formRevisionId: String!, $formData: String!, $studyData: String!) {
+    updateLeadOnDrive(clientCode: $clientCode, studyName: $studyName, formRevisionId: $formRevisionId, formData: $formData, studyData: $studyData)
   }
 `;
 

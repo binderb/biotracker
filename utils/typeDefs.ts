@@ -143,7 +143,8 @@ const typeDefs = gql`
     saveGoogleDriveConfig(accountEmail: String, studiesDriveId: String, studiesDriveName: String, studiesPath: String): String
     deleteGoogleDriveConfig: String
     createDriveStudyTree(clientCode: String!, studyName: String!): String
-    publishLeadToDrive(clientCode: String!, studyName: String!, studyData: String!): String
+    publishLeadToDrive(clientCode: String!, studyName: String!, formRevisionId: String!, formData: String!, studyData: String!): String
+    updateLeadOnDrive(clientCode: String!, studyName: String!, formRevisionId: String!, formData: String!, studyData: String!): String
   }
 `;
 

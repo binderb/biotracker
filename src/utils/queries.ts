@@ -187,6 +187,12 @@ export const GET_FORM_DETAILS_FROM_REVISION_ID = gql`
     getFormDetailsFromRevisionId(revisionId: $revisionId) {
       _id
       name
+      formCategory
+      formIndex
+      revisions {
+        _id
+        createdAt
+      }
       metadata
     }
   }

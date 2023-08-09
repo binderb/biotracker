@@ -89,7 +89,17 @@ export async function createAndSetupDocument (documentName:string, parentFolderI
 
 }
 
-export async function buildFormHeader (fileId:string, auth:any) {
+export async function buildFormHeader (fileId:string, formRevisionId:string, formData:string, auth:any) {
+
+  const formJSON = JSON.parse(formData);
+  console.log("JSON: ",formJSON);
+  const formTitle = formJSON.name;
+  const formId = `F-${formJSON.formCategory}-${formJSON.formIndex.toString().padStart(4,'0')}`;
+  const formRevNumber = formJSON.revisions.map((e:any) => e._id).indexOf(formRevisionId)+1;
+  const formEffectiveDate = new Date(parseInt(formJSON.revisions[formRevNumber-1].createdAt));
+  console.log(formJSON.revisions[formRevNumber-1].createdAt);
+  console.log("effective date: ",formEffectiveDate);
+  const formEffectiveDateText = `${(formEffectiveDate.getMonth()+1).toString().padStart(2,'0')}/${formEffectiveDate.getDate().toString().padStart(2,'0')}/${formEffectiveDate.getFullYear().toString()}`;
 
   const docs = google.docs({ version: 'v1', auth });
   let document = await docs.documents.get({ 
@@ -262,7 +272,7 @@ export async function buildFormHeader (fileId:string, auth:any) {
           updateTableColumnProperties: {
             tableColumnProperties: {
               width: {
-                magnitude: (3*72),
+                magnitude: (2.5*72),
                 unit: "PT"
               },
               widthType: "FIXED_WIDTH"
@@ -279,13 +289,30 @@ export async function buildFormHeader (fileId:string, auth:any) {
           updateTableColumnProperties: {
             tableColumnProperties: {
               width: {
+                magnitude: (1.5*72),
+                unit: "PT"
+              },
+              widthType: "FIXED_WIDTH"
+            },
+            fields: 'width,widthType',
+            columnIndices: [2],
+            tableStartLocation: {
+              segmentId: headerId,
+              index: 1
+            }
+          }
+        },
+        {
+          updateTableColumnProperties: {
+            tableColumnProperties: {
+              width: {
                 magnitude: (1*72),
                 unit: "PT"
               },
               widthType: "FIXED_WIDTH"
             },
             fields: 'width,widthType',
-            columnIndices: [2,3],
+            columnIndices: [3],
             tableStartLocation: {
               segmentId: headerId,
               index: 1
@@ -363,7 +390,7 @@ export async function buildFormHeader (fileId:string, auth:any) {
         },
         {
           insertText: {
-            text: "Title: Study Plan Form",
+            text: `Title: ${formTitle}`,
             location: {
               segmentId: headerId,
               index: document.data.headers[headerId].content.filter((e:Object) => e.hasOwnProperty('table'))[0].table.tableRows[1].tableCells[0].startIndex+1
@@ -385,7 +412,7 @@ export async function buildFormHeader (fileId:string, auth:any) {
         },
         {
           insertText: {
-            text: "Effective Date\nMM/DD/YYYY",
+            text: `Effective Date\n${formEffectiveDateText}`,
             location: {
               segmentId: headerId,
               index: document.data.headers[headerId].content.filter((e:Object) => e.hasOwnProperty('table'))[0].table.tableRows[0].tableCells[3].startIndex+1
@@ -407,7 +434,7 @@ export async function buildFormHeader (fileId:string, auth:any) {
         },
         {
           insertText: {
-            text: "Document No.\nF-OP-XXX",
+            text: `Document No.\n${formId} R${formRevNumber}`,
             location: {
               segmentId: headerId,
               index: document.data.headers[headerId].content.filter((e:Object) => e.hasOwnProperty('table'))[0].table.tableRows[0].tableCells[2].startIndex+1
@@ -1080,6 +1107,10 @@ export async function buildFormSection (fileId: string, auth: any, section: any)
             cellText += `${ field.data[i] === true ? '☒' : '☐' } ${ field.params[i] }`;
             if (i < field.data.length-1) cellText += '\n';
           }
+          break;
+        case 'date':
+          const cellDate = new Date(field.data[0]);
+          cellText = `${(cellDate.getMonth()+1).toString().padStart(2,'0')}/${cellDate.getDate().toString().padStart(2,'0')}/${cellDate.getFullYear().toString()}`;
           break;
         default:
           break; 

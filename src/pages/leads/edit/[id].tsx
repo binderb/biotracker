@@ -10,7 +10,7 @@ import { useApolloClient, useLazyQuery, useMutation, useQuery } from "@apollo/cl
 import Link from "next/link";
 import { faCog, faFileExport, faFlagCheckered, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, PUBLISH_LEAD_TO_DRIVE, CREATE_DRIVE_STUDY_TREE, UPDATE_LEAD_DRAFTERS } from "@/utils/mutations";
+import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, PUBLISH_LEAD_TO_DRIVE, CREATE_DRIVE_STUDY_TREE, UPDATE_LEAD_DRAFTERS, UPDATE_LEAD_ON_DRIVE } from "@/utils/mutations";
 import { useParams } from 'next/navigation';
 import DiscussionBoard from "@/components/leads/DiscussionBoard";
 import { useRouter } from "next/router";
@@ -103,6 +103,13 @@ export default function LeadManager (props:any) {
         getLeadLatestRevisionId: props.editId
       }}]
   });
+  const [updateLeadOnDrive] = useMutation(UPDATE_LEAD_ON_DRIVE, {
+    refetchQueries: [{query: GET_LEAD_LATEST, 
+      variables: {
+        getLeadLatestRevisionId: props.editId
+      }
+    }]
+  })
   const [addStudy, { error, data : newStudyData }] = useMutation(ADD_STUDY, {
     refetchQueries: [{query: GET_NEXT_STUDY}, 'GetNextStudy']
   });
@@ -214,10 +221,12 @@ export default function LeadManager (props:any) {
       setNextStudy(nextStudyResponse?.data.getNextStudy);
       const studyIds = Array<string>();
       for (let i=0;i<content.length;i++) {
-        console.log(content[i].revisionId);
-        const formDetailsResponse = await getFormDetails({variables: {revisionId: content[i].studyPlanFormRevisionId}})
-        const formMetadata = formDetailsResponse?.data?.getFormDetailsFromRevisionId.metadata;
-        studyIds.push(`${client}${(nextStudyResponse?.data.getNextStudy+i).toString().padStart(4,'0')}-${JSON.parse(formMetadata).studyTypeCode}`)
+        // Only generate study IDs for studies that haven't already been saved.
+        if (i > leadData.studies.length-1) {
+          const formDetailsResponse = await getFormDetails({variables: {revisionId: content[i].studyPlanFormRevisionId}})
+          const formMetadata = formDetailsResponse?.data?.getFormDetailsFromRevisionId.metadata;
+          studyIds.push(`${client}${(nextStudyResponse?.data.getNextStudy+(i-leadData.studies.length)).toString().padStart(4,'0')}-${JSON.parse(formMetadata).studyTypeCode}`);
+        }
       }
       setStudyIds(studyIds);
       setCompletedPublish(false);
@@ -231,25 +240,46 @@ export default function LeadManager (props:any) {
   async function handlePublish () {
     try {
       for (let i=0;i<content.length;i++) {
-        setPublishErrStatus(`Creating file tree(s) in Google Drive for ${studyIds[i]}...`);
-        const formDetailsResponse = await getFormDetails({variables: {revisionId: content[i].studyPlanFormRevisionId}})
-        const studyTypeCode = JSON.parse(formDetailsResponse?.data?.getFormDetailsFromRevisionId.metadata).studyTypeCode;
-        const treeResult = await publishLeadToDrive({
-          variables: {
-            clientCode: client,
-            studyName: studyIds[i],
-            studyData: JSON.stringify(content[i])
-          }
-        }); 
-        setPublishErrStatus(`Updating database for ${studyIds[i]}...`);
-        const newStudy = await addStudy({
-          variables: {
-            clientCode: client,
-            studyType: studyTypeCode,
-            leadId: leadData._id
-          }
-        });
-        setPublishErrStatus(`Completed publishing study: ${studyIds[i]}`);
+
+        if (leadData.studies.length-1 < i) {
+          // Create a new study.
+          setPublishErrStatus(`Creating files in Google Drive for ${studyIds[i-leadData.studies.length]}...`);
+          const formDetailsResponse = await getFormDetails({variables: {revisionId: content[i].studyPlanFormRevisionId}})
+          const studyTypeCode = JSON.parse(formDetailsResponse?.data?.getFormDetailsFromRevisionId.metadata).studyTypeCode;
+          const treeResult = await publishLeadToDrive({
+            variables: {
+              clientCode: client,
+              studyName: studyIds[i-leadData.studies.length],
+              formRevisionId: content[i].studyPlanFormRevisionId,
+              formData: JSON.stringify(formDetailsResponse.data.getFormDetailsFromRevisionId),
+              studyData: JSON.stringify(content[i])
+            }
+          }); 
+          setPublishErrStatus(`Updating database for ${studyIds[i-leadData.studies.length]}...`);
+          const newStudy = await addStudy({
+            variables: {
+              clientCode: client,
+              studyType: studyTypeCode,
+              leadId: leadData._id
+            }
+          });
+          setPublishErrStatus(`Completed publishing study: ${studyIds[i-leadData.studies.length]}`);
+        } else {
+          // Update existing study.
+          const formDetailsResponse = await getFormDetails({variables: {revisionId: content[i].studyPlanFormRevisionId}});
+          const studyTypeCode = JSON.parse(formDetailsResponse?.data?.getFormDetailsFromRevisionId.metadata).studyTypeCode;
+          const studyName = `${client}${leadData.studies[i].index.toString().padStart(4,'0')}-${studyTypeCode}`;
+          setPublishErrStatus(`Updating files in ${studyName}...`);
+          const updateResult = await updateLeadOnDrive({
+            variables: {
+              clientCode: client,
+              studyName: studyName,
+              formRevisionId: content[i].studyPlanFormRevisionId,
+              formData: JSON.stringify(formDetailsResponse.data.getFormDetailsFromRevisionId),
+              studyData: JSON.stringify(content[i])
+            }
+          });
+        }
       }
       await apolloClient.refetchQueries({
         include: [GET_LEADS, GET_LEAD_LATEST]
@@ -480,11 +510,11 @@ export default function LeadManager (props:any) {
               <div>
                 If you have added additional Study Plans since this lead was last published, new corresponding study folders and documents will be generated (see below).
               </div>
+              <div className='font-bold'>Existing Studies ({leadData.studies.length}):</div>
               {
                 leadData.studies.map((study:any, index:number) => (
                   <div key={index} className='flex flex-col justify-center items-start'>
                     <div className='flex gap-2 items-center'>
-                      <div className='font-bold'>Existing Study:</div>
                       <div>
                         {`${client}${study.index.toString().padStart(4,'0')}-${study.type}`}
                       </div>
@@ -492,12 +522,35 @@ export default function LeadManager (props:any) {
                 </div>
                 ))
               }
+              <div className='font-bold'>New Studies ({studyIds.length}):</div>
+              {
+                content.map((plan:any, index:number) => {
+                  if (index > leadData.studies.length-1) {
+                    return (
+                      <div key={index} className='flex flex-col justify-center items-start'>
+                          <div className='flex gap-2 items-center'>
+                            <div className='font-bold'>Form:</div>
+                            <div>
+                              {plan.name}
+                            </div>
+                          </div>
+                          <div className='flex gap-2 items-center'>
+                            <div className='font-bold'>Generated ID:</div>
+                            <div>
+                              {studyIds[index-leadData.studies.length]}
+                            </div>
+                          </div>
+                      </div>
+                    );
+                  }
+                })
+              }
               <div className='text-[#800]'>
                 This feature is still in development!
               </div>
               <div className='flex gap-2 pt-2'>
                 <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>Cancel</button>
-                {/* <button className='std-button-lite flex-grow' onClick={handlePublish}>Re-Publish</button> */}
+                <button className='std-button-lite flex-grow' onClick={handlePublish}>Re-Publish</button>
               </div>
               <div className='text-[#800]'>{publishErrStatus}</div>
             </section>

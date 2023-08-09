@@ -6,7 +6,7 @@ import LeadChange from "../models/LeadChange";
 import Study from "../models/Study";
 import connectMongo from "./connectMongo";
 import User from "../models/User";
-import { convertToPdf, createDirectoryIfNotExists, createDirectoryWithSubdirectories, getDriveIdFromName, getFolderIdFromPath, getGoogleDriveAuthUrl, listFiles, saveNewGoogleDriveToken, userAuthorizeGoogleDrive } from "./googleDrive";
+import { convertToPdf, createDirectoryIfNotExists, createDirectoryWithSubdirectories, deleteFileAtPath, getDriveIdFromName, getFolderIdFromPath, getGoogleDriveAuthUrl, listFiles, saveNewGoogleDriveToken, userAuthorizeGoogleDrive } from "./googleDrive";
 import { now } from "lodash";
 import FormTemplateField from "../models/FormTemplateField";
 import FormTemplateRow from "../models/FormTemplateRow";
@@ -168,7 +168,7 @@ const resolvers = {
         await connectMongo();
         const formTemplate = await FormTemplate.findOne({
           'revisions': { $in: new Types.ObjectId(revisionId)}
-        });
+        }).populate('revisions');
         return formTemplate;
       } catch (err:any) {
         throw err;
@@ -552,7 +552,7 @@ const resolvers = {
     // },
     publishLeadToDrive: async (_:any, args:any) => {
       try {
-        const { clientCode, studyName, studyData } = args;
+        const { clientCode, studyName, formRevisionId, formData, studyData } = args;
         const studyContent = JSON.parse(studyData);
         const auth = await userAuthorizeGoogleDrive();
         await connectMongo();
@@ -569,7 +569,7 @@ const resolvers = {
         console.log('new study folder id: ',newStudyFolderIds[3])
         const formFileId = await createAndSetupDocument(studyName, newStudyFolderIds[3], auth);
         console.log('form file id: ', formFileId)
-        await buildFormHeader(formFileId, auth);
+        await buildFormHeader(formFileId, formRevisionId, formData, auth);
         await buildFormFooter(formFileId, auth);
         await buildFormGeneralInfo(formFileId, auth, studyName, studyContent);
         for (let section of studyContent.sections) {
@@ -584,6 +584,30 @@ const resolvers = {
       // const formResult = await createStudyForm(`${studyName}`, newStudyFolderId, client);
       // return 'Study folder tree created in Google Drive!';
 
+    },
+    updateLeadOnDrive: async (_:any, args: any) => {
+      try {
+        const { clientCode, studyName, formRevisionId, formData, studyData } = args;
+        const studyContent = JSON.parse(studyData);
+        const auth = await userAuthorizeGoogleDrive();
+        // Get Google Drive config
+        const driveConfig = await GoogleDriveConfig.findOne({});
+        if (!driveConfig) {
+          throw new Error("Google Drive is not connected to this app. Administrators can configure a Google Drive connection in App Settings.");
+        }
+        const protocolFolderId = await getFolderIdFromPath(driveConfig.studiesDriveId, `${driveConfig.studiesPath}/${clientCode}/${studyName}/Protocol`,auth);
+        const formFileId = await createAndSetupDocument(studyName, protocolFolderId, auth);
+        await buildFormHeader(formFileId, formRevisionId, formData, auth);
+        await buildFormFooter(formFileId, auth);
+        await buildFormGeneralInfo(formFileId, auth, studyName, studyContent);
+        for (let section of studyContent.sections) {
+          await buildFormSection(formFileId, auth, section);
+        }
+        await deleteFileAtPath(protocolFolderId,studyName,'application/pdf',auth);
+        await convertToPdf(protocolFolderId, studyName, formFileId, auth);
+      } catch (err:any) {
+        throw err;
+      }
     }
   }
 }
