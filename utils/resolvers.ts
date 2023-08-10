@@ -582,7 +582,6 @@ const resolvers = {
         console.log('form file id: ', formFileId)
         await buildFormHeader(formFileId, formRevisionId, formData, auth);
         await buildFormFooter(formFileId, auth);
-        await buildFormGeneralInfo(formFileId, auth, studyName, studyContent);
         for (let section of studyContent.sections) {
           await buildFormSection(formFileId, auth, section, studyName);
         }
@@ -610,7 +609,6 @@ const resolvers = {
         const formFileId = await createAndSetupDocument(studyName, protocolFolderId, auth);
         await buildFormHeader(formFileId, formRevisionId, formData, auth);
         await buildFormFooter(formFileId, auth);
-        await buildFormGeneralInfo(formFileId, auth, studyName, studyContent);
         for (let section of studyContent.sections) {
           await buildFormSection(formFileId, auth, section, studyName);
         }
