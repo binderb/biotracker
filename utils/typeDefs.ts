@@ -136,7 +136,7 @@ const typeDefs = gql`
     addLeadRevision(id: ID!, author: ID!, status: String!, content: String!, note: String!): String
     addLeadNote(id: ID!, revisionId: ID!, author: ID!, note: String!): String
     addForm(name: String!, formCategory: String!, metadata: String, sections: String!): String
-    addStudy(clientCode: String!, studyType: String!, leadId: ID!): String
+    addStudy(clientCode: String!, studyType: String!, leadId: ID!, studyPlanIndex: Int!): String
     authorizeGoogleDrive: String
     saveGoogleDriveToken(authCode: String): String
     testGoogleDrive(drive: String!, path: String!): String

@@ -441,7 +441,7 @@ const resolvers = {
       }
     },
     addStudy: async (_:any, args:any) => {
-      const { clientCode, studyType, leadId } = args;
+      const { clientCode, studyType, leadId, studyPlanIndex } = args;
       await connectMongo();
       let studyIndex = 1;
       const client = await Client.findOne({code: clientCode});
@@ -464,14 +464,25 @@ const resolvers = {
         $set: {published: true},
         $addToSet: {studies: newStudy._id}
       }, {new: true});
+      // Update publish flag on associated revision, and add associated study ID
+      // to the relevant content object.
       const associatedRevision = await LeadRevision.findOneAndUpdate({_id: associatedLead.revisions[associatedLead.revisions.length-1]}, {
         $set: {
           published: true
         }},
         {new: true}
       );
+      
+      const newContent = JSON.parse(associatedRevision.content);
+      const newStudyPlanData = {...newContent[studyPlanIndex], associatedStudyId: newStudy._id};
+      newContent[studyPlanIndex] = newStudyPlanData;
+      await LeadRevision.findOneAndUpdate({_id: associatedLead.revisions[associatedLead.revisions.length-1]}, {
+        $set: {
+          content: JSON.stringify(newContent)
+        }}
+      );
       console.log(associatedRevision);
-      return 'success';
+      return newStudy._id;
     },
     authorizeGoogleDrive: async () => {
       const authUrl = await getGoogleDriveAuthUrl();
@@ -573,7 +584,7 @@ const resolvers = {
         await buildFormFooter(formFileId, auth);
         await buildFormGeneralInfo(formFileId, auth, studyName, studyContent);
         for (let section of studyContent.sections) {
-          await buildFormSection(formFileId, auth, section);
+          await buildFormSection(formFileId, auth, section, studyName);
         }
         await convertToPdf(newStudyFolderIds[3], studyName, formFileId, auth);
         console.log('Completed actions successfully.');
@@ -601,7 +612,7 @@ const resolvers = {
         await buildFormFooter(formFileId, auth);
         await buildFormGeneralInfo(formFileId, auth, studyName, studyContent);
         for (let section of studyContent.sections) {
-          await buildFormSection(formFileId, auth, section);
+          await buildFormSection(formFileId, auth, section, studyName);
         }
         await deleteFileAtPath(protocolFolderId,studyName,'application/pdf',auth);
         await convertToPdf(protocolFolderId, studyName, formFileId, auth);

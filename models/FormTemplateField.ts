@@ -4,7 +4,7 @@ const formTemplateFieldSchema = new Schema({
   index: Number!,
   type: {
     type: String!,
-    enum: ['label', 'textarea', 'multitextarea', 'input', 'multiinput', 'checkbox', 'multicheckbox','date'],
+    enum: ['label', 'textarea', 'multitextarea', 'input', 'multiinput', 'checkbox', 'multicheckbox','date', 'database', 'generated'],
     default: 'textarea'
   },
   params: [String],

@@ -1,3 +1,6 @@
+import User from "../models/User";
+import connectMongo from "./connectMongo";
+
 const {google} = require('googleapis');
 
 export async function createAndSetupDocument (documentName:string, parentFolderId:string, auth:any) {
@@ -890,7 +893,7 @@ export async function buildFormGeneralInfo (fileId:string, auth:any, studyId:str
 
 }
 
-export async function buildFormSection (fileId: string, auth: any, section: any) {
+export async function buildFormSection (fileId: string, auth: any, section: any, studyName: string) {
   // Retrieve document for editing.
   const docs = google.docs({ version: 'v1', auth });
   let document = await docs.documents.get({ documentId: fileId });
@@ -1112,6 +1115,15 @@ export async function buildFormSection (fileId: string, auth: any, section: any)
           const cellDate = new Date(field.data[0]);
           cellText = `${(cellDate.getMonth()+1).toString().padStart(2,'0')}/${cellDate.getDate().toString().padStart(2,'0')}/${cellDate.getFullYear().toString()}`;
           break;
+        case 'database':
+          await connectMongo();
+          if (field.params[0] === 'users') {
+            const user = await User.findById(field.data[0]);
+            cellText = `${user.first} ${user.last}`;
+          }
+          break;
+        case 'generated':
+          if (field.params[0] === 'studyId') cellText = studyName;
         default:
           break; 
       }

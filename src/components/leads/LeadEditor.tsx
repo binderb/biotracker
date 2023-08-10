@@ -6,11 +6,13 @@ import 'react-datepicker/dist/react-datepicker.css';
 
 interface Props {
   client: any
+  leadData: any
   content: any
+  users: any
   setContent: Function
 }
 
-export default function LeadEditor ({client, content, setContent}:Props) {
+export default function LeadEditor ({client, content, leadData, users, setContent}:Props) {
 
   const [currentStudyPlanIndex, setCurrentStudyPlanIndex] = useState(0);
 
@@ -36,6 +38,14 @@ export default function LeadEditor ({client, content, setContent}:Props) {
   }
 
   function handleUpdateLeadTextArea(e:ChangeEvent<HTMLTextAreaElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
+    const newContent = [...content];
+    const newData = [...newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
+    newData.splice(dataIndex,1,e.target.value);
+    newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
+    setContent(newContent);
+  }
+
+  function handleUpdateLeadSelectField(e:ChangeEvent<HTMLSelectElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
     const newContent = [...content];
     const newData = [...newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
     newData.splice(dataIndex,1,e.target.value);
@@ -158,6 +168,44 @@ export default function LeadEditor ({client, content, setContent}:Props) {
                       {field.type === 'date' && (
                         <td className='align-top'>
                           <DatePicker className='std-input' dateFormat='MM/dd/yyyy' selected={field.data[0] ? new Date(field.data[0]) : null} onChange={(date:any) => handleUpdateLeadDateField(date, sectionIndex, rowIndex, fieldIndex, 0)} />
+                        </td>
+                      )}
+                      {field.type === 'database' && (
+                        <td className='align-top'>
+                          {
+                            field.params[0] === 'users' && (
+                              <select className='std-input w-full' value={field.data[0]} onChange={(e) => handleUpdateLeadSelectField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)}>
+                                {
+                                  users.map((user:any, index:number) => (
+                                    <option key={index} value={user._id}>
+                                      {`${user.first} ${user.last}`}
+                                    </option>
+                                  ))
+                                }
+                              </select>
+                            )
+                          }
+                        </td>
+                      )}
+                      {field.type === 'generated' && (
+                        <td className='align-top'>
+                          {
+                            field.params[0] === 'studyId' && (
+                              <>
+                              {
+                                content[currentStudyPlanIndex].associatedStudyId ? (
+                                    <>
+                                    {
+                                      `${client}${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].index.toString().padStart(4,'0')}-${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].type}`
+                                    }
+                                    </>
+                                ) : (
+                                  <div className='italic'>(TBD - will be generated when lead is published)</div>
+                                )
+                              }
+                              </>
+                            )
+                          }
                         </td>
                       )}
                     

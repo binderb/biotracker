@@ -94,6 +94,7 @@ export default function NewLead () {
               const templateObject = planResponse.data?.getStudyPlanFormLatestRevision;
               newContent.push({
                 name: templateObject.name,
+                associatedStudyId: null,
                 studyPlanFormRevisionId: templateObject.revisions[0]._id,
                 sections: templateObject.revisions[0].sections.map( (section:any) => {
                   return { 
@@ -211,6 +212,8 @@ export default function NewLead () {
             <LeadEditor
               client={client}
               content={content}
+              leadData={null}
+              users={users}
               setContent={setContent}
             />
             <div className='flex gap-2'>

@@ -62,8 +62,8 @@ export const ADD_FORM = gql`
 `;
 
 export const ADD_STUDY = gql`
-  mutation addStudy($clientCode: String!, $studyType: String!, $leadId: ID!) {
-    addStudy(clientCode: $clientCode, studyType: $studyType, leadId: $leadId)
+  mutation addStudy($clientCode: String!, $studyType: String!, $leadId: ID!, $studyPlanIndex: Int!) {
+    addStudy(clientCode: $clientCode, studyType: $studyType, leadId: $leadId, studyPlanIndex: $studyPlanIndex)
   }
 `;
 

@@ -66,9 +66,15 @@ export default function LeadManager (props:any) {
       getLeadLatestRevisionId: props.editId
     }
   });
-  const leadData = leadResponseData?.getLeadLatestRevision;
+  let leadData = leadResponseData?.getLeadLatestRevision;
+  const [loadLeadLatest] = useLazyQuery(GET_LEAD_LATEST, {
+    variables: {
+      getLeadLatestRevisionId: props.editId
+    },
+    fetchPolicy: 'network-only'
+  })
   const [leadStatus, setLeadStatus] = useState(leadData.status);
-  const leadContent = JSON.parse(leadData?.revisions[0].content);
+  let leadContent = JSON.parse(leadData?.revisions[0].content);
   const [content, setContent] = useState(leadContent);
   const [errStatus, setErrStatus] = useState('');
   const [successStatus, setSuccessStatus] = useState('');
@@ -149,6 +155,11 @@ export default function LeadManager (props:any) {
     
     setChanges(changeSum);
   }, [leadStatus, leadContent, content, leadData.status]);
+
+  useEffect( () => {
+    console.log('leadContent changed');
+    console.log(leadContent);
+  },[leadContent]);
 
   if (status !== 'authenticated') {
     router.push('/login');
@@ -260,7 +271,8 @@ export default function LeadManager (props:any) {
             variables: {
               clientCode: client,
               studyType: studyTypeCode,
-              leadId: leadData._id
+              leadId: leadData._id,
+              studyPlanIndex: i
             }
           });
           setPublishErrStatus(`Completed publishing study: ${studyIds[i-leadData.studies.length]}`);
@@ -281,9 +293,10 @@ export default function LeadManager (props:any) {
           });
         }
       }
-      await apolloClient.refetchQueries({
-        include: [GET_LEADS, GET_LEAD_LATEST]
-      });
+      const newResponse = await loadLeadLatest();
+      leadData = newResponse?.data?.getLeadLatestRevision;
+      leadContent = JSON.parse(leadData?.revisions[0].content);
+      setContent([...leadContent]);
       setPublishErrStatus(`Completed publishing lead.`);
       setCompletedPublish(true);
     } catch (err:any) {
@@ -344,6 +357,7 @@ export default function LeadManager (props:any) {
             console.log(templateObject);
             newContent.push({
               name: templateObject.name,
+              associatedStudyId: null,
               studyPlanFormRevisionId: templateObject.revisions[0]._id,
               sections: templateObject.revisions[0].sections.map( (section:any) => {
                 return { 
@@ -491,6 +505,8 @@ export default function LeadManager (props:any) {
                   <LeadEditor 
                     client={client}
                     content={content}
+                    leadData={leadData}
+                    users={users}
                     setContent={setContent}
                   />
               </section>
