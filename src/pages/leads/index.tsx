@@ -42,7 +42,9 @@ export async function getServerSideProps(context:any) {
 export default function LeadManager () {
 
   const { data: session, status } = useSession();
-  const { data: leadData, error } = useQuery(GET_LEADS);
+  const { data: leadData, error } = useQuery(GET_LEADS, {
+    fetchPolicy:  'cache-only'
+  });
   const router = useRouter();
   const leads = leadData.getLeads;
   console.log(session?.user.id)
@@ -59,7 +61,7 @@ export default function LeadManager () {
       <main className="flex flex-col p-4">
         <div className='flex mt-2 mb-2 gap-2'>
           <Link className="std-button" href="/leads/new"><FontAwesomeIcon icon={faPlus} className="mr-2"></FontAwesomeIcon>New Lead</Link>
-          <Link className="std-button" href="/leads/templates"><FontAwesomeIcon icon={faBriefcase} className="mr-2"></FontAwesomeIcon>Templates</Link>
+          <Link className="std-button" href="/leads/study-plans"><FontAwesomeIcon icon={faBriefcase} className="mr-2"></FontAwesomeIcon>Study Plan Forms</Link>
         </div>
         <div className='flex flex-col mt-4 bg-secondary/20 border border-secondary/80 rounded-lg p-4'>
           <h5>Current Leads:</h5>

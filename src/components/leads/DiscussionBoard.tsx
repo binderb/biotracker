@@ -1,4 +1,4 @@
-import { faClockRotateLeft, faCodeCommit } from "@fortawesome/free-solid-svg-icons";
+import { faClockRotateLeft, faCodeCommit, faFileExport } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 interface Props {
@@ -42,6 +42,12 @@ export default function DiscussionBoard(props:Props) {
                 {/* <FontAwesomeIcon icon={faCodeCommit}/> */}
                 <button className='hover:text-secondaryHighlight'>
                   <FontAwesomeIcon icon={faClockRotateLeft}/>
+                </button>
+              </> }
+              { note.revision.published && note.newRevision && <>
+                {/* <FontAwesomeIcon icon={faCodeCommit}/> */}
+                <button className='hover:text-secondaryHighlight'>
+                  <FontAwesomeIcon icon={faFileExport}/>
                 </button>
               </> }
             </div>

@@ -209,12 +209,14 @@ export async function getFolderIdFromPath(driveId:string, path:string, auth:any)
   const drive = google.drive({ version: 'v3', auth });
 
   // Split the path into its component parts
-  const pathParts = path.split('/').filter((part) => part !== '');
+  const pathParts = path.split('/').filter((part:any) => part !== '');
   console.log(pathParts);
   let parentFolderId = null;
   if (pathParts.length > 0) {
     for (let i = 0; i < pathParts.length; i++) {
-      const query = `'${driveId}' in parents and name='${pathParts[i]}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+      let parentId = driveId;
+      if (i > 0) parentId = parentFolderId;
+      const query = `'${parentId}' in parents and name='${pathParts[i]}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
       console.log(query);
       const res = await drive.files.list({
         supportsAllDrives: true,
@@ -292,4 +294,32 @@ export async function convertToPdf(parentFolderId:any, filename:any, fileId:any,
   } catch (err) {
     throw err;
   }
+}
+
+export async function deleteFileAtPath(parentId:any, filename:any, mimeType:string, auth:any) {
+
+  const drive = google.drive({ version: 'v3', auth});
+
+  try {
+    const query = `'${parentId}' in parents and name='${filename}' and mimeType='${mimeType}' and trashed=false`;
+    const res = await drive.files.list({
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
+      q: query,
+      fields: 'nextPageToken, files(id, name)',
+    });
+    // if (res.data.files.length === 0) {
+    //   throw new Error(`File not found in directory ${parentId}: ${filename}`);
+    // }
+    for (let file of res?.data?.files) {
+      await drive.files.delete({
+        fileId: file.id,
+        supportsAllDrives: true,
+        includeItemsFromAllDrives: true
+      });
+    }
+  } catch (err) {
+    throw err;
+  }
+
 }

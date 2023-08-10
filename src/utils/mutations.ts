@@ -37,6 +37,12 @@ export const ADD_NEW_LEAD = gql`
   }
 `;
 
+export const UPDATE_LEAD_DRAFTERS = gql`
+  mutation updateLeadDrafters($leadId: ID!, $drafters: [ID]!) {
+    updateLeadDrafters(leadId: $leadId, drafters: $drafters)
+  }
+`;
+
 export const ADD_LEAD_REVISION = gql`
   mutation addLeadRevision($addLeadRevisionId: ID!, $author: ID!, $status: String!, $content: String!, $note: String!) {
     addLeadRevision(id: $addLeadRevisionId, author: $author, status: $status, content: $content, note: $note)
@@ -49,17 +55,15 @@ export const ADD_LEAD_NOTE = gql`
   }
 `;
 
-export const ADD_LEAD_TEMPLATE = gql`
-  mutation addLeadTemplate($name: String!, $sections: String!) {
-    addLeadTemplate(name: $name, sections: $sections)
+export const ADD_FORM = gql`
+  mutation addForm($name: String!, $formCategory: String!, $metadata: String, $sections: String!) {
+    addForm(name: $name, formCategory: $formCategory, metadata: $metadata, sections: $sections)
   }
 `;
 
 export const ADD_STUDY = gql`
-  mutation addStudy($clientCode: String!, $studyIndex: Int!, $studyType: String!) {
-    addStudy(clientCode: $clientCode, studyIndex: $studyIndex, studyType: $studyType) {
-      code
-    }
+  mutation addStudy($clientCode: String!, $studyType: String!, $leadId: ID!, $studyPlanIndex: Int!) {
+    addStudy(clientCode: $clientCode, studyType: $studyType, leadId: $leadId, studyPlanIndex: $studyPlanIndex)
   }
 `;
 
@@ -69,9 +73,15 @@ export const CREATE_DRIVE_STUDY_TREE = gql`
   }
 `;
 
-export const CREATE_DRIVE_STUDY = gql`
-  mutation createDriveStudyTree($clientCode: String!, $studyName: String!, $studyData: String!) {
-    createDriveStudy(clientCode: $clientCode, studyName: $studyName, studyData: $studyData)
+export const PUBLISH_LEAD_TO_DRIVE = gql`
+  mutation publishLeadToDrive($clientCode: String!, $studyName: String!, $formRevisionId: String!, $formData: String!, $studyData: String!) {
+    publishLeadToDrive(clientCode: $clientCode, studyName: $studyName, formRevisionId: $formRevisionId, formData: $formData, studyData: $studyData)
+  }
+`;
+
+export const UPDATE_LEAD_ON_DRIVE = gql`
+  mutation updateLeadOnDrive($clientCode: String!, $studyName: String!, $formRevisionId: String!, $formData: String!, $studyData: String!) {
+    updateLeadOnDrive(clientCode: $clientCode, studyName: $studyName, formRevisionId: $formRevisionId, formData: $formData, studyData: $studyData)
   }
 `;
 

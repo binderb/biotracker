@@ -1,7 +1,7 @@
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChangeEvent, useState } from "react";
-import LeadTemplateField from "./LeadTemplateField";
+import StudyPlanTemplateField from "./StudyPlanTemplateField";
 
 interface TemplateField {
   index: number
@@ -10,7 +10,7 @@ interface TemplateField {
   data: Array<string>
 }
 
-interface TemplateSectionRow {
+interface TemplateRow {
   index: number
   fields: Array<TemplateField>
   extensible: boolean
@@ -19,7 +19,7 @@ interface TemplateSectionRow {
 interface TemplateSection {
   name: string
   index: number
-  rows: Array<TemplateSectionRow>
+  rows: Array<TemplateRow>
   extensible: boolean
 }
 
@@ -30,7 +30,7 @@ interface Props {
   setSections: Function
 }
 
-export default function LeadTemplateSectionRow ({sections, index, rowIndex, setSections}:Props) {
+export default function StudyPlanTemplateRow ({sections, index, rowIndex, setSections}:Props) {
 
   const sectionData = sections[index];
   const rowData = sections[index].rows[rowIndex];
@@ -74,7 +74,7 @@ export default function LeadTemplateSectionRow ({sections, index, rowIndex, setS
             <>
             { rowData.fields.map( (field:TemplateField, fieldIndex:number) => (
               // <div key={index}></div>
-              <LeadTemplateField key={`field${fieldIndex}`} sections={sections} index={index} rowIndex={rowIndex} fieldIndex={fieldIndex} setSections={setSections} />
+              <StudyPlanTemplateField key={`field${fieldIndex}`} sections={sections} index={index} rowIndex={rowIndex} fieldIndex={fieldIndex} setSections={setSections} />
             ))}
             </>
           :

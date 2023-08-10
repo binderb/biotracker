@@ -1,7 +1,7 @@
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChangeEvent, useState } from "react";
-import LeadTemplateSectionRow from "./LeadTemplateSectionRow";
+import StudyPlanTemplateRow from "./StudyPlanTemplateRow";
 import _ from 'lodash';
 
 interface TemplateField {
@@ -11,7 +11,7 @@ interface TemplateField {
   data: Array<string>
 }
 
-interface TemplateSectionRow {
+interface TemplateRow {
   index: number
   fields: Array<TemplateField>
   extensible: boolean
@@ -20,7 +20,7 @@ interface TemplateSectionRow {
 interface TemplateSection {
   name: string
   index: number
-  rows: Array<TemplateSectionRow>
+  rows: Array<TemplateRow>
   extensible: boolean
 }
 
@@ -31,7 +31,7 @@ interface Props {
   handleDeleteSection: Function
 }
 
-export default function LeadTemplateSection ({sections, index, setSections, handleDeleteSection}:Props) {
+export default function StudyPlanTemplateSection ({sections, index, setSections, handleDeleteSection}:Props) {
 
   const sectionData = sections[index];
   const [sectionName, setSectionName] = useState(sections[index].name);
@@ -82,9 +82,9 @@ export default function LeadTemplateSection ({sections, index, setSections, hand
         <div className='std-input flex flex-col w-full p-2 border border-1 border-secondary/80 rounded-lg gap-2'>
           { sectionData.rows.length > 0 ? 
             <>
-            { sectionData.rows.map( (row:TemplateSectionRow, rowIndex:number) => (
+            { sectionData.rows.map( (row:TemplateRow, rowIndex:number) => (
               // <div key={index}></div>
-              <LeadTemplateSectionRow key={`row-${rowIndex}`} sections={sections} index={index} rowIndex={rowIndex} setSections={setSections} />
+              <StudyPlanTemplateRow key={`row-${rowIndex}`} sections={sections} index={index} rowIndex={rowIndex} setSections={setSections} />
             ))}
             </>
           :

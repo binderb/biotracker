@@ -21,28 +21,30 @@ const typeDefs = gql`
 
   type Study {
     _id: ID
-    type: String!
-    index: Int!
+    type: String
+    index: Int
+    leadId: ID!
   }
 
   type Lead {
     _id: ID
     name: String!
     author: User
-    template: LeadTemplate
     status: String!
     drafters: [User]
     client: Client
     revisions: [LeadRevision]
     notes: [LeadNote]
+    published: Boolean
+    studies: [Study]
   }
 
   type LeadRevision {
     _id: ID
     author: User,
-    templateRevision: LeadTemplateRevision
     createdAt: String
     content: String
+    published: Boolean
   }
 
   type LeadNote {
@@ -62,36 +64,38 @@ const typeDefs = gql`
     after: String!
   }
 
-  type LeadTemplate {
+  type FormTemplate {
     _id: ID,
-    name: String!,
-    revisions: [LeadTemplateRevision]!
-    active: Boolean!,
+    name: String!
+    formCategory: String!
+    formIndex: Int
+    revisions: [FormTemplateRevision]!
+    metadata: String,
   }
 
-  type LeadTemplateRevision {
+  type FormTemplateRevision {
     _id: ID,
     createdAt: String!,
-    sections: [LeadTemplateSection]!,
+    sections: [FormTemplateSection]!,
   }
 
-  type LeadTemplateSection {
+  type FormTemplateSection {
     _id: ID
     name: String!
     index: Int!
-    rows: [LeadTemplateSectionRow]!
+    rows: [FormTemplateRow]!
     extensible: Boolean!
     groupedWithPrevious: Boolean
   }
 
-  type LeadTemplateSectionRow {
+  type FormTemplateRow {
     _id: ID,
     index: Int!
-    fields: [LeadTemplateField]!
+    fields: [FormTemplateField]!
     extensible: Boolean!
   }
 
-  type LeadTemplateField {
+  type FormTemplateField {
     _id: ID,
     index: Int!
     type: String!
@@ -113,10 +117,12 @@ const typeDefs = gql`
     getClientCodes: [Client]
     getNewCode: String
     getNextStudy(clientCode: String!): Int
+    getNextForm(category: String!): Int
     getLeads: [Lead]
     getLeadLatestRevision(id: ID!): Lead
-    getLeadTemplates: [LeadTemplate]
-    getLeadTemplateLatestRevision(id: ID!): LeadTemplate
+    getStudyPlanForms: [FormTemplate]
+    getStudyPlanFormLatestRevision(id: ID!): FormTemplate
+    getFormDetailsFromRevisionId(revisionId: ID!): FormTemplate
     getGoogleDriveConfig: GoogleDriveConfig
   }
 
@@ -126,17 +132,19 @@ const typeDefs = gql`
     removeUser(removeUserId: ID!): String
     addClient(name: String!, code: String!): Client
     addLead(name: String!, author: ID!, drafters: [ID]!, client: ID!, content: String!, firstNote: String!): String
+    updateLeadDrafters(leadId: ID!, drafters: [ID]!): String
     addLeadRevision(id: ID!, author: ID!, status: String!, content: String!, note: String!): String
     addLeadNote(id: ID!, revisionId: ID!, author: ID!, note: String!): String
-    addLeadTemplate(name: String!, sections: String!): String
-    addStudy(clientCode: String!, studyIndex: Int!, studyType: String!): Client
+    addForm(name: String!, formCategory: String!, metadata: String, sections: String!): String
+    addStudy(clientCode: String!, studyType: String!, leadId: ID!, studyPlanIndex: Int!): String
     authorizeGoogleDrive: String
     saveGoogleDriveToken(authCode: String): String
     testGoogleDrive(drive: String!, path: String!): String
     saveGoogleDriveConfig(accountEmail: String, studiesDriveId: String, studiesDriveName: String, studiesPath: String): String
     deleteGoogleDriveConfig: String
     createDriveStudyTree(clientCode: String!, studyName: String!): String
-    createDriveStudy(clientCode: String!, studyName: String!, studyData: String!): String
+    publishLeadToDrive(clientCode: String!, studyName: String!, formRevisionId: String!, formData: String!, studyData: String!): String
+    updateLeadOnDrive(clientCode: String!, studyName: String!, formRevisionId: String!, formData: String!, studyData: String!): String
   }
 `;
 
