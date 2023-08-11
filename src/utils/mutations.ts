@@ -85,6 +85,12 @@ export const UPDATE_LEAD_ON_DRIVE = gql`
   }
 `;
 
+export const UPDATE_LEAD_REVISION_PUBLISH_STATUS = gql`
+  mutation updateLeadRevisionPublishStatus($leadRevisionId: ID!) {
+    updateLeadRevisionPublishStatus(leadRevisionId: $leadRevisionId)
+  }
+`;
+
 export const AUTHORIZE_GOOGLE_DRIVE = gql`
   mutation authorizeGoogleDrive {
     authorizeGoogleDrive

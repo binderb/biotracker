@@ -175,6 +175,7 @@ export default function LeadEditor ({client, content, leadData, users, setConten
                           {
                             field.params[0] === 'users' && (
                               <select className='std-input w-full' value={field.data[0]} onChange={(e) => handleUpdateLeadSelectField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)}>
+                                <option value=''>-- Choose --</option>
                                 {
                                   users.map((user:any, index:number) => (
                                     <option key={index} value={user._id}>

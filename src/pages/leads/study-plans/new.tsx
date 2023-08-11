@@ -152,9 +152,9 @@ export default function NewStudyPlanForm () {
               </button>
             </div>
           </div>
-          <div className='flex items-top gap-2'>
+          <div className='grid grid-cols-12 items-top gap-2'>
           {/* Template Editor */}
-            <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl flex-grow'>
+            <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl col-span-6'>
               <h5>New Study Plan Form</h5>
               <div className='flex items-center mb-4 gap-2 justify-start'>
                 <div className='flex items-center gap-2'>
@@ -198,10 +198,10 @@ export default function NewStudyPlanForm () {
               </section>
             </div>
             {/* Template Preview */}
-            {/* <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl flex-grow'>
+            <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl col-span-6'>
               <h5>Template Preview</h5>
               
-            </div> */}
+            </div>
           </div>
         </main>
         :

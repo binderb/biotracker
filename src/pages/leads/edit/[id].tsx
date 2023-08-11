@@ -10,7 +10,7 @@ import { useApolloClient, useLazyQuery, useMutation, useQuery } from "@apollo/cl
 import Link from "next/link";
 import { faCog, faFileExport, faFlagCheckered, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, PUBLISH_LEAD_TO_DRIVE, CREATE_DRIVE_STUDY_TREE, UPDATE_LEAD_DRAFTERS, UPDATE_LEAD_ON_DRIVE } from "@/utils/mutations";
+import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, PUBLISH_LEAD_TO_DRIVE, CREATE_DRIVE_STUDY_TREE, UPDATE_LEAD_DRAFTERS, UPDATE_LEAD_ON_DRIVE, UPDATE_LEAD_REVISION_PUBLISH_STATUS } from "@/utils/mutations";
 import { useParams } from 'next/navigation';
 import DiscussionBoard from "@/components/leads/DiscussionBoard";
 import { useRouter } from "next/router";
@@ -119,6 +119,7 @@ export default function LeadManager (props:any) {
   const [addStudy, { error, data : newStudyData }] = useMutation(ADD_STUDY, {
     refetchQueries: [{query: GET_NEXT_STUDY}, 'GetNextStudy']
   });
+  const [updateLeadRevisionPublishStatus] = useMutation(UPDATE_LEAD_REVISION_PUBLISH_STATUS);
   const [completedPublish, setCompletedPublish] = useState(false);
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [settingsErrStatus, setSettingsErrStatus] = useState('');
@@ -157,9 +158,9 @@ export default function LeadManager (props:any) {
   }, [leadStatus, leadContent, content, leadData.status]);
 
   useEffect( () => {
-    console.log('leadContent changed');
-    console.log(leadContent);
-  },[leadContent]);
+    console.log('content changed');
+    console.log(content);
+  },[content]);
 
   if (status !== 'authenticated') {
     router.push('/login');
@@ -291,6 +292,11 @@ export default function LeadManager (props:any) {
               studyData: JSON.stringify(content[i])
             }
           });
+          const updateRevisionResult = await updateLeadRevisionPublishStatus({
+            variables: {
+              leadRevisionId: leadData.revisions[0]._id
+            }
+          })
         }
       }
       const newResponse = await loadLeadLatest();
@@ -561,9 +567,6 @@ export default function LeadManager (props:any) {
                   }
                 })
               }
-              <div className='text-[#800]'>
-                This feature is still in development!
-              </div>
               <div className='flex gap-2 pt-2'>
                 <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>Cancel</button>
                 <button className='std-button-lite flex-grow' onClick={handlePublish}>Re-Publish</button>

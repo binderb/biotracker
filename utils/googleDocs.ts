@@ -1112,14 +1112,18 @@ export async function buildFormSection (fileId: string, auth: any, section: any,
           }
           break;
         case 'date':
-          const cellDate = new Date(field.data[0]);
-          cellText = `${(cellDate.getMonth()+1).toString().padStart(2,'0')}/${cellDate.getDate().toString().padStart(2,'0')}/${cellDate.getFullYear().toString()}`;
+          if (field.data[0] && field.data[0] !== '' && new Date(field.data[0]) instanceof Date && !isNaN(new Date(field.data[0]).getTime())) {
+            const cellDate = new Date(field.data[0]);
+            cellText = `${(cellDate.getMonth()+1).toString().padStart(2,'0')}/${cellDate.getDate().toString().padStart(2,'0')}/${cellDate.getFullYear().toString()}`;
+          }
           break;
         case 'database':
           await connectMongo();
-          if (field.params[0] === 'users') {
+          if (field.params[0] === 'users' && field.data[0] && field.data[0].trim() !== '') {
             const user = await User.findById(field.data[0]);
-            cellText = `${user.first} ${user.last}`;
+            if (user.first && user.last) {
+              cellText = `${user.first} ${user.last}`;
+            }
           }
           break;
         case 'generated':

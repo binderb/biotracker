@@ -617,7 +617,21 @@ const resolvers = {
       } catch (err:any) {
         throw err;
       }
+    },
+    updateLeadRevisionPublishStatus: async (_:any, args:any) => {
+      try {
+        const { leadRevisionId } = args;
+        await LeadRevision.findOneAndUpdate({_id: new Types.ObjectId(leadRevisionId)}, {
+          $set: {
+            published: true
+          }
+        });
+        await connectMongo();
+      } catch (err:any) {
+        throw err;
+      }
     }
+
   }
 }
 

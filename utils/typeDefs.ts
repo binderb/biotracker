@@ -145,6 +145,7 @@ const typeDefs = gql`
     createDriveStudyTree(clientCode: String!, studyName: String!): String
     publishLeadToDrive(clientCode: String!, studyName: String!, formRevisionId: String!, formData: String!, studyData: String!): String
     updateLeadOnDrive(clientCode: String!, studyName: String!, formRevisionId: String!, formData: String!, studyData: String!): String
+    updateLeadRevisionPublishStatus(leadRevisionId: ID!): String
   }
 `;
 
