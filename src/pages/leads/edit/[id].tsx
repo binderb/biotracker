@@ -144,7 +144,11 @@ export default function LeadManager (props:any) {
           if (leadContent[i].sections[sectionIndex].rows.length !== section.rows.length) changeSum++;
           section.rows.map( (row:any, rowIndex:number) => {
             row.fields.map( (field:any, fieldIndex:number) => {
-              if (leadContent[i].sections[sectionIndex].rows[rowIndex]?.fields[fieldIndex]?.data.toString() !== field.data.toString()) changeSum++;
+              if (leadContent[i].sections[sectionIndex].rows[rowIndex]?.fields[fieldIndex]?.data.toString() !== field.data.toString()) {
+                changeSum++;
+                console.log("Saved: ",leadContent[i].sections[sectionIndex].rows[rowIndex]?.fields[fieldIndex]?.data.toString());
+                console.log("Change: ",field.data.toString());
+              } 
             });
           });
         } else {

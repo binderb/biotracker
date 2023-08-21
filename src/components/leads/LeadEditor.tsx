@@ -55,9 +55,10 @@ export default function LeadEditor ({client, content, leadData, users, setConten
 
   function handleUpdateLeadDateField(date:string, sectionIndex:number, rowIndex:number, fieldIndex:number, dataIndex:number) {
     console.log(date);
+    const formattedDate = new Date(date).toISOString();
     const newContent = [...content];
     const newData = [...newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
-    newData.splice(dataIndex,1,date);
+    newData.splice(dataIndex,1,formattedDate);
     newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
     setContent(newContent);
   }

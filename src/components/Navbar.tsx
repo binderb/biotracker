@@ -28,7 +28,7 @@ export default function Navbar () {
           <div className='text-secondary'>|</div>
           <div className='flex items-center gap-4'>
             <Link className='nav-link' href='/'>Home</Link>
-            <Link className='nav-link' href='/inventory'>Inventory</Link>
+            {/* <Link className='nav-link' href='/inventory'>Inventory</Link> */}
           </div>
         </div>
         <div>

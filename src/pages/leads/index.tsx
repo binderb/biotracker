@@ -5,7 +5,7 @@ import { initializeApollo, addApolloState } from "../../../utils/apolloClient";
 import { GET_LEADS } from "@/utils/queries";
 import { useSession } from "next-auth/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRight, faBriefcase, faCircle, faClockRotateLeft, faCodeCommit, faComment, faComments, faFile, faFileArchive, faFileClipboard, faFileLines, faFolderOpen, faMagnifyingGlass, faMagnifyingGlassArrowRight, faPen, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faBriefcase, faCircle, faClockRotateLeft, faClone, faCodeCommit, faComment, faComments, faFile, faFileArchive, faFileClipboard, faFileLines, faFolderOpen, faMagnifyingGlass, faMagnifyingGlassArrowRight, faPen, faPlus } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { useQuery } from "@apollo/client";
 import { useRouter } from "next/router";
@@ -61,6 +61,7 @@ export default function LeadManager () {
       <main className="flex flex-col p-4">
         <div className='flex mt-2 mb-2 gap-2'>
           <Link className="std-button" href="/leads/new"><FontAwesomeIcon icon={faPlus} className="mr-2"></FontAwesomeIcon>New Lead</Link>
+          <Link className="std-button" href="/leads/clone"><FontAwesomeIcon icon={faClone} className="mr-2"></FontAwesomeIcon>New Lead from Clone</Link>
           <Link className="std-button" href="/leads/study-plans"><FontAwesomeIcon icon={faBriefcase} className="mr-2"></FontAwesomeIcon>Study Plan Forms</Link>
         </div>
         <div className='flex flex-col mt-4 bg-secondary/20 border border-secondary/80 rounded-lg p-4'>
