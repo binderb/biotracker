@@ -72,7 +72,7 @@ const resolvers = {
       const { category } = args;
       try {
         await connectMongo();
-        const formsOfCategory = await FormTemplate.find({formCategory: category});
+        const formsOfCategory:string[] = await FormTemplate.find({formCategory: category});
         return formsOfCategory.length + 1;
       } catch (err:any) {
         throw err;
@@ -160,6 +160,19 @@ const resolvers = {
         return leadTemplate;
       } catch (err:any) {
         throw err;
+      }
+    },
+    getFormDetails: async (_:any, args:any) => {
+      const { formId } = args;
+      try {
+        await connectMongo();
+        const form = await FormTemplate.findById(formId)
+        .populate('revisions');
+        return form;
+      } catch (err:any) {
+        console.log(JSON.stringify(err));
+        throw err;
+
       }
     },
     getFormDetailsFromRevisionId: async (_:any, args:any) => {
@@ -426,6 +439,7 @@ const resolvers = {
         // Create template revision
         const revision = await FormTemplateRevision.create({
           createdAt: new Date(),
+          note: 'Form created.',
           sections: sectionModels.map((section:any) => section._id)
         });
         // Create top-level template model
@@ -439,6 +453,90 @@ const resolvers = {
       } catch (err:any) {
         return err.message;
       }
+    },
+    addFormRevision: async (_:any, args:any) => {
+      const { formId, sections, note } = args;
+      const sectionData = JSON.parse(sections);
+      try {
+        await connectMongo();
+        const form = await FormTemplate.findById(formId);
+        if (!form) throw new Error('No form with the given ID found.');
+        const sectionModels = [];
+        for (var section of sectionData) {
+          console.log("starting section",section.name);
+          let sectionRowModels = [];
+          if (section.rows.length > 0) {
+            for (var row of section.rows) {
+              console.log("starting row", row.index);
+              let sectionFieldModels = [];
+              if (row.fields.length > 0) {
+                for (var field of row.fields) {
+                  console.log("starting field", field.type);
+                  // Create fields
+                  const newField = await FormTemplateField.create({
+                    ...field,
+                    _id: new Types.ObjectId(),
+                  });
+                  sectionFieldModels.push(newField);
+                }
+              }
+              console.log('created field successfully.');
+              // Create rows
+              const newSectionRow = await FormTemplateRow.create({
+                ...row,
+                _id: new Types.ObjectId(),
+                fields: sectionFieldModels.map((field:any) => field._id)
+              })
+              sectionRowModels.push(newSectionRow);
+            }
+            console.log('created row successfully.');
+            // Create each section
+            let newSection = await FormTemplateSection.create({
+              ...section,
+              _id: new Types.ObjectId(),
+              rows: sectionRowModels.map((row:any) => row._id)
+            });
+            sectionModels.push(newSection);
+          }
+        }
+        // Create template revision
+        const revision = await FormTemplateRevision.create({
+          createdAt: new Date(),
+          note: note,
+          sections: sectionModels.map((section:any) => section._id)
+        });
+        // Update Form
+        const updatedForm = await FormTemplate.findOneAndUpdate(
+          { _id: formId },
+          { $push: {revisions: revision} }
+        );
+      } catch (err:any) {
+        throw err;
+      }
+      return 'success';
+    },
+    updateFormDetails: async (_:any, args:any) => {
+      const { formId, name, formCategory, metadata } = args;
+      try {
+        await connectMongo();
+        console.log(formId);
+        console.log(name);
+        const form = await FormTemplate.findById(formId);
+        if (!form) throw new Error('No form with the given ID found.');
+        const updatedForm = await FormTemplate.findOneAndUpdate(
+          { _id: formId },
+          { 
+            name: name ? name : form.name,
+            formCategory: formCategory ? formCategory : form.formCategory,
+            metadata: metadata ? metadata : form.metadata
+          },
+          { new: true }
+        );
+        console.log(updatedForm);
+      } catch (err:any) {
+        throw err;
+      }
+      return 'success';
     },
     addStudy: async (_:any, args:any) => {
       const { clientCode, studyType, leadId, studyPlanIndex } = args;

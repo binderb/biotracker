@@ -70,13 +70,14 @@ const typeDefs = gql`
     formCategory: String!
     formIndex: Int
     revisions: [FormTemplateRevision]!
-    metadata: String,
+    metadata: String
   }
 
   type FormTemplateRevision {
     _id: ID,
-    createdAt: String!,
-    sections: [FormTemplateSection]!,
+    createdAt: String!
+    note: String!
+    sections: [FormTemplateSection]!
   }
 
   type FormTemplateSection {
@@ -122,6 +123,7 @@ const typeDefs = gql`
     getLeadLatestRevision(id: ID!): Lead
     getStudyPlanForms: [FormTemplate]
     getStudyPlanFormLatestRevision(id: ID!): FormTemplate
+    getFormDetails(formId: ID!): FormTemplate
     getFormDetailsFromRevisionId(revisionId: ID!): FormTemplate
     getGoogleDriveConfig: GoogleDriveConfig
   }
@@ -136,6 +138,8 @@ const typeDefs = gql`
     addLeadRevision(id: ID!, author: ID!, status: String!, content: String!, note: String!): String
     addLeadNote(id: ID!, revisionId: ID!, author: ID!, note: String!): String
     addForm(name: String!, formCategory: String!, metadata: String, sections: String!): String
+    addFormRevision(formId: ID!, sections: String!, note: String!): String
+    updateFormDetails(formId: ID!, name: String, formCategory: String, metadata: String): String
     addStudy(clientCode: String!, studyType: String!, leadId: ID!, studyPlanIndex: Int!): String
     authorizeGoogleDrive: String
     saveGoogleDriveToken(authCode: String): String

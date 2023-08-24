@@ -61,6 +61,18 @@ export const ADD_FORM = gql`
   }
 `;
 
+export const ADD_FORM_REVISION = gql`
+  mutation addFormRevision($formId: ID!, $sections: String!, $note: String!) {
+    addFormRevision(formId: $formId, sections: $sections, note: $note)
+  }
+`;
+
+export const UPDATE_FORM_DETAILS = gql`
+  mutation updateFormDetails($formId: ID!, $name: String, $formCategory: String, $metadata: String) {
+    updateFormDetails(formId: $formId, name: $name, formCategory: $formCategory, metadata: $metadata)
+  }
+`;
+
 export const ADD_STUDY = gql`
   mutation addStudy($clientCode: String!, $studyType: String!, $leadId: ID!, $studyPlanIndex: Int!) {
     addStudy(clientCode: $clientCode, studyType: $studyType, leadId: $leadId, studyPlanIndex: $studyPlanIndex)

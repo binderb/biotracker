@@ -182,6 +182,23 @@ export const GET_STUDY_PLAN_FORM_LATEST = gql`
   }
 `;
 
+export const GET_FORM_DETAILS = gql`
+  query Query ($formId: ID!) {
+    getFormDetails(formId: $formId) {
+      _id
+      name
+      formCategory
+      formIndex
+      revisions {
+        _id
+        note
+        createdAt
+      }
+      metadata
+    }
+  }
+`;
+
 export const GET_FORM_DETAILS_FROM_REVISION_ID = gql`
   query Query ($revisionId: ID!) {
     getFormDetailsFromRevisionId(revisionId: $revisionId) {

@@ -2,6 +2,7 @@ import { Schema, model, models } from 'mongoose';
 
 const formTemplateRevisionSchema = new Schema({
   createdAt: Date!,
+  note: String!,
   sections: [{ type: Schema.Types.ObjectId, ref: 'FormTemplateSection'}]!,
 });
 

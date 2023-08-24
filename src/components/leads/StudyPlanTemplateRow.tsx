@@ -1,7 +1,8 @@
-import { faPlus } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import StudyPlanTemplateField from "./StudyPlanTemplateField";
+import _ from 'lodash';
 
 interface TemplateField {
   index: number
@@ -36,6 +37,11 @@ export default function StudyPlanTemplateRow ({sections, index, rowIndex, setSec
   const rowData = sections[index].rows[rowIndex];
   const [rowExtensible, setRowExtensible] = useState(sections[index].extensible);
 
+  // Needed when sections is set by a higher-order component (such as when the revert to saved button is clicked)
+  useEffect ( () => {
+    setRowExtensible(sections[index].rows[rowIndex].extensible);
+  },[sections,rowIndex,index]);
+
   function handleRowExtensibleUpdate(e:ChangeEvent<HTMLInputElement>) {
     setRowExtensible(e.target.checked);
     const newSections = [...sections];
@@ -43,22 +49,30 @@ export default function StudyPlanTemplateRow ({sections, index, rowIndex, setSec
     setSections(newSections);
   }
 
-  function handleAddField() {
-    const newSections = [...sections];
-    newSections[index].rows[rowIndex].fields.push({
-      index: newSections[index].rows[rowIndex].fields.length,
+  function handleAddField(fieldIndex:number) {
+    const newSections = _.cloneDeep(sections);
+    const newField = {
+      index: fieldIndex,
       type: 'label',
       data: [''],
       params: [],
-    });
+    }
+    newSections[index].rows[rowIndex].fields.splice(fieldIndex,0,newField);
+    setSections(newSections);
+  }
+
+  function handleDeleteRow () {
+    const newSections = [...sections];
+    newSections[index].rows.splice(rowIndex,1);
     setSections(newSections);
   }
 
   return (
     <>
       <div className='std-input flex flex-col w-full p-2 border border-1 border-secondary/80 rounded-lg gap-2'>
-        <div className='flex gap-2 items-center'>
+        <div className='flex gap-2 items-center justify-between'>
           {`Row ${rowIndex+1}:`}
+          <button className='secondary-button-lite' onClick={handleDeleteRow}><FontAwesomeIcon icon={faX}/></button>
         </div>
         <label className='flex gap-2 py-2 font-bold'>
           Extensible Row:
@@ -66,7 +80,6 @@ export default function StudyPlanTemplateRow ({sections, index, rowIndex, setSec
         </label>
         <div className='flex gap-2 items-center justify-between'>
           <div className='font-bold'>Fields:</div>
-          <button className='std-button-lite flex gap-2 items-center' onClick={handleAddField}><FontAwesomeIcon icon={faPlus}/>Add Field</button>
         </div>
         
         <div className='std-input flex flex-col w-full p-2 border border-1 border-secondary/80 rounded-lg gap-2'>
@@ -74,12 +87,25 @@ export default function StudyPlanTemplateRow ({sections, index, rowIndex, setSec
             <>
             { rowData.fields.map( (field:TemplateField, fieldIndex:number) => (
               // <div key={index}></div>
-              <StudyPlanTemplateField key={`field${fieldIndex}`} sections={sections} index={index} rowIndex={rowIndex} fieldIndex={fieldIndex} setSections={setSections} />
+              <div key={fieldIndex} className='flex flex-col gap-2'>
+                <StudyPlanTemplateField key={`field${fieldIndex}`} sections={sections} index={index} rowIndex={rowIndex} fieldIndex={fieldIndex} setSections={setSections} />
+                <div className='flex justify-center'>
+                  <button className='std-button-lite flex items-center justify-center gap-2' onClick={() =>handleAddField(fieldIndex+1)}>
+                    <FontAwesomeIcon icon={faPlus} />
+                    Field
+                  </button>
+                </div>
+              </div>
             ))}
             </>
           :
             <>
-            No fields yet.
+            <div className='flex justify-center'>
+              <button className='std-button-lite flex items-center justify-center gap-2' onClick={()=>handleAddField(0)}>
+                <FontAwesomeIcon icon={faPlus} />
+                Field
+              </button>
+            </div>
             </>
           }
         </div>
