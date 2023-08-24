@@ -48,7 +48,7 @@ export default function DiscussionBoard(props:Props) {
                 </button>
               </> }
             </div>
-            <div className='mb-2'>
+            <div className='mb-2 whitespace-pre'>
               {note.content}
             </div> 
             </div> 

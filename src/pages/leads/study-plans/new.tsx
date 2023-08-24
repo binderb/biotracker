@@ -118,7 +118,7 @@ export default function NewStudyPlanForm () {
         }
       });
       console.log(JSON.stringify(sections));
-      //router.push('/leads/templates');
+      router.push('/leads/templates');
     } catch (err:any) {
       setErrStatus(err.message);
     }
