@@ -1,7 +1,7 @@
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getServerSession } from "next-auth";
 import { addApolloState, initializeApollo } from "../../../../../utils/apolloClient";
-import { GET_FORM_DETAILS, GET_LEAD_LATEST, GET_STUDY_PLAN_FORMS, GET_USERS } from "@/utils/queries";
+import { GET_FORM_DETAILS, GET_FORM_DETAILS_FROM_REVISION_ID, GET_LEAD_LATEST, GET_STUDY_PLAN_FORMS, GET_USERS } from "@/utils/queries";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import Navbar from "@/components/Navbar";
@@ -54,8 +54,15 @@ export async function getServerSideProps(context:any) {
   }
 
   const apolloClient = initializeApollo();
-  await apolloClient.query({
+  const {data: formDetailsResponse} = await apolloClient.query({
     query: GET_FORM_DETAILS, variables: { formId: context.params.id }
+  });
+  const formDetails = formDetailsResponse?.getFormDetails;
+  await apolloClient.query({
+    query: GET_FORM_DETAILS_FROM_REVISION_ID,
+    variables: {
+      revisionId: formDetails.revisions[formDetails.revisions.length-1]._id
+    }
   });
   await apolloClient.query({
     query: GET_STUDY_PLAN_FORM_LATEST,
@@ -97,6 +104,7 @@ export default function StudyPlanEditor (props:any) {
   const [sections, setSections] = useState(_.cloneDeep(studyPlan.revisions[0].sections));
   let studyPlanContent = [{
     name: studyPlan.name,
+    studyPlanFormRevisionId: studyPlan.revisions[0]._id,
     sections: _.cloneDeep(sections)
   }];
   const [content, setContent] = useState(studyPlanContent);
@@ -129,10 +137,11 @@ export default function StudyPlanEditor (props:any) {
   useEffect ( () => {
     setContent([{
       name: studyPlan.name,
+      studyPlanFormRevisionId: studyPlan.revisions[0]._id,
       sections: sections
     }]);
     console.log(sections);
-  }, [sections, studyPlan]);
+  }, [sections, studyPlan, formDetails]);
 
   useEffect( () => {
     let changeSum = 0;

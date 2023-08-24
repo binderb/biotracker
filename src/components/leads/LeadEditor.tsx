@@ -1,6 +1,8 @@
+import { GET_FORM_DETAILS_FROM_REVISION_ID } from "@/utils/queries";
+import { useQuery } from "@apollo/client";
 import { faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState, Fragment } from "react";
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -15,6 +17,12 @@ interface Props {
 export default function LeadEditor ({client, content, leadData, users, setContent}:Props) {
 
   const [currentStudyPlanIndex, setCurrentStudyPlanIndex] = useState(0);
+  const { data: formDetailsResponse } = useQuery(GET_FORM_DETAILS_FROM_REVISION_ID, {
+    variables: {
+      revisionId: content[currentStudyPlanIndex].studyPlanFormRevisionId
+    }
+  });
+  const formDetails = formDetailsResponse?.getFormDetailsFromRevisionId;
 
   useEffect( () => {
     if (currentStudyPlanIndex >= content.length-1) {
@@ -98,23 +106,34 @@ export default function LeadEditor ({client, content, leadData, users, setConten
             <div className="font-bold">Study Plan:</div>
             <select className="std-input flex-grow" value={currentStudyPlanIndex} onChange={(e) => setCurrentStudyPlanIndex(parseInt(e.target.value))}>
               { content.map((plan:any, index:number) => (
-                <option key={index} value={index}>
+                <option key={`study-plan-${index}`} value={index}>
                   {plan.name}
                 </option>
               ))}
             </select>
           </section>
+          {
+            formDetails && (
+              <section className='flex items-center gap-2 pb-4'>
+                <div className="font-bold">Form ID:</div>
+                <div>
+                  {`F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1}`}
+                </div>
+              </section>
+            )
+          }
+          
           
           {content[currentStudyPlanIndex]?.sections.map( (section:any, sectionIndex:number) => (
-            <section key={sectionIndex}>
+            <section key={`section-${sectionIndex}`}>
               <div className='mr-2 font-bold'>{section.name}:</div>
               <div className='border border-secondary rounded-lg p-2 overflow-x-auto my-2'>
               <table className='w-full'><tbody>
               {section.rows.map( (row:any, rowIndex:number) => (
                 // <div key={rowIndex} className='flex gap-2 items-center'>
-                <tr key={rowIndex}>
+                <tr key={`row-${rowIndex}`}>
                   {row.fields.map((field:any, fieldIndex:number) => (
-                    <>
+                    <Fragment key={`field-${fieldIndex}`}>
                       {field.type === 'label' && (
                         <td key={fieldIndex} className='align-top py-1'>
                           { row.fields.length > 1 && !row.extensible &&
@@ -210,8 +229,7 @@ export default function LeadEditor ({client, content, leadData, users, setConten
                           }
                         </td>
                       )}
-                    
-                    </>
+                    </Fragment>
                   ))}
                   
                   </tr>

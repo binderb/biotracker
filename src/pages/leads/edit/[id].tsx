@@ -3,7 +3,7 @@ import Navbar from "@/components/Navbar";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../api/auth/[...nextauth]';
 import { initializeApollo, addApolloState } from "../../../../utils/apolloClient";
-import { GET_CLIENTS, GET_USERS, GET_LEAD_LATEST, GET_LEADS, GET_NEXT_STUDY, GET_FORM_DETAILS_FROM_REVISION_ID, GET_STUDY_PLAN_FORMS, GET_STUDY_PLAN_FORM_LATEST } from "@/utils/queries";
+import { GET_CLIENTS, GET_USERS, GET_LEAD_LATEST, GET_LEADS, GET_NEXT_STUDY, GET_FORM_DETAILS_FROM_REVISION_ID, GET_STUDY_PLAN_FORMS, GET_STUDY_PLAN_FORM_LATEST, GET_FORM_DETAILS } from "@/utils/queries";
 import { useSession } from "next-auth/react";
 import { ChangeEvent, MouseEventHandler, useEffect, useState } from "react";
 import { useApolloClient, useLazyQuery, useMutation, useQuery } from "@apollo/client";
@@ -33,12 +33,20 @@ export async function getServerSideProps(context:any) {
   }
 
   const apolloClient = initializeApollo();
-  await apolloClient.query({
+  const {data: leadResponseData} = await apolloClient.query({
     query: GET_LEAD_LATEST,
     variables: {
       getLeadLatestRevisionId: context.params.id
     }
   });
+  const leadData = leadResponseData?.getLeadLatestRevision;
+  const leadContent = JSON.parse(leadData.revisions[0].content);
+  await apolloClient.query({
+    query: GET_FORM_DETAILS_FROM_REVISION_ID,
+    variables: {
+      revisionId: leadContent[0].studyPlanFormRevisionId
+    }
+  })
   await apolloClient.query({
     query: GET_STUDY_PLAN_FORMS,
   });
