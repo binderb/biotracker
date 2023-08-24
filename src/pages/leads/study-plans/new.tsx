@@ -12,6 +12,9 @@ import { ADD_FORM } from "@/utils/mutations";
 import { useMutation, useQuery } from "@apollo/client";
 import { useRouter } from "next/router";
 import { GET_NEXT_FORM } from "@/utils/queries";
+import FormLayoutEditor from "@/components/leads/FormLayoutEditor";
+import _ from 'lodash';
+import LeadEditor from "@/components/leads/LeadEditor";
 
 interface TemplateField {
   index: number
@@ -82,21 +85,19 @@ export default function NewStudyPlanForm () {
   const [addForm, { error, data: addNewLeadData }] = useMutation(ADD_FORM, {
     refetchQueries: [{query: GET_NEXT_FORM}]
   });
+  let studyPlanContent = [{
+    name: templateName,
+    sections: _.cloneDeep(sections)
+  }];
+  const [content, setContent] = useState(studyPlanContent);
 
-  function handleAddSection () {
-    const newSection : TemplateSection = {
-      name: '',
-      index: sections.length,
-      rows: [] as TemplateRow[],
-      extensible: false,
-    }
-    const newSections = [...sections, newSection];
-    setSections(newSections);
-  }
-
-  function handleDeleteSection (index:number) {
-    setSections(sections.filter( (_, i) => i !== index));
-  }
+  useEffect ( () => {
+    setContent([{
+      name: templateName,
+      sections: sections
+    }]);
+    console.log(sections);
+  }, [sections, templateName]);
 
   async function handleCreateStudyPlanForm() {
     try {
@@ -104,7 +105,9 @@ export default function NewStudyPlanForm () {
       const metadata = JSON.stringify({
         studyTypeCode: studyType
       });
-      console.log(metadata)
+      if (templateName.trim() === '') throw new Error ("You must specify a name for the form.");
+      if (studyType === '') throw new Error ("You must select an associated study type.");
+      if (sections.length < 1) throw new Error ("Forms must have at least one section.");
       const returnVal = await addForm({
         variables: {
           name: templateName,
@@ -127,34 +130,84 @@ export default function NewStudyPlanForm () {
   }
 
   return (
-    <>
-      <Navbar />
-      <div className='mt-4'>
-        <Link className='std-link ml-4' href='/leads/study-plans'>&larr; Back</Link>
-      </div>
-      { status === 'authenticated' && (session.user.role === 'dev' || session.user.role === 'admin') ?
-        <main className="flex flex-col items-top p-4 gap-2">
-          <div className='flex justify-between items-center bg-secondary/20 border border-secondary/80 rounded-lg p-2 flex-grow gap-2'>
-            <div className='pl-2'>
-              {errStatus && 
-                <div className='flex items-center gap-2 bg-[#FDD] pl-2 pr-1 py-1 rounded-md text-[#800]'>
-                {errStatus}
-                  <button className='bg-[#800] px-2 py-[2px] rounded-md text-white text-[12px] hover:bg-[#B00]' onClick={()=>setErrStatus('')}>
-                    <FontAwesomeIcon icon={faX} />
-                  </button>
+    <>        
+      <main className="md:h-screen overflow-x-hidden flex flex-col gap-2 pb-4">
+        <Navbar />
+        <div className='flex items-center'>
+          <Link className='std-link ml-4 my-2' href='/leads/study-plans'>&larr; Back</Link>
+        </div>
+        { status === 'authenticated' && (session.user.role === 'dev' || session.user.role === 'admin') ?
+            <>
+            <div className='flex justify-between items-center bg-secondary/20 border border-secondary/80 rounded-lg p-2 mx-4 flex-grow gap-2'>
+              <div className='pl-2'>
+                {errStatus && 
+                  <div className='flex items-center gap-2 bg-[#FDD] pl-2 pr-1 py-1 rounded-md text-[#800]'>
+                  {errStatus}
+                    <button className='bg-[#800] px-2 py-[2px] rounded-md text-white text-[12px] hover:bg-[#B00]' onClick={()=>setErrStatus('')}>
+                      <FontAwesomeIcon icon={faX} />
+                    </button>
+                  </div>
+                }
+              </div>
+              <div className='flex gap-2'>
+                
+                <button className='std-button-lite flex items-center gap-2' onClick={handleCreateStudyPlanForm}>
+                  Create
+                </button>
+              </div>
+            </div>
+            <section className='max-md:flex max-md:flex-col-reverse md:grid md:grid-cols-12 gap-2 px-4 overflow-y-hidden h-full'>
+              {/* Template Editor */}
+              <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl col-span-6 overflow-y-hidden'>
+                <h5>New Study Plan Form</h5>
+                <div className='flex items-center mb-4 gap-2 justify-start'>
+                  <div className='flex items-center gap-2'>
+                    <div className='font-bold'>Form Name:</div>
+                    <input type='text' className='std-input' name='leadName' value={templateName} onChange={(e)=>setTemplateName(e.target.value)} />
+                  </div>
+                  <div className='flex items-center gap-2'>
+                    <div className='font-bold'>Form ID:</div>
+                    <div className='font-monospace'>{`F-SP-${nextFormIndex.toString().padStart(4,'0')}`}</div>
+                  </div>
+                  
                 </div>
-              }
-            </div>
-            <div className='flex gap-2'>
-              
-              <button className='std-button-lite flex items-center gap-2' onClick={handleCreateStudyPlanForm}>
-                Create
-              </button>
-            </div>
-          </div>
-          <div className='grid grid-cols-12 items-top gap-2'>
+                <div className='flex items-center mb-4 gap-2 justify-start'>
+                  <div className='font-bold'>Associated with Study Type:</div>
+                  <select className='std-input' onChange={(e)=>setStudyType(e.target.value)} value={studyType}>
+                    <option value=''>-- Choose --</option>
+                    <option value='AH'>AH - Animal Heart</option>
+                    <option value='HH'>HH - Human Heart</option>
+                    <option value='HU'>HU - Human Cadaver</option>
+                    <option value='INT'>INT - Animal Interventional</option>
+                    <option value='IVT'>IVT - In Vitro</option>
+                    <option value='SUR'>SUR - Animal Surgical</option>
+                  </select>
+                </div>
+                <h5>Layout Editor</h5>
+                <section className='<section className={`flex flex-col gap-2 md:overflow-y-auto overflow-x-visible h-[calc(100%-190px)] pr-2`}>'>
+                <FormLayoutEditor 
+                  sections={sections} 
+                  setSections={setSections}
+                />
+                </section>
+              </div>
+              {/* Template Preview */}
+              <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl col-span-6 overflow-y-hidden'>
+                <h5>Template Preview</h5>
+                <section className='flex flex-col gap-2 md:overflow-y-auto overflow-x-visible h-[calc(100%-40px)] pr-2'>
+                  <LeadEditor 
+                    client={'EXAMPLE'}
+                    leadData={{name: 'EXAMPLE'}}
+                    content={content}
+                    setContent={setContent}
+                    users={[]}
+                  />
+                </section>
+              </div>
+            </section>
+          {/* <div className='grid grid-cols-12 items-top gap-2'> */}
           {/* Template Editor */}
-            <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl col-span-6'>
+            {/* <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl col-span-6'>
               <h5>New Study Plan Form</h5>
               <div className='flex items-center mb-4 gap-2 justify-start'>
                 <div className='flex items-center gap-2'>
@@ -165,7 +218,7 @@ export default function NewStudyPlanForm () {
                   <div className='font-bold'>Form ID:</div>
                   <div className='font-monospace'>{`F-SP-${nextFormIndex.toString().padStart(4,'0')}`}</div>
                 </div>
-                <button className='std-button-lite flex items-center gap-2' onClick={handleAddSection}><FontAwesomeIcon icon={faPlus}></FontAwesomeIcon>Add Section</button>
+                
               </div>
               <div className='flex items-center mb-4 gap-2 justify-start'>
                 <div className='font-bold'>Associated with Study Type:</div>
@@ -186,7 +239,7 @@ export default function NewStudyPlanForm () {
                     { sections.length > 0 ? 
                       <>
                       {sections.map((section:TemplateSection, index:number) => 
-                        <StudyPlanTemplateSection key={index} index={index} sections={sections} setSections={setSections} handleDeleteSection={handleDeleteSection} />
+                        <StudyPlanTemplateSection key={index} index={index} sections={sections} setSections={setSections} />
                       )}
                       </>
                       :
@@ -196,19 +249,20 @@ export default function NewStudyPlanForm () {
                     }
                   </div>
               </section>
-            </div>
+            </div> */}
             {/* Template Preview */}
-            <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl col-span-6'>
+            {/* <div id="create-study" className='bg-secondary/20 border border-secondary/80 p-4 rounded-xl col-span-6'>
               <h5>Template Preview</h5>
               
             </div>
-          </div>
-        </main>
+          </div> */}
+          </>
         :
-        <main className="flex items-top p-4">
+        <div className="flex items-top p-4">
           {`It looks like you aren't authorized to view this page (admin access only). If you think this is an error, please contact your system administrator.`}
-        </main>
+        </div>
       }
+      </main>
     </>
   );
 }

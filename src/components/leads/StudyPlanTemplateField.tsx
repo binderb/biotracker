@@ -1,4 +1,6 @@
-import { ChangeEvent, useState } from "react"
+import { faX } from "@fortawesome/free-solid-svg-icons"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { ChangeEvent, useEffect, useState } from "react"
 
 interface TemplateField {
   index: number
@@ -34,6 +36,12 @@ export default function StudyPlanTemplateField ({sections, index, rowIndex, fiel
   const [fieldParams, setFieldParams] = useState(sections[index].rows[rowIndex].fields[fieldIndex].params)
   const fieldTypeOptions = ['label', 'textarea', 'multitextarea', 'input', 'multiinput', 'checkbox', 'multicheckbox', 'date', 'database', 'generated'];
 
+  // Needed when sections is set by a higher-order component (such as when the revert to saved button is clicked)
+  useEffect ( () => {
+    setFieldType(sections[index].rows[rowIndex].fields[fieldIndex].type);
+    setFieldParams(sections[index].rows[rowIndex].fields[fieldIndex].params);
+  },[sections,fieldIndex,rowIndex,index]);
+
   function handleFieldTypeUpdate (e:ChangeEvent<HTMLSelectElement>) {
     setFieldType(e.target.value);
     if (e.target.value.indexOf('multi') < 0) {
@@ -53,9 +61,16 @@ export default function StudyPlanTemplateField ({sections, index, rowIndex, fiel
     setSections(newSections);
   }
 
+  function handleDeleteField () {
+    const newSections = [...sections];
+    newSections[index].rows[rowIndex].fields.splice(fieldIndex,1);
+    setSections(newSections);
+  }
+
   return (
     <>
     <div className='flex flex-col gap-2 std-input rounded-lg'>
+      <div className='flex justify-between items-center'>
         <div className='flex gap-2 items-center'>
           <div className='font-bold'>Type:</div>
           <select className='std-input' value={fieldType} onChange={(e)=>handleFieldTypeUpdate(e)}>
@@ -64,10 +79,15 @@ export default function StudyPlanTemplateField ({sections, index, rowIndex, fiel
             ))}
           </select>
         </div>
+        <div>
+          <button className='secondary-button-lite' onClick={handleDeleteField}><FontAwesomeIcon icon={faX}/></button>
+        </div>
+      </div>
+        
         { fieldType === 'label' &&
         <div className='flex items-center gap-2'>
           <div className='font-bold'>Label Text (no commas):</div>
-          <input type="text" className='std-input' value={fieldParams?.join(',')} onChange={(e)=>handleFieldParamsUpdate(e)} />
+          <input type="text" className='std-input flex-grow' value={fieldParams?.join(',')} onChange={(e)=>handleFieldParamsUpdate(e)} />
         </div>
         }
         { fieldType === 'checkbox' &&

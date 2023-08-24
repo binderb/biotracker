@@ -68,7 +68,7 @@ export default function LeadTemplateManager () {
                 <li key={template._id} className='std-input rounded-md flex justify-between items-center'>
                   {template.name}
                   <div className='flex gap-2'>
-                    <Link href={{pathname: '/leads/edit/[id]', query: { id: template._id }}} as={`/leads/edit/${template._id}`} className='std-button-lite' ><FontAwesomeIcon icon={faMagnifyingGlass}/></Link>
+                    <Link href={{pathname: '/leads/study-plans/edit/[id]', query: { id: template._id }}} as={`/leads/study-plans/edit/${template._id}`} className='std-button-lite' ><FontAwesomeIcon icon={faMagnifyingGlass}/></Link>
                   </div>
                 </li>
               ))

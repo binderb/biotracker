@@ -1,6 +1,6 @@
 import { faClockRotateLeft, faCodeCommit, faFileExport } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
+import { getFormattedDate } from "@/utils/helpers";
 interface Props {
   leadData: any
 }
@@ -14,10 +14,7 @@ export default function DiscussionBoard(props:Props) {
     drafterColors.push(drafterColorStyles[index % drafterColorStyles.length]);
   });
 
-  function getFormattedDate (dateString:string) {
-    const date = new Date(parseInt(dateString));
-    return `${date.toLocaleDateString()} at ${date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }).toLocaleLowerCase().replace(/ /,'')}`
-  }
+  
 
   return (
     <div className="flex flex-col gap-4 my-4">
