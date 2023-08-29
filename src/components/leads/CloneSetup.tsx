@@ -1,4 +1,4 @@
-import { GET_LEAD_LATEST } from "@/utils/queries"
+import { GET_FORM_DETAILS_FROM_REVISION_ID, GET_LEAD_LATEST } from "@/utils/queries"
 import { useLazyQuery } from "@apollo/client"
 import { faX } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -37,6 +37,9 @@ export default function CloneSetup ({session, leadName, client, users, clients, 
   const [showPickSource, setShowPickSource] = useState(false);
   const [selectedSource, setSelectedSource] = useState<any>(null);
   const [loadLeadLatest] = useLazyQuery(GET_LEAD_LATEST);
+  const [loadFormDetailsFromRevisionId] = useLazyQuery(GET_FORM_DETAILS_FROM_REVISION_ID, {
+    fetchPolicy: 'network-only'
+  });
 
   function handleUpdateLeadName (e:ChangeEvent<HTMLInputElement>) {
     setLeadName(e.target.value);
@@ -71,14 +74,20 @@ export default function CloneSetup ({session, leadName, client, users, clients, 
         if (leadRevisionData) {
           const leadContent = JSON.parse(leadRevisionData.content);
           const newLeadContent = [];
+          const studyPlanNames = [];
           for (let i=0;i<leadContent.length;i++) {
+            const {data: formDetailsData} = await loadFormDetailsFromRevisionId({
+              variables: {revisionId: leadContent[i].studyPlanFormRevisionId}
+            });
+            const formDetails = formDetailsData?.getFormDetailsFromRevisionId;
             const newStudyPlan = {...leadContent[i], associatedStudyId: null};
             // THIS IS WHERE A CHECK SHOULD GO TO EXAMINE WHETHER MOST RECENT STUDY PLAN
             // REVISION ID IS THE SAME AS THE SOURCE OR NOT; IF NOT, USER WILL HAVE TO RESOLVE.
             newLeadContent.push(newStudyPlan);
-            
+            studyPlanNames.push(formDetails.name);
           }
-          setTemplateList(leadContent);
+          setTemplateList(studyPlanNames);
+          console.log(newLeadContent)
           setContent(newLeadContent);
         }
       }
@@ -88,7 +97,7 @@ export default function CloneSetup ({session, leadName, client, users, clients, 
     populateStudyPlans();
 
     
-  },[sourceLead, loadLeadLatest, setTemplateList, setContent]);
+  },[sourceLead, loadLeadLatest, setTemplateList, setContent, loadFormDetailsFromRevisionId]);
 
   return (
     <section>
@@ -112,13 +121,13 @@ export default function CloneSetup ({session, leadName, client, users, clients, 
           <div className="flex items-center gap-2">
             <div className="font-bold">Source Lead:</div>
             <button className='std-button-lite' onClick={() => setShowPickSource(true)}>Pick Source</button>
-            <input type='text' className='std-input flex-grow' placeholder="Please choose a source lead..." disabled value={sourceLead.name}></input>
+            <input type='text' className='std-input flex-grow text-[#888]' placeholder="Please choose a source lead..." disabled value={sourceLead.name}></input>
           </div>
           <div className="font-bold">Study Plans Included:</div>
           <ul>
             { templateList.length > 0 ? templateList.map((template:any, index:number) => (
               <li key={index} className='flex justify-between items-center std-input rounded-md mb-2'>
-                {template.name}
+                {template}
               </li>
             ))
             :

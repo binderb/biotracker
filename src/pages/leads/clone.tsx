@@ -72,67 +72,6 @@ export default function Clone () {
   const [templateList, setTemplateList] = useState<any>([]);
   const [content, setContent] = useState<any>(null);
 
-  useEffect( () => {
-    const fetchTemplateObjects = async () => {
-      const newContent = [];
-      try {
-        for (let i=0; i<templateList.length; i++) {
-          // Check to see if this plan template already exists in content
-          const existingTemplate = content ? content.filter((plan:any) => plan.name === templateList[i].name) : [];
-          if (existingTemplate.length > 0) {
-            console.log('found!');
-            console.log(existingTemplate[0]);
-            newContent.push(existingTemplate[0]);
-          } else {
-            console.log('not found!');
-            console.log(templateList[i]._id)
-            const planResponse = await getLatestStudyPlanFormRevision({
-              variables: {
-                getStudyPlanFormLatestRevisionId: templateList[i]._id
-              }
-            });
-            if (planResponse.data?.getStudyPlanFormLatestRevision) {
-              const templateObject = planResponse.data?.getStudyPlanFormLatestRevision;
-              newContent.push({
-                name: templateObject.name,
-                associatedStudyId: null,
-                studyPlanFormRevisionId: templateObject.revisions[0]._id,
-                sections: templateObject.revisions[0].sections.map( (section:any) => {
-                  return { 
-                    "name": section.name,
-                    "index": section.index,
-                    "extensible": section.extensible,
-                    "rows": section.rows.map( (row:any) => {
-                      return {
-                        "index": row.index,
-                        "extensible": row.extensible,
-                        "fields" : row.fields.map( (field:any) => {
-                          return {
-                            "type" : field.type,
-                            "extensible" : field.extensible,
-                            "params" : field.params,
-                            "data" : field.data
-                          }
-                        })
-                      }
-                    })
-                  };
-                })
-              });
-            }
-          }
-        }
-        setContent(newContent);
-      } catch (err:any) {
-        console.log(err);
-      }
-    }
-    
-    fetchTemplateObjects();
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [templateList, getLatestStudyPlanFormRevision]);
-
   if (status !== 'authenticated') {
     router.push('/login');
     return;
@@ -217,9 +156,14 @@ export default function Clone () {
             <LeadEditor
               client={client}
               content={content}
+              studyPlanNames={templateList}
+              upgradeFormContent={''}
               leadData={null}
               users={users}
               setContent={setContent}
+              setUpgradeFormContent={()=>{}}
+              handleUpgradeForm={()=>{}}
+              upgradable={false}
             />
             <div className='flex gap-2'>
               <button className='std-button' onClick={() => handleChangeStep(-1)}>Back</button>

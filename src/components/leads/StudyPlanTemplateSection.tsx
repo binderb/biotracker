@@ -99,6 +99,16 @@ export default function StudyPlanTemplateSection ({sections, index, setSections}
             { sectionData.rows.map( (row:TemplateRow, rowIndex:number) => (
               // <div key={index}></div>
               <div key={`row-${rowIndex}`} className='flex flex-col gap-2'>
+                {
+                  rowIndex === 0 && (
+                    <div className='flex justify-center'>
+                      <button className='std-button-lite flex items-center justify-center gap-2' onClick={() => handleAddRow(0)}>
+                        <FontAwesomeIcon icon={faPlus} />
+                        Row
+                      </button>
+                    </div>
+                  )
+                }
                 <StudyPlanTemplateRow sections={sections} index={index} rowIndex={rowIndex} setSections={setSections} />
                 <div className='flex justify-center'>
                   <button className='std-button-lite flex items-center justify-center gap-2' onClick={()=>handleAddRow(rowIndex+1)}>

@@ -135,7 +135,7 @@ const typeDefs = gql`
     addClient(name: String!, code: String!): Client
     addLead(name: String!, author: ID!, drafters: [ID]!, client: ID!, content: String!, firstNote: String!): String
     updateLeadDrafters(leadId: ID!, drafters: [ID]!): String
-    addLeadRevision(id: ID!, author: ID!, status: String!, content: String!, note: String!): String
+    addLeadRevision(id: ID!, author: ID!, status: String!, content: String!, note: String!): LeadRevision
     addLeadNote(id: ID!, revisionId: ID!, author: ID!, note: String!): String
     addForm(name: String!, formCategory: String!, metadata: String, sections: String!): String
     addFormRevision(formId: ID!, sections: String!, note: String!): String

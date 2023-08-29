@@ -199,8 +199,13 @@ export default function NewStudyPlanForm () {
                     client={'EXAMPLE'}
                     leadData={{name: 'EXAMPLE'}}
                     content={content}
+                    studyPlanNames={[templateName]}
+                    upgradeFormContent={'EXAMPLE'}
                     setContent={setContent}
+                    setUpgradeFormContent={() => {}}
+                    handleUpgradeForm={() => {}}
                     users={[]}
+                    upgradable={false}
                   />
                 </section>
               </div>

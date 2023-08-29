@@ -93,8 +93,8 @@ export default function NewLead () {
             if (planResponse.data?.getStudyPlanFormLatestRevision) {
               const templateObject = planResponse.data?.getStudyPlanFormLatestRevision;
               newContent.push({
-                name: templateObject.name,
                 associatedStudyId: null,
+                studyPlanFormId: templateObject._id,
                 studyPlanFormRevisionId: templateObject.revisions[0]._id,
                 sections: templateObject.revisions[0].sections.map( (section:any) => {
                   return { 
@@ -212,9 +212,14 @@ export default function NewLead () {
             <LeadEditor
               client={client}
               content={content}
+              studyPlanNames={templateList.map((form:any) => form.name)}
+              upgradeFormContent={''}
               leadData={null}
               users={users}
               setContent={setContent}
+              setUpgradeFormContent={()=>{}}
+              handleUpgradeForm={()=>{}}
+              upgradable={false}
             />
             <div className='flex gap-2'>
               <button className='std-button' onClick={() => handleChangeStep(-1)}>Back</button>

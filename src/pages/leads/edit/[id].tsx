@@ -41,6 +41,16 @@ export async function getServerSideProps(context:any) {
   });
   const leadData = leadResponseData?.getLeadLatestRevision;
   const leadContent = JSON.parse(leadData.revisions[0].content);
+  const studyPlanNames = [];
+  for (let i=0;i<leadContent.length;i++) {
+    const {data: formDetailsData} = await apolloClient.query({
+      query: GET_FORM_DETAILS_FROM_REVISION_ID,
+      variables: {revisionId: leadContent[i].studyPlanFormRevisionId},
+      fetchPolicy: 'network-only'
+    });
+    const formDetails = formDetailsData?.getFormDetailsFromRevisionId;
+    studyPlanNames.push(formDetails.name);
+  }
   await apolloClient.query({
     query: GET_FORM_DETAILS_FROM_REVISION_ID,
     variables: {
@@ -57,7 +67,8 @@ export async function getServerSideProps(context:any) {
   return addApolloState(apolloClient, {
     props: {
       session,
-      editId: context.params.id
+      editId: context.params.id,
+      studyPlanNames: studyPlanNames
     },
   });
 
@@ -84,6 +95,7 @@ export default function LeadManager (props:any) {
   const [leadStatus, setLeadStatus] = useState(leadData.status);
   let leadContent = JSON.parse(leadData?.revisions[0].content);
   const [content, setContent] = useState(leadContent);
+  const [studyPlanNames, setStudyPlanNames] = useState(props.studyPlanNames);
   const [errStatus, setErrStatus] = useState('');
   const [successStatus, setSuccessStatus] = useState('');
   const [client, setClient] = useState(leadData.client.code);
@@ -92,7 +104,7 @@ export default function LeadManager (props:any) {
     refetchQueries: [{query: GET_LEAD_LATEST,
       variables: {
         getLeadLatestRevisionId: props.editId
-      }},{query: GET_LEADS}]
+      }, fetchPolicy:'network-only'},{query: GET_LEADS}]
   });
   const [addLeadNote, { error: leadNoteError, data: addLeadNoteData }] = useMutation(ADD_LEAD_NOTE, {
     refetchQueries: [{query: GET_LEAD_LATEST,
@@ -137,11 +149,13 @@ export default function LeadManager (props:any) {
   const users = userData.getUsers;
   const { data: studyPlanFormsData } = useQuery(GET_STUDY_PLAN_FORMS);
   const studyPlanForms = studyPlanFormsData.getStudyPlanForms;
-  const [templateList, setTemplateList] = useState(leadContent);
+  const [templateList, setTemplateList] = useState(leadContent.map((leadPlan:any) => ({_id: leadPlan.studyPlanFormId})));
+  console.log(templateList);
   const [drafterList, setDrafterList] = useState(leadData.drafters);
   const [updateLeadDrafters] = useMutation(UPDATE_LEAD_DRAFTERS);
   const [getLatestStudyPlanFormRevision] = useLazyQuery(GET_STUDY_PLAN_FORM_LATEST);
-
+  const [upgradeFormContent, setUpgradeFormContent] = useState<any>('');
+  const [leadStudyPlanNames, setLeadStudyPlanNames] = useState(props.studyPlanNames);
 
   useEffect( () => {
     let changeSum = 0;
@@ -169,11 +183,6 @@ export default function LeadManager (props:any) {
     setChanges(changeSum);
   }, [leadStatus, leadContent, content, leadData.status]);
 
-  useEffect( () => {
-    console.log('content changed');
-    console.log(content);
-  },[content]);
-
   if (status !== 'authenticated') {
     router.push('/login');
     return;
@@ -181,8 +190,9 @@ export default function LeadManager (props:any) {
 
   function handleRevertChanges () {
     setLeadStatus(leadData.status);
-    setTemplateList(leadContent);
+    setTemplateList(leadContent.map((leadPlan:any) => ({_id: leadPlan.studyPlanFormId})));
     setContent(leadContent);
+    setStudyPlanNames(leadStudyPlanNames);
   }
 
   async function handleSubmitLeadRevision () {
@@ -207,6 +217,17 @@ export default function LeadManager (props:any) {
       const response = await addLeadRevision({
         variables: leadData
       });
+      const newStudyPlanNames = [];
+      for (let i=0;i<leadContent.length;i++) {
+        const {data: formDetailsData} = await apolloClient.query({
+          query: GET_FORM_DETAILS_FROM_REVISION_ID,
+          variables: {revisionId: leadContent[i].studyPlanFormRevisionId},
+          fetchPolicy: 'network-only'
+        });
+        const formDetails = formDetailsData?.getFormDetailsFromRevisionId;
+        newStudyPlanNames.push(formDetails.name);
+      }
+      setLeadStudyPlanNames(newStudyPlanNames);
       setNote('');
       setSuccessStatus('Draft successfully updated.');
       setErrStatus('');
@@ -329,12 +350,13 @@ export default function LeadManager (props:any) {
   function handleAddTemplate (e:ChangeEvent<HTMLFormElement>) {
     e.preventDefault();
     const templateObject = studyPlanForms.filter((template:any) => template.name === templateToAdd)[0];
-    setTemplateList([...templateList, templateObject]);
+    setTemplateList([...templateList, {_id: templateObject._id}]);
+    console.log(templateObject);
     setTemplateToAdd('');
   }
 
-  function handleRemoveTemplate (name:string) {
-    const newTemplateList = templateList.filter((template:any) => template.name !== name);
+  function handleRemoveTemplate (id:string) {
+    const newTemplateList = templateList.filter((template:any) => template._id !== id);
     setTemplateList(newTemplateList);
   }
 
@@ -351,20 +373,15 @@ export default function LeadManager (props:any) {
   }
 
   async function handleSaveSettings () {
-    // Write new update lead mutation that sets drafters.
     try {
       // Update study plans
       const newContent = [];
       for (let i=0; i<templateList.length; i++) {
         // Check to see if this plan template already exists in content
-        const existingTemplate = content ? content.filter((plan:any) => plan.name === templateList[i].name) : [];
+        const existingTemplate = content ? content.filter((plan:any) => plan.studyPlanFormId === templateList[i]._id) : [];
         if (existingTemplate.length > 0) {
-          console.log('found!');
-          console.log(existingTemplate[0]);
           newContent.push(existingTemplate[0]);
         } else {
-          console.log('not found!');
-          console.log(templateList[i]._id)
           const planResponse = await getLatestStudyPlanFormRevision({
             variables: {
               getStudyPlanFormLatestRevisionId: templateList[i]._id
@@ -372,10 +389,9 @@ export default function LeadManager (props:any) {
           });
           if (planResponse.data?.getStudyPlanFormLatestRevision) {
             const templateObject = planResponse.data?.getStudyPlanFormLatestRevision;
-            console.log(templateObject);
             newContent.push({
-              name: templateObject.name,
               associatedStudyId: null,
+              studyPlanFormId: templateObject._id,
               studyPlanFormRevisionId: templateObject.revisions[0]._id,
               sections: templateObject.revisions[0].sections.map( (section:any) => {
                 return { 
@@ -413,21 +429,50 @@ export default function LeadManager (props:any) {
       await apolloClient.refetchQueries({
         include: [GET_LEADS, GET_LEAD_LATEST]
       });
+      const newStudyPlanNames = [];
+      console.log(newContent);
+      for (let i=0;i<newContent.length;i++) {
+        const {data: formDetailsData} = await apolloClient.query({
+          query: GET_FORM_DETAILS_FROM_REVISION_ID,
+          variables: {revisionId: newContent[i].studyPlanFormRevisionId},
+          fetchPolicy: 'network-only'
+        });
+        console.log(`fetched ${i}`)
+        const formDetails = formDetailsData?.getFormDetailsFromRevisionId;
+        newStudyPlanNames.push(formDetails.name);
+      }
+      console.log(newStudyPlanNames);
+      setStudyPlanNames(newStudyPlanNames);
       setSettingsVisible(false);
       setSettingsErrStatus('');
     } catch (err:any) {
       setSettingsErrStatus(JSON.stringify(err));
     }
+  }
 
-    // How to handle adding plans? That data is stored in a revision's "content".
-    // Could just provide a pop-up that notifies the user that a new commit will be
-    // created, and then do just that.
+  async function handleUpgradeForm (generatedNote:string) {
+    const newRevisionData = {
+      addLeadRevisionId: props.editId,
+      status: leadStatus,
+      author: session?.user.id,
+      content: JSON.stringify(upgradeFormContent),
+      note: generatedNote
+    }
+    try {
+      await addLeadRevision({
+        variables: newRevisionData
+      });
+      const newResponse = await loadLeadLatest();
+      leadData = newResponse?.data?.getLeadLatestRevision;
+      leadContent = JSON.parse(leadData?.revisions[0].content);
+      setContent(leadContent);
+      setSuccessStatus('Draft successfully updated.');
+      setErrStatus('');
+    } catch (err:any) {
+      setSuccessStatus('');
+      setErrStatus(err.message);
+    }
 
-    // Since the user might have already made changes, better to just make the appropriate changes to the "content" variable.
-
-
-    // Once this is implemented, ALSO need to make sure the "re-publish" option can
-    // handle assigning new study IDs to plans that were added since the last publish.
   }
 
   
@@ -523,9 +568,14 @@ export default function LeadManager (props:any) {
                   <LeadEditor 
                     client={client}
                     content={content}
+                    studyPlanNames={studyPlanNames}
+                    upgradeFormContent={upgradeFormContent}
                     leadData={leadData}
                     users={users}
                     setContent={setContent}
+                    setUpgradeFormContent={setUpgradeFormContent}
+                    handleUpgradeForm={handleUpgradeForm}
+                    upgradable={true}
                   />
               </section>
             </div>
@@ -643,7 +693,7 @@ export default function LeadManager (props:any) {
                   <button className="std-button-lite mr-2" disabled={templateToAdd === ''}>Add</button>
                   <select className="std-input flex-grow" onChange={(e) => setTemplateToAdd(e.target.value)} value={templateToAdd}>
                     <option value=''>-- Choose --</option>
-                    { studyPlanForms.map((template:any, index:number) => (<option key={index} value={template.name} disabled={templateList.filter((templatelistitem:any) => template.name === templatelistitem.name).length > 0}>
+                    { studyPlanForms.map((template:any, index:number) => (<option key={index} value={template.name} disabled={studyPlanNames.filter((name:any) => template.name === name).length > 0}>
                       {template.name}
                     </option>))}
                   </select>
@@ -652,8 +702,8 @@ export default function LeadManager (props:any) {
                 <ul>
                   { templateList.length > 0 ? templateList.map((template:any, index:number) => (
                     <li key={index} className='flex justify-between items-center std-input rounded-md mb-2'>
-                      {template.name}
-                      <button className='secondary-button-lite' onClick={()=>handleRemoveTemplate(template.name)} disabled={leadContent.filter((e:any) => e.name === template.name).length > 0}><FontAwesomeIcon icon={faX} size='xs' /></button>
+                      {studyPlanForms.filter((plan:any) => template._id === plan._id)[0].name}
+                      <button className='secondary-button-lite' onClick={()=>handleRemoveTemplate(template._id)} disabled={leadContent.filter((e:any) => e.studyPlanFormId === studyPlanForms.filter((form:any) => form.name === studyPlanForms.filter((plan:any) => template._id === plan._id)[0]?.name)[0]._id).length > 0}><FontAwesomeIcon icon={faX} size='xs' /></button>
                     </li>
                   ))
                   :
@@ -689,7 +739,7 @@ export default function LeadManager (props:any) {
               </section>
             </section>
             <div className='flex gap-2'>
-              <button className='secondary-button-lite flex-grow' onClick={() => {setSettingsErrStatus(''); setSettingsVisible(false); setDrafterList(leadData.drafters); setTemplateList(leadContent);}}>
+              <button className='secondary-button-lite flex-grow' onClick={() => {setSettingsErrStatus(''); setSettingsVisible(false); setDrafterList(leadData.drafters); setTemplateList(leadContent.map((plan:any) => ({_id:plan.studyPlanFormId})));}}>
                 Cancel
               </button>
               <button className='std-button-lite flex-grow' onClick={handleSaveSettings}>

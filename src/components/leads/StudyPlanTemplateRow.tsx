@@ -86,8 +86,17 @@ export default function StudyPlanTemplateRow ({sections, index, rowIndex, setSec
           { rowData.fields.length > 0 ? 
             <>
             { rowData.fields.map( (field:TemplateField, fieldIndex:number) => (
-              // <div key={index}></div>
               <div key={fieldIndex} className='flex flex-col gap-2'>
+                {
+                  fieldIndex === 0 && (
+                    <div className='flex justify-center'>
+                      <button className='std-button-lite flex items-center justify-center gap-2' onClick={() => handleAddField(0)}>
+                        <FontAwesomeIcon icon={faPlus} />
+                        Field
+                      </button>
+                    </div>
+                  )
+                }
                 <StudyPlanTemplateField key={`field${fieldIndex}`} sections={sections} index={index} rowIndex={rowIndex} fieldIndex={fieldIndex} setSections={setSections} />
                 <div className='flex justify-center'>
                   <button className='std-button-lite flex items-center justify-center gap-2' onClick={() =>handleAddField(fieldIndex+1)}>

@@ -364,10 +364,10 @@ const resolvers = {
             status: status
           }
         );
+        return newRevision;
       } catch (err:any) {
         throw new Error(err.message);
       }
-      return `success`;
     },
     addLeadNote: async(_:any, args:any) => {
       const { id, revisionId, author, note } = args;

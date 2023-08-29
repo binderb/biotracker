@@ -49,6 +49,16 @@ export default function FormLayoutEditor ({sections, setSections}:Props) {
           <>
           {sections.map((section:TemplateSection, sectionIndex:number) => 
             <div key={sectionIndex} className='flex flex-col gap-2'>
+              {
+                sectionIndex === 0 && (
+                  <div className='flex justify-center'>
+                    <button className='std-button-lite flex items-center justify-center gap-2' onClick={() => handleAddSection(0)}>
+                      <FontAwesomeIcon icon={faPlus} />
+                      Section
+                    </button>
+                  </div>
+                )
+              }
               <StudyPlanTemplateSection index={sectionIndex} sections={sections} setSections={setSections} />
               <div className='flex justify-center'>
                 <button className='std-button-lite flex items-center justify-center gap-2' onClick={() => handleAddSection(sectionIndex+1)}>

@@ -1,28 +1,41 @@
-import { GET_FORM_DETAILS_FROM_REVISION_ID } from "@/utils/queries";
-import { useQuery } from "@apollo/client";
-import { faX } from "@fortawesome/free-solid-svg-icons";
+import { GET_FORM_DETAILS_FROM_REVISION_ID, GET_STUDY_PLAN_FORM_LATEST } from "@/utils/queries";
+import { useApolloClient, useLazyQuery, useQuery } from "@apollo/client";
+import { faCheckCircle, faExclamationCircle, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChangeEvent, useEffect, useState, Fragment } from "react";
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
+import FormContentEditor from "./FormContentEditor";
+import _, { initial } from 'lodash';
 
 interface Props {
   client: any
   leadData: any
   content: any
+  studyPlanNames: [string]
+  upgradeFormContent: any
   users: any
   setContent: Function
+  setUpgradeFormContent: Function
+  handleUpgradeForm: Function
+  upgradable: boolean
 }
 
-export default function LeadEditor ({client, content, leadData, users, setContent}:Props) {
+export default function LeadEditor ({client, content, studyPlanNames, upgradeFormContent, leadData, users, setContent, setUpgradeFormContent, handleUpgradeForm, upgradable}:Props) {
 
   const [currentStudyPlanIndex, setCurrentStudyPlanIndex] = useState(0);
+  const apolloClient = useApolloClient();
   const { data: formDetailsResponse } = useQuery(GET_FORM_DETAILS_FROM_REVISION_ID, {
     variables: {
-      revisionId: content[currentStudyPlanIndex].studyPlanFormRevisionId
+      revisionId: content[currentStudyPlanIndex]?.studyPlanFormRevisionId
     }
   });
-  const formDetails = formDetailsResponse?.getFormDetailsFromRevisionId;
+  let formDetails = formDetailsResponse?.getFormDetailsFromRevisionId;
+  const [showUpgradeForm, setShowUpgradeForm] = useState(false);
+  const [getStudyPlanFormLatest] = useLazyQuery(GET_STUDY_PLAN_FORM_LATEST, {
+    fetchPolicy: 'network-only'
+  });
+  console.log(content)
 
   useEffect( () => {
     if (currentStudyPlanIndex >= content.length-1) {
@@ -30,66 +43,55 @@ export default function LeadEditor ({client, content, leadData, users, setConten
     }
   },[currentStudyPlanIndex, setCurrentStudyPlanIndex, content]);
 
-  function handleUpdateLeadInputField(e:ChangeEvent<HTMLInputElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
-    const newContent = [...content];
-    if (type === 'checkbox' || type === 'multicheckbox') {
-      const newData = [...newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
-      newData.splice(dataIndex,1,e.target.checked);
-      newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
-    } else { 
-      const newData = [...newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
-      newData.splice(dataIndex,1,e.target.value);
-      newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
+  useEffect( () => {
+    
+    async function setupUpgradeFormObject () {
+      if (!formDetails) return;
+      const {data: studyPlanResponse} = await getStudyPlanFormLatest({
+        variables: {
+          getStudyPlanFormLatestRevisionId: formDetails._id
+        }
+        
+      });
+      const latestStudyPlan = studyPlanResponse?.getStudyPlanFormLatestRevision;
+      let newFormContentObject = _.cloneDeep(content);
+      newFormContentObject.splice(currentStudyPlanIndex,1,{
+        associatedStudyId: null,
+        studyPlanFormId: latestStudyPlan._id,
+        studyPlanFormRevisionId: latestStudyPlan.revisions[0]._id,
+        sections: latestStudyPlan.revisions[0].sections.map( (section:any) => {
+          return { 
+            "name": section.name,
+            "index": section.index,
+            "extensible": section.extensible,
+            "rows": section.rows.map( (row:any) => {
+              return {
+                "index": row.index,
+                "extensible": row.extensible,
+                "fields" : row.fields.map( (field:any) => {
+                  return {
+                    "type" : field.type,
+                    "extensible" : field.extensible,
+                    "params" : field.params,
+                    "data" : field.data
+                  }
+                })
+              }
+            })
+          };
+        })
+      });
+      setUpgradeFormContent(newFormContentObject);
     }
-    console.log(newContent);
-    setContent(newContent);
-  }
+    
+    setupUpgradeFormObject();
 
-  function handleUpdateLeadTextArea(e:ChangeEvent<HTMLTextAreaElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
-    const newContent = [...content];
-    const newData = [...newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
-    newData.splice(dataIndex,1,e.target.value);
-    newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
-    setContent(newContent);
-  }
+  },[formDetails, getStudyPlanFormLatest, currentStudyPlanIndex, content, setShowUpgradeForm, setUpgradeFormContent]);
 
-  function handleUpdateLeadSelectField(e:ChangeEvent<HTMLSelectElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
-    const newContent = [...content];
-    const newData = [...newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
-    newData.splice(dataIndex,1,e.target.value);
-    newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
-    setContent(newContent);
-  }
-
-  function handleUpdateLeadDateField(date:string, sectionIndex:number, rowIndex:number, fieldIndex:number, dataIndex:number) {
-    console.log(date);
-    const formattedDate = new Date(date).toISOString();
-    const newContent = [...content];
-    const newData = [...newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data];
-    newData.splice(dataIndex,1,formattedDate);
-    newContent[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields[fieldIndex].data = newData;
-    setContent(newContent);
-  }
-
-  function handleAddExtensibleRow(e:any,sectionIndex:number,rowIndex:number) {
-    e.preventDefault();
-    const newRow = {
-      ...content[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex], 
-      index: content[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].index+1,
-      fields: [
-        ...content[currentStudyPlanIndex].sections[sectionIndex].rows[rowIndex].fields.map( (field:any) => {return {...field, data: ''};})
-      ]
-    };
-    const newContent = [...content];
-    newContent[currentStudyPlanIndex].sections[sectionIndex].rows.push(newRow);
-    setContent(newContent);
-  }
-
-  function handleDeleteExtensibleRow(e:any, sectionIndex: number, rowIndex: number) {
-    e.preventDefault();
-    const newContent = [...content];
-    newContent[currentStudyPlanIndex].sections[sectionIndex].rows.splice(rowIndex,1);
-    setContent(newContent);
+  async function startHandleUpgradeForm () {
+    const note = `Upgraded form F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1} \u2192 R${formDetails?.revisions.length}.`;
+    setShowUpgradeForm(false);
+    await handleUpgradeForm(note);
   }
 
   return (
@@ -105,9 +107,9 @@ export default function LeadEditor ({client, content, leadData, users, setConten
           <section className='flex items-center gap-2 pb-4'>
             <div className="font-bold">Study Plan:</div>
             <select className="std-input flex-grow" value={currentStudyPlanIndex} onChange={(e) => setCurrentStudyPlanIndex(parseInt(e.target.value))}>
-              { content.map((plan:any, index:number) => (
+              { studyPlanNames.map((plan:any, index:number) => (
                 <option key={`study-plan-${index}`} value={index}>
-                  {plan.name}
+                  {plan}
                 </option>
               ))}
             </select>
@@ -119,128 +121,114 @@ export default function LeadEditor ({client, content, leadData, users, setConten
                 <div>
                   {`F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1}`}
                 </div>
+                {
+                  formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId) === formDetails?.revisions.length-1 ?
+                  (
+                    <div className='bg-[#DFD] px-2 pr-3 py-1 text-[#080] rounded-full border border-[#080] flex gap-2 items-center'>
+                      <FontAwesomeIcon icon={faCheckCircle} />
+                      Latest Version
+                    </div>
+                  ) : (
+                    <div className='bg-[#ffeca5] px-2 pr-3 py-1 text-[#aa7d00] rounded-full border border-[#aa7d00] flex gap-2 items-center'>
+                      <FontAwesomeIcon icon={faExclamationCircle} />
+                      Outdated Form
+                      {
+                        upgradable ? (
+                          <button className='underline font-bold hover:text-[#d1a93a]' onClick={(e)=>{e.preventDefault();setShowUpgradeForm(true);}}>Upgrade</button>
+                        ) : (
+                          <div>(you will need to upgrade before publishing the lead)</div>
+                        )
+                      }
+                      
+                    </div>
+                  )
+                }
               </section>
             )
           }
-          
-          
-          {content[currentStudyPlanIndex]?.sections.map( (section:any, sectionIndex:number) => (
-            <section key={`section-${sectionIndex}`}>
-              <div className='mr-2 font-bold'>{section.name}:</div>
-              <div className='border border-secondary rounded-lg p-2 overflow-x-auto my-2'>
-              <table className='w-full'><tbody>
-              {section.rows.map( (row:any, rowIndex:number) => (
-                // <div key={rowIndex} className='flex gap-2 items-center'>
-                <tr key={`row-${rowIndex}`}>
-                  {row.fields.map((field:any, fieldIndex:number) => (
-                    <Fragment key={`field-${fieldIndex}`}>
-                      {field.type === 'label' && (
-                        <td key={fieldIndex} className='align-top py-1'>
-                          { row.fields.length > 1 && !row.extensible &&
-                            <div className='font-bold'>{field.params[0]}:</div>
-                          }
-                          { row.extensible &&
-                            <div className='font-bold'>{field.params[0]} {section.rows.indexOf(row)+1}:</div>
-                          }
-                        </td>
-                      )}
-                      {field.type === 'textarea' && (
-                        <td className='align-middle py-1'>
-                        <textarea className='resize-none std-input w-full h-[100px]' value={field.data} onChange={(e) => handleUpdateLeadTextArea(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
-                        </td>
-                      )}
-                      {field.type === 'input' && (
-                        <td className='flex gap-2 align-middle py-1'>
-                        <input type='text' className='std-input flex-grow w-full' value={field.data} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
-                        {/* ROW DELETE BUTTON */}
-                        { row.extensible && rowIndex > 0 &&
-                          <button className='secondary-button-lite' onClick={(e) => handleDeleteExtensibleRow(e, sectionIndex, rowIndex)}><FontAwesomeIcon icon={faX}/></button>
-                        }
-                        {/* ROW ADD BUTTON */}
-                        {row.extensible && section.rows.indexOf(row) == section.rows.length-1 &&
-                          <div className='flex'>
-                            <button className='std-button-lite' onClick={(e) => handleAddExtensibleRow(e, sectionIndex, rowIndex)}>Add</button>
-                          </div>
-                        }
-                        </td>
-                        
-                      )}
-                      {field.type === 'checkbox' && (
-                        <td className='align-middle py-1'>
-                        <label className='form-control'>
-                        <input type='checkbox' checked={field.data[0]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
-                        {field.params[0]}
-                        </label>
-                        </td>
-                      )}
-                      {field.type === 'multicheckbox' && (
-                        <td className='align-top'>
-                        <div className='flex flex-col gap-2 justify-start items-start'>
-                          { field.params.map( (param:string, i:number) => (
-                              <label key={i} className='form-control'>
-                              <input type='checkbox' checked={field.data[i]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, i, field.type)} />
-                              {param}
-                              </label>
-                          ))}
-                        </div>
-                        </td>
-                      )}
-                      {field.type === 'date' && (
-                        <td className='align-top'>
-                          <DatePicker className='std-input' dateFormat='MM/dd/yyyy' selected={field.data[0] ? new Date(field.data[0]) : null} onChange={(date:any) => handleUpdateLeadDateField(date, sectionIndex, rowIndex, fieldIndex, 0)} />
-                        </td>
-                      )}
-                      {field.type === 'database' && (
-                        <td className='align-top'>
-                          {
-                            field.params[0] === 'users' && (
-                              <select className='std-input w-full' value={field.data[0]} onChange={(e) => handleUpdateLeadSelectField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)}>
-                                <option value=''>-- Choose --</option>
-                                {
-                                  users.map((user:any, index:number) => (
-                                    <option key={index} value={user._id}>
-                                      {`${user.first} ${user.last}`}
-                                    </option>
-                                  ))
-                                }
-                              </select>
-                            )
-                          }
-                        </td>
-                      )}
-                      {field.type === 'generated' && (
-                        <td className='align-top'>
-                          {
-                            field.params[0] === 'studyId' && (
-                              <>
-                              {
-                                content[currentStudyPlanIndex].associatedStudyId ? (
-                                    <>
-                                    {
-                                      `${client}${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].index.toString().padStart(4,'0')}-${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].type}`
-                                    }
-                                    </>
-                                ) : (
-                                  <div className='italic'>(TBD - will be generated when lead is published)</div>
-                                )
-                              }
-                              </>
-                            )
-                          }
-                        </td>
-                      )}
-                    </Fragment>
-                  ))}
-                  
-                  </tr>
-              ))}
-              </tbody></table>
-              </div>
-            </section>
-          ))}
-          
+          <FormContentEditor 
+            users={users}
+            client={client}
+            leadData={leadData}
+            content={content}
+            setContent={setContent}
+            currentStudyPlanIndex={currentStudyPlanIndex}
+          />
         </form>
+      </section>
+      <section className={`absolute ${showUpgradeForm ? `block` : `hidden`} items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
+        <section className='flex bg-white mx-4 rounded-lg p-0 col-start-2 col-span-10 md:col-start-3 md:col-span-8 lg:col-start-4 lg:col-span-6'>
+          <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
+            <h5>Upgrade Form Version</h5>
+            <section className='flex flex-col justify-center'>
+              <div>
+                <span>
+                  {`You are currently using Study Plan Form `}
+                </span>
+                <span className='font-bold'>
+                  {`F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1} `}
+                </span>
+                <span>
+                  {`in this lead, but the current version is `}
+                </span>
+                <span className='font-bold'>
+                  {`F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length} `}
+                </span>
+                <span>
+                  {`. You will not be able to publish the lead until all associated forms are upgraded to their current versions. Use the panel below to transfer your saved information into the new version of the form. Clicking "Commit Upgrade" will save your changes and generate an automated comment to your group summarizing the action.`}
+                </span>
+              </div>
+              
+              <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
+                <div className='md:overflow-y-hidden overflow-x-visible h-[calc(90vh-300px)]'>
+                  <div className='md:overflow-y-auto overflow-x-visible h-full pr-4'>
+                    <section className='grid grid-cols-12 gap-2'>
+                      <div className='col-span-6'>
+                        <h5>
+                          {`F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1}`}
+                        </h5>
+                        <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
+                          <FormContentEditor 
+                            users={users}
+                            client={client}
+                            leadData={leadData}
+                            content={content}
+                            setContent={setContent}
+                            currentStudyPlanIndex={currentStudyPlanIndex}
+                          />
+                        </section>
+                      </div>
+                      <div className='col-span-6'>
+                        <h5>
+                          {`F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length}`}
+                        </h5>
+                        <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
+                          <FormContentEditor 
+                            users={users}
+                            client={client}
+                            leadData={leadData}
+                            content={upgradeFormContent}
+                            setContent={setUpgradeFormContent}
+                            currentStudyPlanIndex={currentStudyPlanIndex}
+                          />
+                        </section>
+                      </div>
+                    </section>
+                  </div>
+                </div>
+              </section>
+            </section>
+            <div className='flex gap-2'>
+              <button className='secondary-button-lite flex-grow' onClick={() => {setShowUpgradeForm(false);}}>
+                Cancel
+              </button>
+              <button className='std-button-lite flex-grow' onClick={startHandleUpgradeForm}>
+                Commit Upgrade
+              </button>
+            </div>
+          </section>
         </section>
+      </section>
     </>
   );
 }

@@ -113,7 +113,9 @@ export default function StudyPlanEditor (props:any) {
   const [showRevisionHistory, setShowRevisionHistory] = useState(false);
   const [commitNote, setCommitNote] = useState('');
   const [addFormRevision] = useMutation(ADD_FORM_REVISION, {
-    refetchQueries: [{query: GET_STUDY_PLAN_FORM_LATEST}, {query: GET_STUDY_PLAN_FORMS}]
+    refetchQueries: [
+      {query: GET_STUDY_PLAN_FORM_LATEST, fetchPolicy:'network-only'}, 
+      {query: GET_STUDY_PLAN_FORMS, fetchPolicy:'network-only'}]
   });
   const [updateFormDetails] = useMutation(UPDATE_FORM_DETAILS, {
     refetchQueries: [{query: GET_STUDY_PLAN_FORM_LATEST, fetchPolicy: 'network-only'}, {query: GET_STUDY_PLAN_FORMS, fetchPolicy: 'network-only'}]
@@ -140,7 +142,6 @@ export default function StudyPlanEditor (props:any) {
       studyPlanFormRevisionId: studyPlan.revisions[0]._id,
       sections: sections
     }]);
-    console.log(sections);
   }, [sections, studyPlan, formDetails]);
 
   useEffect( () => {
@@ -298,8 +299,13 @@ export default function StudyPlanEditor (props:any) {
                 client={'EXAMPLE'}
                 leadData={{name: 'EXAMPLE'}}
                 content={content}
+                studyPlanNames={[formName]}
                 setContent={setContent}
+                upgradeFormContent={'EXAMPLE'}
+                setUpgradeFormContent={() => {}}
                 users={users}
+                handleUpgradeForm={() => {}}
+                upgradable={false}
               />
             </section>
           </div>
