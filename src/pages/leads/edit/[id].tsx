@@ -746,7 +746,7 @@ export default function LeadManager (props:any) {
                   { drafterList.map((drafter:any) => (
                     <li key={drafter.username} className='flex justify-between items-center std-input rounded-md mb-2'>
                       <div>
-                      {drafter.username === session.user.username ? `${drafter.first} ${drafter.last} (author)` : `${drafter.first} ${drafter.last}`}
+                      {drafter.username === session.user.username ? `${drafter.first} ${drafter.last} (me)` : `${drafter.first} ${drafter.last}`}
                       </div>
                       <button className='secondary-button-lite' onClick={()=>handleRemoveDrafter(drafter.username)} disabled={drafter.username === session.user.username}><FontAwesomeIcon icon={faX} size='xs' /></button>
                     </li>

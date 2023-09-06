@@ -54,16 +54,15 @@ const resolvers = {
       const { clientCode } = args;
       await connectMongo();
       const client = await Client.findOne({code: clientCode});
-      if (!client) {
-        throw new Error(`Client code doesn't exist!`);
-      }
-      if (client.studies) {
-        const studies = client.studies.map((e:any) => e.index);
-        if (studies.length === 0) {
-          return 1;
-        } else {
-          return studies.length + 1;
-        }
+      console.log("client", client);
+      if (!client) throw new Error("No matching client found!");
+      const clientStudies = await Study.find({client: client._id});
+      let nextStudy = 0;
+      if (clientStudies) {
+        const studyIndices = clientStudies.map((e:any) => e.index);
+        for (let i=0;i<studyIndices.length;i++) if (studyIndices[i] > nextStudy) nextStudy = studyIndices[i];
+        nextStudy++;
+        return nextStudy;
       } else {
         return 1;
       }
