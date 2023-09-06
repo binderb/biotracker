@@ -87,7 +87,7 @@ export default function LeadManager () {
                       }
                       { lead.status === 'completed' &&
                         <div className='flex items-center bg-secondary/80 rounded-md text-white px-2 gap-2'>
-                          <FontAwesomeIcon className='text-gray-300' icon={faCheck} size='s' />
+                          <FontAwesomeIcon className='text-gray-300' icon={faCheck} />
                           Completed
                         </div>
                       }
