@@ -174,7 +174,6 @@ export default function FormContentEditor ({users, client, leadData, content, se
                   <td className='flex gap-2 align-middle py-1'>
                   <input type='text' className='std-input flex-grow w-full' value={field.data} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
                   {/* ROW DELETE BUTTON */}
-                  { row.extensibleReference ? row.extensibleReference : 'null' }
                   { (row.extensible && row.extensibleReference !== null && rowIndex > row.extensibleReference) &&
                     <button className='secondary-button-lite' onClick={(e) => handleDeleteExtensibleRow(e, sectionIndex, rowIndex)}><FontAwesomeIcon icon={faX}/></button>
                   }
