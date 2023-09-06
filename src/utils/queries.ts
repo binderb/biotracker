@@ -162,10 +162,12 @@ export const GET_STUDY_PLAN_FORM_LATEST = gql`
         sections {
           _id
           extensible
+          extensibleReference
           rows {
             _id
             index
             extensible
+            extensibleReference
             fields {
               _id
               data

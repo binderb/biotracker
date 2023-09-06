@@ -15,6 +15,7 @@ interface TemplateRow {
   index: number
   fields: Array<TemplateField>
   extensible: boolean
+  extensibleReference?: number
 }
 
 interface TemplateSection {
@@ -22,6 +23,7 @@ interface TemplateSection {
   index: number
   rows: Array<TemplateRow>
   extensible: boolean
+  extensibleReference?: number
 }
 
 interface Props {
@@ -46,6 +48,7 @@ export default function StudyPlanTemplateRow ({sections, index, rowIndex, setSec
     setRowExtensible(e.target.checked);
     const newSections = [...sections];
     newSections[index].rows[rowIndex].extensible = e.target.checked;
+    newSections[index].rows[rowIndex].extensibleReference = rowIndex;
     setSections(newSections);
   }
 

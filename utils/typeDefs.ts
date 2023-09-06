@@ -86,6 +86,7 @@ const typeDefs = gql`
     index: Int!
     rows: [FormTemplateRow]!
     extensible: Boolean!
+    extensibleReference: Int
     groupedWithPrevious: Boolean
   }
 
@@ -94,6 +95,7 @@ const typeDefs = gql`
     index: Int!
     fields: [FormTemplateField]!
     extensible: Boolean!
+    extensibleReference: Int
   }
 
   type FormTemplateField {

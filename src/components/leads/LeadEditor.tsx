@@ -35,7 +35,6 @@ export default function LeadEditor ({client, content, studyPlanNames, upgradeFor
   const [getStudyPlanFormLatest] = useLazyQuery(GET_STUDY_PLAN_FORM_LATEST, {
     fetchPolicy: 'network-only'
   });
-  console.log(content)
 
   useEffect( () => {
     if (currentStudyPlanIndex >= content.length-1) {
@@ -64,10 +63,12 @@ export default function LeadEditor ({client, content, studyPlanNames, upgradeFor
             "name": section.name,
             "index": section.index,
             "extensible": section.extensible,
+            "extensibleReference" : section.extensibleReference,
             "rows": section.rows.map( (row:any) => {
               return {
                 "index": row.index,
                 "extensible": row.extensible,
+                "extensibleReference": row.extensibleReference,
                 "fields" : row.fields.map( (field:any) => {
                   return {
                     "type" : field.type,

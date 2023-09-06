@@ -5,6 +5,7 @@ const formTemplateSectionSchema = new Schema({
   index: Number!,
   rows: [{ type: Schema.Types.ObjectId, ref: 'FormTemplateRow'}]!,
   extensible: Boolean!,
+  extensibleReference: Number,
 });
 
 const FormTemplateSection = models?.FormTemplateSection || model('FormTemplateSection', formTemplateSectionSchema);

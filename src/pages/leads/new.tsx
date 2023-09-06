@@ -101,10 +101,12 @@ export default function NewLead () {
                     "name": section.name,
                     "index": section.index,
                     "extensible": section.extensible,
+                    "extensibleReference" : section.extensibleReference,
                     "rows": section.rows.map( (row:any) => {
                       return {
                         "index": row.index,
                         "extensible": row.extensible,
+                        "extensibleReference" : row.extensibleReference,
                         "fields" : row.fields.map( (field:any) => {
                           return {
                             "type" : field.type,

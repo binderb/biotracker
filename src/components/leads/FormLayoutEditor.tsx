@@ -14,6 +14,7 @@ interface TemplateRow {
   index: number
   fields: Array<TemplateField>
   extensible: boolean
+  extensibleReference?: number
 }
 
 interface TemplateSection {
@@ -21,6 +22,7 @@ interface TemplateSection {
   index: number
   rows: Array<TemplateRow>
   extensible: boolean
+  extensibleReference?: boolean
 }
 
 interface Props {
