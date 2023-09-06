@@ -554,17 +554,15 @@ const resolvers = {
     addStudy: async (_:any, args:any) => {
       const { clientCode, studyType, leadId, studyPlanIndex } = args;
       await connectMongo();
-      let studyIndex = 1;
       const client = await Client.findOne({code: clientCode});
-      if (!client) {
-        throw new Error("Client code not found!");
+      if (!client) throw new Error("No matching client found!");
+      const clientStudies = await Study.find({client: client._id});
+      let studyIndex = 0;
+      if (clientStudies) {
+        const studyIndices = clientStudies.map((e:any) => e.index);
+        for (let i=0;i<studyIndices.length;i++) if (studyIndices[i] > studyIndex) studyIndex = studyIndices[i];
       }
-      if (client.studies) {
-        const studies = client.studies.map((e:any) => e.index);
-        if (studies.length > 0) {
-          studyIndex = studies.length + 1;
-        }
-      }
+      studyIndex++;
       const newStudy = await Study.create({
         client: client._id,
         type: studyType,
