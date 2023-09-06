@@ -5,7 +5,7 @@ import { initializeApollo, addApolloState } from "../../../utils/apolloClient";
 import { GET_LEADS } from "@/utils/queries";
 import { useSession } from "next-auth/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRight, faBriefcase, faCircle, faClockRotateLeft, faClone, faCodeCommit, faComment, faComments, faFile, faFileArchive, faFileClipboard, faFileLines, faFolderOpen, faMagnifyingGlass, faMagnifyingGlassArrowRight, faPen, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faBriefcase, faCheck, faCircle, faClockRotateLeft, faClone, faCodeCommit, faComment, faComments, faFile, faFileArchive, faFileClipboard, faFileLines, faFolderOpen, faMagnifyingGlass, faMagnifyingGlassArrowRight, faPen, faPlus, faX } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { useQuery } from "@apollo/client";
 import { useRouter } from "next/router";
@@ -83,6 +83,18 @@ export default function LeadManager () {
                         <div className='flex items-center bg-secondary/80 rounded-md text-white px-2 gap-2'>
                           <FontAwesomeIcon className='text-gray-300' icon={faCircle} size='2xs' />
                           Inactive
+                        </div>
+                      }
+                      { lead.status === 'completed' &&
+                        <div className='flex items-center bg-secondary/80 rounded-md text-white px-2 gap-2'>
+                          <FontAwesomeIcon className='text-gray-300' icon={faCheck} size='s' />
+                          Completed
+                        </div>
+                      }
+                      { lead.status === 'cancelled' &&
+                        <div className='flex items-center bg-secondary/80 rounded-md text-white px-2 gap-2'>
+                          <FontAwesomeIcon className='text-gray-300' icon={faX} size='xs' />
+                          Cancelled
                         </div>
                       }
                       <div className='flex items-center bg-secondary/80 rounded-md text-white px-2 gap-2'>

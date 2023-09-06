@@ -567,11 +567,11 @@ const resolvers = {
         }
       }
       const newStudy = await Study.create({
+        client: client._id,
         type: studyType,
         index: studyIndex,
         leadId: new Types.ObjectId(leadId)
       });
-      await Client.findOneAndUpdate({code: clientCode},{$addToSet: {studies: newStudy._id}});
       const associatedLead = await Lead.findOneAndUpdate({_id: leadId}, {
         $set: {published: true},
         $addToSet: {studies: newStudy._id}
@@ -694,8 +694,8 @@ const resolvers = {
         console.log('form file id: ', formFileId)
         await buildFormHeader(formFileId, formRevisionId, formData, auth);
         await buildFormFooter(formFileId, auth);
-        for (let section of studyContent.sections) {
-          await buildFormSection(formFileId, auth, section, studyName);
+        for (let i=0;i<studyContent.sections.length;i++) {
+          await buildFormSection(formFileId, auth, studyContent.sections[i], i, studyName);
         }
         await convertToPdf(newStudyFolderIds[3], studyName, formFileId, auth);
         console.log('Completed actions successfully.');
@@ -721,8 +721,8 @@ const resolvers = {
         const formFileId = await createAndSetupDocument(studyName, protocolFolderId, auth);
         await buildFormHeader(formFileId, formRevisionId, formData, auth);
         await buildFormFooter(formFileId, auth);
-        for (let section of studyContent.sections) {
-          await buildFormSection(formFileId, auth, section, studyName);
+        for (let i=0;i<studyContent.sections.length;i++) {
+          await buildFormSection(formFileId, auth, studyContent.sections[i], i, studyName);
         }
         await deleteFileAtPath(protocolFolderId,studyName,'application/pdf',auth);
         await convertToPdf(protocolFolderId, studyName, formFileId, auth);

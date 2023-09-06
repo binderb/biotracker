@@ -893,7 +893,7 @@ export async function buildFormGeneralInfo (fileId:string, auth:any, studyId:str
 
 }
 
-export async function buildFormSection (fileId: string, auth: any, section: any, studyName: string) {
+export async function buildFormSection (fileId: string, auth: any, section: any, sectionIndex: number, studyName: string) {
   // Retrieve document for editing.
   const docs = google.docs({ version: 'v1', auth });
   let document = await docs.documents.get({ documentId: fileId });
@@ -1093,7 +1093,7 @@ export async function buildFormSection (fileId: string, auth: any, section: any,
         case 'label':
           cellText = field.params[0];
           if (row.extensible) {
-            cellText += ` ${row.index+1}`;
+            cellText += ` ${rowIndex+1 - row.extensibleReference}`;
           }
           break;
         case 'input':
@@ -1149,7 +1149,7 @@ export async function buildFormSection (fileId: string, auth: any, section: any,
   requests.push(
     {
       insertText: {
-        text: section.name,
+        text: section.extensible ? `${section.name} ${sectionIndex+1 - section.extensibleReference}` : section.name,
         location: {
           index: document.data.body.content.filter((e:Object) => e.hasOwnProperty('table'))[document.data.body.content.filter((e:Object) => e.hasOwnProperty('table')).length-1].table.tableRows[0].tableCells[0].startIndex+1
         }

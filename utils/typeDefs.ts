@@ -16,11 +16,11 @@ const typeDefs = gql`
     _id: ID
     name: String!
     code: String!
-    studies: [Study]
   }
 
   type Study {
     _id: ID
+    client: Client
     type: String
     index: Int
     leadId: ID!

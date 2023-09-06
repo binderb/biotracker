@@ -165,14 +165,11 @@ export default function LeadManager (props:any) {
     for (let i=0;i<content.length;i++) {
       content[i].sections.map( (section:any, sectionIndex:number) => {
         if (leadContent.length-1 >= i) {
-          if (leadContent[i].sections[sectionIndex].rows.length !== section.rows.length) changeSum++;
+          if (leadContent[i].sections[sectionIndex]?.rows.length !== section.rows.length) changeSum++;
           section.rows.map( (row:any, rowIndex:number) => {
             row.fields.map( (field:any, fieldIndex:number) => {
-              if (leadContent[i].sections[sectionIndex].rows[rowIndex]?.fields[fieldIndex]?.data.toString() !== field.data.toString()) {
-                changeSum++;
-                console.log("Saved: ",leadContent[i].sections[sectionIndex].rows[rowIndex]?.fields[fieldIndex]?.data.toString());
-                console.log("Change: ",field.data.toString());
-              } 
+              if (leadContent[i].sections[sectionIndex]?.rows[rowIndex]?.fields[fieldIndex]?.data.toString() !== field.data.toString()) {
+                changeSum++;              } 
             });
           });
         } else {
@@ -571,6 +568,8 @@ export default function LeadManager (props:any) {
                       <select className='std-input' value={leadStatus} onChange={(e) => setLeadStatus(e.target.value)}>
                         <option value='active'>Active</option>
                         <option value='inactive'>Inactive</option>
+                        <option value='completed'>Completed</option>
+                        <option value='cancelled'>Cancelled</option>
                       </select>
                     </div>
                   </section>

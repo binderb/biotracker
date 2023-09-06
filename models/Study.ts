@@ -1,6 +1,7 @@
 import { Schema, model, models } from 'mongoose';
 
 const studySchema = new Schema({
+  client: { type: Schema.Types.ObjectId, ref: 'Client' }!,
   index: Number!,
   type: String!,
   leadId: { type: Schema.Types.ObjectId, ref: 'Lead' }!
