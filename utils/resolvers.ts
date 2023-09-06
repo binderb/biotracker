@@ -335,6 +335,20 @@ const resolvers = {
       }
       return `success`;
     },
+    updateLeadName: async (_:any, args:any) => {
+      const { leadId, name } = args;
+      try {
+        await connectMongo();
+        await Lead.findOneAndUpdate({_id: leadId}, {
+          $set: {
+            name: name
+          }
+        });
+      } catch (err:any) {
+        throw new Error(JSON.stringify(err));
+      }
+      return `success`;
+    },
     addLeadRevision: async (_:any, args:any) => {
       const { id, author, status, content, note } = args;
       try {

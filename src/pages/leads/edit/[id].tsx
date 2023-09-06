@@ -10,7 +10,7 @@ import { useApolloClient, useLazyQuery, useMutation, useQuery } from "@apollo/cl
 import Link from "next/link";
 import { faCog, faFileExport, faFlagCheckered, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, PUBLISH_LEAD_TO_DRIVE, CREATE_DRIVE_STUDY_TREE, UPDATE_LEAD_DRAFTERS, UPDATE_LEAD_ON_DRIVE, UPDATE_LEAD_REVISION_PUBLISH_STATUS } from "@/utils/mutations";
+import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, PUBLISH_LEAD_TO_DRIVE, CREATE_DRIVE_STUDY_TREE, UPDATE_LEAD_DRAFTERS, UPDATE_LEAD_ON_DRIVE, UPDATE_LEAD_REVISION_PUBLISH_STATUS, UPDATE_LEAD_NAME } from "@/utils/mutations";
 import { useParams } from 'next/navigation';
 import DiscussionBoard from "@/components/leads/DiscussionBoard";
 import { useRouter } from "next/router";
@@ -153,9 +153,11 @@ export default function LeadManager (props:any) {
   console.log(templateList);
   const [drafterList, setDrafterList] = useState(leadData.drafters);
   const [updateLeadDrafters] = useMutation(UPDATE_LEAD_DRAFTERS);
+  const [updateLeadName] = useMutation(UPDATE_LEAD_NAME);
   const [getLatestStudyPlanFormRevision] = useLazyQuery(GET_STUDY_PLAN_FORM_LATEST);
   const [upgradeFormContent, setUpgradeFormContent] = useState<any>('');
   const [leadStudyPlanNames, setLeadStudyPlanNames] = useState(props.studyPlanNames);
+  const [leadName, setLeadName] = useState(leadData.name);
 
   useEffect( () => {
     let changeSum = 0;
@@ -426,6 +428,13 @@ export default function LeadManager (props:any) {
           drafters: drafterList.map((drafter:any) => drafter._id)
         }
       });
+      // Update name
+      await updateLeadName({
+        variables: {
+          leadId: props.editId,
+          name: leadName
+        }
+      });
       await apolloClient.refetchQueries({
         include: [GET_LEADS, GET_LEAD_LATEST]
       });
@@ -685,6 +694,14 @@ export default function LeadManager (props:any) {
         <section className='flex bg-white rounded-lg p-0 col-start-2 col-span-10 md:col-start-3 md:col-span-8 lg:col-start-4 lg:col-span-6'>
           <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
             <h5>Lead Settings</h5>
+            <section className='flex flex-col justify-center mb-2'>
+              <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
+                <form className="flex items-center gap-2" onSubmit={handleAddTemplate}>
+                  <div className="font-bold">Lead Name:</div>
+                  <input className='std-input flex-grow' type='text' value={leadName} onChange={(e)=>setLeadName(e.target.value)} />
+                </form>
+              </section>
+            </section>
             <section className='flex flex-col justify-center mb-2'>
               <div className='mr-2'>Choose what types of studies will be included in the lead. Study plans cannot be deleted once they are added to the lead, but they can be marked as not performed.</div>
               <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>

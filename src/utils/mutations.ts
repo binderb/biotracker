@@ -43,6 +43,12 @@ export const UPDATE_LEAD_DRAFTERS = gql`
   }
 `;
 
+export const UPDATE_LEAD_NAME = gql`
+  mutation updateLeadName($leadId: ID!, $name: String!) {
+    updateLeadName(leadId: $leadId, name: $name)
+  }
+`;
+
 export const ADD_LEAD_REVISION = gql`
   mutation addLeadRevision($addLeadRevisionId: ID!, $author: ID!, $status: String!, $content: String!, $note: String!) {
     addLeadRevision(id: $addLeadRevisionId, author: $author, status: $status, content: $content, note: $note) {
