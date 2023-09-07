@@ -271,21 +271,33 @@ export default function LeadManager (props:any) {
   }
 
   async function handleShowPublish () {
+    
     if (changes === 0) {
       const nextStudyResponse = await getNextStudy({variables: {clientCode: client}});
       setNextStudy(nextStudyResponse?.data.getNextStudy);
+      // Check whether forms are up to date
+      let formsNeedUpgrade = false;
       const studyIds = Array<string>();
+      console.log("showing publish");
       for (let i=0;i<content.length;i++) {
+        const formDetailsResponse = await getFormDetails({variables: {revisionId: content[i].studyPlanFormRevisionId}});
+        const formData = formDetailsResponse?.data?.getFormDetailsFromRevisionId;
+        if (formData.revisions[formData.revisions.length-1]._id !== content[i].studyPlanFormRevisionId) formsNeedUpgrade = true;
+        console.log("formdata revisions: ",formData.revisions);
         // Only generate study IDs for studies that haven't already been saved.
         if (i > leadData.studies.length-1) {
-          const formDetailsResponse = await getFormDetails({variables: {revisionId: content[i].studyPlanFormRevisionId}})
-          const formMetadata = formDetailsResponse?.data?.getFormDetailsFromRevisionId.metadata;
+          const formMetadata = formData.metadata;
           studyIds.push(`${client}${(nextStudyResponse?.data.getNextStudy+(i-leadData.studies.length)).toString().padStart(4,'0')}-${JSON.parse(formMetadata).studyTypeCode}`);
         }
       }
-      setStudyIds(studyIds);
-      setCompletedPublish(false);
-      setPublishVisible(true);
+      if (!formsNeedUpgrade) {
+        setStudyIds(studyIds);
+        setCompletedPublish(false);
+        setPublishVisible(true);
+      } else {
+        setSuccessStatus('');
+        setErrStatus('At least one study plan form is outdated, and must be upgraded before publishing.');
+      }  
     } else {
       setSuccessStatus('');
       setErrStatus('Please commit your most recent changes before publishing.');
@@ -618,7 +630,7 @@ export default function LeadManager (props:any) {
         </div>
       </section>
       </main>
-      <section className={`absolute ${publishVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
+      <section className={`fixed ${publishVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
         <section className='flex bg-white rounded-lg p-0 col-start-3 col-span-8 md:col-start-4 md:col-span-6 lg:col-start-5 lg:col-span-4'>
           {leadData.published && !freshPublish &&
             <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
@@ -828,7 +840,7 @@ export default function LeadManager (props:any) {
           }
         </section>
       </section>
-      <section className={`absolute ${settingsVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
+      <section className={`fixed ${settingsVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
         <section className='flex bg-white rounded-lg p-0 col-start-2 col-span-10 md:col-start-3 md:col-span-8 lg:col-start-4 lg:col-span-6'>
           <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
             <h5>Lead Settings</h5>
