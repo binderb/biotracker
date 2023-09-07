@@ -71,6 +71,7 @@ export const GET_LEADS = gql`
       }
       revisions {
         _id
+        createdAt
       }
       name
       notes {

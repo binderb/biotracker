@@ -9,6 +9,7 @@ import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faCircle, faCircleRadiation, faCodeCommit, faComment, faMagnifyingGlass, faRadiation, faRadiationAlt, faSkullCrossbones, faTrashCan, faX } from "@fortawesome/free-solid-svg-icons";
+import { getFormattedDate } from "@/utils/helpers";
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -75,19 +76,20 @@ export default function LeadMasterList () {
               leads.map((lead:any) => ( 
                 <li key={lead._id} className='std-input rounded-lg flex justify-between items-top'>
                   <div className='flex flex-col gap-1'>
-                    <div className='flex gap-4'>
-                      <div className='font-bold'>{lead.name}</div>
-                      <div>
-                        <div className='text-[12px]'>{`Author: ${lead.author.username}`}</div>
-                        <div className='text-[12px]'>{`Drafters: ${
-                      lead.drafters.map((drafter:any) => `${drafter.username}`).join(', ')
-                    }`}</div>
-                        <div className='text-[12px]'>{`Studies: ${lead.studies.length > 0 ?
-                      lead.studies.map((study:any) => `${lead.client.code}${study.index.toString().padStart(4,'0')}-${study.type}`).join(', ')
-                      :
-                      `N/A`
-                    }`}</div>
-                      </div>
+                    <div className='flex flex-col'>
+                    <div className='font-bold'>{lead.name}</div>
+                      <div className='text-[12px]'>{`Created: ${getFormattedDate(lead.revisions[0].createdAt)}`}</div>
+                      <div className='text-[12px]'>{`Latest Revision: ${getFormattedDate(lead.revisions[lead.revisions.length-1].createdAt)}`}</div>
+                      <div className='text-[12px]'>{`Author: ${lead.author.username}`}</div>
+                      <div className='text-[12px]'>{`Drafters: ${
+                    lead.drafters.map((drafter:any) => `${drafter.username}`).join(', ')
+                  }`}</div>
+                      <div className='text-[12px]'>{`Published: ${lead.published}`}</div>
+                      <div className='text-[12px]'>{`Studies: ${lead.studies.length > 0 ?
+                    lead.studies.map((study:any) => `${lead.client.code}${study.index.toString().padStart(4,'0')}-${study.type}`).join(', ')
+                    :
+                    `N/A`
+                  }`}</div>
                     </div>
                     
                     
