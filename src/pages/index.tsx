@@ -66,6 +66,7 @@ const Home = () => {
         <section className='pb-4'>
           <div className='font-bold'>Dev Functions:</div>
           <div className="flex py-2 gap-1">
+            <Link className='std-button' href='./admin/lead-master-list'>Lead Master List</Link>
             <Link className='std-button' href='./inventory'>Inventory</Link>
             <Link className='std-button' href='./study-creator'>Study Creator</Link>
           </div>
