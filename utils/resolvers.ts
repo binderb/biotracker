@@ -730,15 +730,31 @@ const resolvers = {
     updateLeadRevisionPublishStatus: async (_:any, args:any) => {
       try {
         const { leadRevisionId } = args;
+        await connectMongo();
         await LeadRevision.findOneAndUpdate({_id: new Types.ObjectId(leadRevisionId)}, {
           $set: {
             published: true
           }
         });
-        await connectMongo();
+        
       } catch (err:any) {
         throw err;
       }
+    },
+    adminDeleteLead: async (_:any, args:any) => {
+      try {
+        const { leadId } = args;
+        await connectMongo();
+        const leadToDelete = await Lead.findById(leadId);
+        if (!leadToDelete) throw new Error("No matching lead found!");
+        await LeadRevision.deleteMany({_id: { $in: leadToDelete.revisions}})
+        await LeadNote.deleteMany({_id: { $in: leadToDelete.notes}});
+        await Study.deleteMany({_id: { $in: leadToDelete.studies}});
+        await Lead.deleteOne({_id: leadId});
+      } catch (err:any) {
+        throw err;
+      }
+      return 'success';
     }
 
   }

@@ -141,3 +141,9 @@ export const DELETE_GOOGLE_DRIVE_CONFIG = gql`
     deleteGoogleDriveConfig
   }
 `;
+
+export const ADMIN_DELETE_LEAD = gql`
+  mutation adminDeleteLead($leadId: ID!) {
+    adminDeleteLead(leadId: $leadId)
+  }
+`;

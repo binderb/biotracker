@@ -153,6 +153,7 @@ const typeDefs = gql`
     publishLeadToDrive(clientCode: String!, studyName: String!, formRevisionId: String!, formData: String!, studyData: String!): String
     updateLeadOnDrive(clientCode: String!, studyName: String!, formRevisionId: String!, formData: String!, studyData: String!): String
     updateLeadRevisionPublishStatus(leadRevisionId: ID!): String
+    adminDeleteLead(leadId: ID!): String
   }
 `;
 
