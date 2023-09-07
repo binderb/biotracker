@@ -79,12 +79,8 @@ export default function NewLead () {
           // Check to see if this plan template already exists in content
           const existingTemplate = content ? content.filter((plan:any) => plan.name === templateList[i].name) : [];
           if (existingTemplate.length > 0) {
-            console.log('found!');
-            console.log(existingTemplate[0]);
             newContent.push(existingTemplate[0]);
           } else {
-            console.log('not found!');
-            console.log(templateList[i]._id)
             const planResponse = await getLatestStudyPlanFormRevision({
               variables: {
                 getStudyPlanFormLatestRevisionId: templateList[i]._id
@@ -144,6 +140,10 @@ export default function NewLead () {
     if (newCreatorStep === 1 || newCreatorStep === 2 || newCreatorStep === 3) setErrStatus('');
     if (newCreatorStep === 2 && (!client || !leadName)) {
       setErrStatus('Please select a value for all fields before proceeding!');
+      return;
+    }
+    if (newCreatorStep === 2 && templateList.length === 0) {
+      setErrStatus('Please add at least one study plan before proceeding!');
       return;
     }
     setCreatorStep(newCreatorStep);

@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { ChangeEvent, MouseEventHandler, useEffect, useState } from "react";
 import { useApolloClient, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import Link from "next/link";
-import { faCog, faFileExport, faFlagCheckered, faX } from "@fortawesome/free-solid-svg-icons";
+import { faCircle, faCircleCheck, faCircleDot, faCircleNotch, faClock, faCog, faEllipsis, faFileExport, faFlagCheckered, faSpinner, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, PUBLISH_LEAD_TO_DRIVE, CREATE_DRIVE_STUDY_TREE, UPDATE_LEAD_DRAFTERS, UPDATE_LEAD_ON_DRIVE, UPDATE_LEAD_REVISION_PUBLISH_STATUS, UPDATE_LEAD_NAME } from "@/utils/mutations";
 import { useParams } from 'next/navigation';
@@ -91,6 +91,9 @@ export default function LeadManager (props:any) {
       getLeadLatestRevisionId: props.editId
     },
     fetchPolicy: 'network-only'
+  });
+  const [loadLeads] = useLazyQuery(GET_LEADS, {
+    fetchPolicy: 'network-only'
   })
   const [leadStatus, setLeadStatus] = useState(leadData.status);
   let leadContent = JSON.parse(leadData?.revisions[0].content);
@@ -115,7 +118,10 @@ export default function LeadManager (props:any) {
   const [note, setNote] = useState('');
   const [changes, setChanges] = useState(0);
   const [publishVisible, setPublishVisible] = useState(false);
+  const [publishProgressStatus, setPublishProgressStatus] = useState('');
+  const [publishSuccessStatus, setPublishSuccessStatus] = useState('');
   const [publishErrStatus, setPublishErrStatus] = useState('');
+  const [freshPublish, setFreshPublish] = useState(false);
   const [getNextStudy, { data: newIdData }] = useLazyQuery(GET_NEXT_STUDY, {
     fetchPolicy: 'network-only'
   });
@@ -135,12 +141,17 @@ export default function LeadManager (props:any) {
         getLeadLatestRevisionId: props.editId
       }
     }]
-  })
+  });
   const [addStudy, { error, data : newStudyData }] = useMutation(ADD_STUDY, {
     refetchQueries: [{query: GET_NEXT_STUDY}, 'GetNextStudy']
   });
   const [updateLeadRevisionPublishStatus] = useMutation(UPDATE_LEAD_REVISION_PUBLISH_STATUS);
+  const [publishInProgress, setPublishInProgress] = useState(false);
   const [completedPublish, setCompletedPublish] = useState(false);
+  const [newPublishComplete, setNewPublishComplete] = useState(false);
+  const [updatedStudies, setUpdatedStudies] = useState<string[]>([]);
+  const [createdStudies, setCreatedStudies] = useState<string[]>([]);
+  const [currentlyPublishingStudy, setCurrentlyPublishingStudy] = useState('');
   const [settingsVisible, setSettingsVisible] = useState(false);
   const [settingsErrStatus, setSettingsErrStatus] = useState('');
   const [drafterToAdd, setDrafterToAdd] = useState('');
@@ -283,13 +294,18 @@ export default function LeadManager (props:any) {
 
   async function handlePublish () {
     try {
+      setPublishInProgress(true);
+      setUpdatedStudies([]);
+      setCreatedStudies([]);
+      if (leadData.studies.length === 0) setFreshPublish(true);
       for (let i=0;i<content.length;i++) {
 
         if (leadData.studies.length-1 < i) {
           // Create a new study.
-          setPublishErrStatus(`Creating files in Google Drive for ${studyIds[i-leadData.studies.length]}...`);
+          setPublishProgressStatus(`Creating files in Google Drive for ${studyIds[i-leadData.studies.length]}...`);
           const formDetailsResponse = await getFormDetails({variables: {revisionId: content[i].studyPlanFormRevisionId}})
           const studyTypeCode = JSON.parse(formDetailsResponse?.data?.getFormDetailsFromRevisionId.metadata).studyTypeCode;
+          setCurrentlyPublishingStudy(studyIds[i-leadData.studies.length]);
           const treeResult = await publishLeadToDrive({
             variables: {
               clientCode: client,
@@ -298,8 +314,8 @@ export default function LeadManager (props:any) {
               formData: JSON.stringify(formDetailsResponse.data.getFormDetailsFromRevisionId),
               studyData: JSON.stringify(content[i])
             }
-          }); 
-          setPublishErrStatus(`Updating database for ${studyIds[i-leadData.studies.length]}...`);
+          });
+          setPublishProgressStatus(`Updating database for ${studyIds[i-leadData.studies.length]}...`);
           const newStudy = await addStudy({
             variables: {
               clientCode: client,
@@ -308,13 +324,15 @@ export default function LeadManager (props:any) {
               studyPlanIndex: i
             }
           });
-          setPublishErrStatus(`Completed publishing study: ${studyIds[i-leadData.studies.length]}`);
+          setPublishProgressStatus(`Completed publishing study: ${studyIds[i-leadData.studies.length]}`);
+          setCreatedStudies(createdStudies => [...createdStudies, studyIds[i-leadData.studies.length]]);
         } else {
           // Update existing study.
           const formDetailsResponse = await getFormDetails({variables: {revisionId: content[i].studyPlanFormRevisionId}});
           const studyTypeCode = JSON.parse(formDetailsResponse?.data?.getFormDetailsFromRevisionId.metadata).studyTypeCode;
           const studyName = `${client}${leadData.studies[i].index.toString().padStart(4,'0')}-${studyTypeCode}`;
-          setPublishErrStatus(`Updating files in ${studyName}...`);
+          setCurrentlyPublishingStudy(studyName);
+          setPublishProgressStatus(`Updating files in ${studyName}...`);
           const updateResult = await updateLeadOnDrive({
             variables: {
               clientCode: client,
@@ -328,17 +346,26 @@ export default function LeadManager (props:any) {
             variables: {
               leadRevisionId: leadData.revisions[0]._id
             }
-          })
+          });
+          setUpdatedStudies(updatedStudies => [...updatedStudies,studyName]);
         }
       }
+      setCurrentlyPublishingStudy('');
+      await loadLeads();
       const newResponse = await loadLeadLatest();
       leadData = newResponse?.data?.getLeadLatestRevision;
       leadContent = JSON.parse(leadData?.revisions[0].content);
       setContent([...leadContent]);
-      setPublishErrStatus(`Completed publishing lead.`);
+      setPublishSuccessStatus(``);
+      setPublishErrStatus('');
+      setPublishInProgress(false);
       setCompletedPublish(true);
     } catch (err:any) {
       setPublishErrStatus(JSON.stringify(err));
+      setPublishSuccessStatus('');
+      setPublishProgressStatus('');
+      setPublishInProgress(false);
+      setCurrentlyPublishingStudy('');
     }
   }
 
@@ -593,7 +620,7 @@ export default function LeadManager (props:any) {
       </main>
       <section className={`absolute ${publishVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
         <section className='flex bg-white rounded-lg p-0 col-start-3 col-span-8 md:col-start-4 md:col-span-6 lg:col-start-5 lg:col-span-4'>
-          {leadData.published && !completedPublish &&
+          {leadData.published && !freshPublish &&
             <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
               <h5>Re-Publish Lead</h5>
               <div>
@@ -607,6 +634,19 @@ export default function LeadManager (props:any) {
                 leadData.studies.map((study:any, index:number) => (
                   <div key={index} className='flex flex-col justify-center items-start'>
                     <div className='flex gap-2 items-center'>
+                      { (publishInProgress || completedPublish) &&
+                        <>
+                          { updatedStudies.indexOf(`${client}${study.index.toString().padStart(4,'0')}-${study.type}`) >= 0 &&
+                            <FontAwesomeIcon className='text-[#080]' icon={faCircleCheck} />
+                          }
+                          { currentlyPublishingStudy === `${client}${study.index.toString().padStart(4,'0')}-${study.type}` &&
+                            <FontAwesomeIcon className='text-primary animate-spin' icon={faSpinner} />
+                          }
+                          { currentlyPublishingStudy !== `${client}${study.index.toString().padStart(4,'0')}-${study.type}` && updatedStudies.indexOf(`${client}${study.index.toString().padStart(4,'0')}-${study.type}`) < 0 &&
+                            <FontAwesomeIcon className='text-secondary animate-pulse' icon={faClock} />
+                          }
+                        </>
+                      }
                       <div>
                         {`${client}${study.index.toString().padStart(4,'0')}-${study.type}`}
                       </div>
@@ -616,35 +656,92 @@ export default function LeadManager (props:any) {
               }
               <div className='font-bold'>New Studies ({studyIds.length}):</div>
               {
-                content.map((plan:any, index:number) => {
+                studyIds.length === 0 &&
+                <div>
+                  None.
+                </div>
+              }
+              { content.map((plan:any, index:number) => {
                   if (index > leadData.studies.length-1) {
                     return (
                       <div key={index} className='flex flex-col justify-center items-start'>
-                          <div className='flex gap-2 items-center'>
-                            <div className='font-bold'>Form:</div>
-                            <div>
-                              {plan.name}
+                        <div className='flex items-center gap-2'>
+                          { (publishInProgress || completedPublish) &&
+                            <>
+                              { createdStudies.indexOf(studyIds[index-leadData.studies.length]) >= 0 &&
+                                <FontAwesomeIcon className='text-[#080]' icon={faCircleCheck} />
+                              }
+                              { currentlyPublishingStudy === studyIds[index-leadData.studies.length] &&
+                                <FontAwesomeIcon className='text-primary animate-spin' icon={faSpinner} />
+                              }
+                              { currentlyPublishingStudy !== studyIds[index-leadData.studies.length] && createdStudies.indexOf(studyIds[index-leadData.studies.length]) < 0 &&
+                                <FontAwesomeIcon className='text-secondary animate-pulse' icon={faEllipsis} />
+                              }
+                            </>
+                          }
+                          <div>
+                            <div className='flex gap-2 items-center'>
+                              <div className='font-bold'>Form:</div>
+                              <div>
+                                {studyPlanForms.filter((e:any) => e._id === plan.studyPlanFormId)[0].name}
+                              </div>
+                            </div>
+                            <div className='flex gap-2 items-center'>
+                              <div className='font-bold'>Generated ID:</div>
+                              <div>
+                                {studyIds[index-leadData.studies.length]}
+                              </div>
                             </div>
                           </div>
-                          <div className='flex gap-2 items-center'>
-                            <div className='font-bold'>Generated ID:</div>
-                            <div>
-                              {studyIds[index-leadData.studies.length]}
-                            </div>
-                          </div>
+                        </div>
+                          
                       </div>
                     );
                   }
                 })
               }
               <div className='flex gap-2 pt-2'>
-                <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>Cancel</button>
-                <button className='std-button-lite flex-grow' onClick={handlePublish}>Re-Publish</button>
+                { !publishInProgress && !completedPublish &&
+                  <> 
+                    <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishSuccessStatus(''); setPublishProgressStatus(''); setPublishVisible(false); setUpdatedStudies([]); setCreatedStudies([]);}}>Cancel</button>
+                    <button className='std-button-lite flex-grow' onClick={handlePublish}>Re-Publish</button>
+                  </>
+                }
+                { publishInProgress &&
+                  <>
+                    <button className='std-button-lite flex gap-2 items-center flex-grow' disabled>
+                      <FontAwesomeIcon className='animate-spin' icon={faSpinner} />
+                      {publishProgressStatus}
+                    </button>
+                  </>
+                }
+                { completedPublish &&
+                  <>
+                    <button className='std-button-lite flex-grow' onClick={()=>{setPublishErrStatus(''); setPublishSuccessStatus(''); setPublishProgressStatus(''); setPublishVisible(false); setUpdatedStudies([]); setCreatedStudies([]);}}>
+                      Done
+                    </button>
+                  </>
+                }
               </div>
-              <div className='text-[#800]'>{publishErrStatus}</div>
+              {publishErrStatus && 
+                <div className='flex items-center gap-2 bg-[#FDD] pl-2 pr-1 py-1 rounded-md text-[#800]'>
+                {publishErrStatus}
+                  <button className='bg-[#800] px-2 py-[2px] rounded-md text-white text-[12px] hover:bg-[#B00]' onClick={()=>setPublishErrStatus('')}>
+                    <FontAwesomeIcon icon={faX} />
+                  </button>
+                </div>
+              }
+              {publishSuccessStatus && 
+                <div className='flex items-center gap-2 bg-[#DFD] pl-2 pr-1 py-1 rounded-md text-[#080]'>
+                  {publishSuccessStatus}
+                  <button className='bg-[#080] px-2 py-[2px] rounded-md text-white text-[12px] hover:bg-[#0B0]' onClick={()=>setPublishSuccessStatus('')}>
+                    <FontAwesomeIcon icon={faX} />
+                  </button>
+                </div>
+              }
             </section>
           }
-          {!leadData.published && !completedPublish &&
+          {(!leadData.published || freshPublish) &&
             <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
               <h5>Publish Lead</h5>
               <div>
@@ -656,35 +753,77 @@ export default function LeadManager (props:any) {
               {
                 content.map((plan:any, index:number) => (
                   <div key={index} className='flex flex-col justify-center items-start'>
-                    <div className='flex gap-2 items-center'>
-                      <div className='font-bold'>Study Plan Form:</div>
+                    <div className='flex items-center gap-2'>
+                      { (publishInProgress || completedPublish) &&
+                        <>
+                          { createdStudies.indexOf(studyIds[index]) >= 0 &&
+                            <FontAwesomeIcon className='text-[#080]' icon={faCircleCheck} />
+                          }
+                          { currentlyPublishingStudy === studyIds[index] &&
+                            <FontAwesomeIcon className='text-primary animate-spin' icon={faSpinner} />
+                          }
+                          { currentlyPublishingStudy !== studyIds[index] && createdStudies.indexOf(studyIds[index]) < 0 &&
+                            <FontAwesomeIcon className='text-secondary animate-pulse' icon={faClock} />
+                          }
+                        </>
+                      }
                       <div>
-                        {plan.name}
+                        <div className='flex gap-2 items-center'>
+                          <div className='font-bold'>Form:</div>
+                          <div>
+                            {studyPlanForms.filter((e:any) => e._id === plan.studyPlanFormId)[0].name}
+                          </div>
+                        </div>
+                        <div className='flex gap-2 items-center'>
+                          <div className='font-bold'>Generated ID:</div>
+                          <div>
+                            {studyIds[index]}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className='flex gap-2 items-center'>
-                      <div className='font-bold'>Generated ID:</div>
-                      <div>
-                        {studyIds[index]}
-                      </div>
-                    </div>
-                </div>
+                  </div>
                 ))
               }
               <div className='flex gap-2 pt-2'>
-                <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>Cancel</button>
-                <button className='std-button-lite flex-grow' onClick={handlePublish}>Publish</button>
+                { !publishInProgress && !completedPublish &&
+                  <> 
+                    <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishSuccessStatus(''); setPublishProgressStatus(''); setPublishVisible(false); setUpdatedStudies([]); setCreatedStudies([]);}}>Cancel</button>
+                    <button className='std-button-lite flex-grow' onClick={handlePublish}>Publish</button>
+                  </>
+                }
+                { publishInProgress &&
+                  <>
+                    <button className='std-button-lite flex gap-2 items-center flex-grow' disabled>
+                      <FontAwesomeIcon className='animate-spin' icon={faSpinner} />
+                      {publishProgressStatus}
+                    </button>
+                  </>
+                }
+                { completedPublish &&
+                  <>
+                    <button className='std-button-lite flex-grow' onClick={()=>{setPublishErrStatus(''); setPublishSuccessStatus(''); setPublishProgressStatus(''); setPublishVisible(false); setUpdatedStudies([]); setCreatedStudies([]); setFreshPublish(false);}}>
+                      Done
+                    </button>
+                  </>
+                }
               </div>
-              <div className='text-[#800]'>{publishErrStatus}</div>
-            </section>
-          }
-          {completedPublish && 
-            <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
-              <h5>Publish Completed</h5>
-              <div className='flex gap-2 pt-2'>
-                <button className='secondary-button-lite flex-grow' onClick={() => {setPublishErrStatus(''); setPublishVisible(false);}}>Done</button>
-              </div>
-              <div className='text-[#800]'>{publishErrStatus}</div>
+              {publishErrStatus && 
+                <div className='flex items-center gap-2 bg-[#FDD] pl-2 pr-1 py-1 rounded-md text-[#800]'>
+                {publishErrStatus}
+                  <button className='bg-[#800] px-2 py-[2px] rounded-md text-white text-[12px] hover:bg-[#B00]' onClick={()=>setPublishErrStatus('')}>
+                    <FontAwesomeIcon icon={faX} />
+                  </button>
+                </div>
+              }
+              {publishSuccessStatus && 
+                <div className='flex items-center gap-2 bg-[#DFD] pl-2 pr-1 py-1 rounded-md text-[#080]'>
+                  {publishSuccessStatus}
+                  <button className='bg-[#080] px-2 py-[2px] rounded-md text-white text-[12px] hover:bg-[#0B0]' onClick={()=>setPublishSuccessStatus('')}>
+                    <FontAwesomeIcon icon={faX} />
+                  </button>
+                </div>
+              }
             </section>
           }
         </section>
