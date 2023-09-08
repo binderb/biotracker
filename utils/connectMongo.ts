@@ -23,6 +23,8 @@ export default async function connectMongo () {
   // Return the cached connection if it exists.
   if (cached.conn) return cached.conn;
 
-  cached.conn = await mongoose.connect(MONGO_URI!);
+  cached.conn = await mongoose.connect(MONGO_URI!,{
+    authSource: 'admin'
+  });
   return cached.conn;
 }

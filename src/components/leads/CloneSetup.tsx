@@ -113,7 +113,7 @@ export default function CloneSetup ({session, leadName, client, users, clients, 
             <option value={client.code} key={client.code}>{`${client.name} - ${client.code}`}</option>  
           ))}
         </select>
-        <div>Don&apos;t have a client code? <Link className='std-link' href='/client-manager'>Create one</Link> before starting this process!</div>
+        <div>Don&apos;t have a client code? <Link className='std-link' href='/clients'>Create one</Link> before starting this process!</div>
       </div>
       <section className='flex flex-col justify-center mb-2'>
         <div className='mr-2'>Choose an existing lead to serve as the cloning source. Once you make your choice, the associated study plan forms will be shown below.</div>

@@ -1,12 +1,12 @@
 import { GET_CLIENTS, GET_NEW_CODE } from '@/utils/queries'
 import { ADD_CLIENT } from '@/utils/mutations';
-import { initializeApollo, addApolloState } from '../../utils/apolloClient'
+import { initializeApollo, addApolloState } from '../../../utils/apolloClient'
 import { useQuery, useMutation, useLazyQuery } from '@apollo/client'
 import Navbar from '@/components/Navbar';
 import { useState, ChangeEvent, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { getServerSession } from 'next-auth';
-import { authOptions } from './api/auth/[...nextauth]';
+import { authOptions } from '../api/auth/[...nextauth]';
 import { useRouter } from 'next/router';
 
 export async function getServerSideProps(context:any) {

@@ -80,7 +80,7 @@ export default function LeadSetup ({session, leadName, client, users, clients, s
             <option value={client.code} key={client.code}>{`${client.name} - ${client.code}`}</option>  
           ))}
         </select>
-        <div>Don&apos;t have a client code? <Link className='std-link' href='/client-manager'>Create one</Link> before starting this process!</div>
+        <div>Don&apos;t have a client code? <Link className='std-link' href='/clients'>Create one</Link> before starting this process!</div>
       </div>
       {/* <div className='flex items-center mb-2'>
         <div className='mr-2'>Lead Template:</div>

@@ -50,7 +50,7 @@ const Home = () => {
       <section className='pb-4'>
         <div className='font-bold'>Regular User Functions:</div>
         <div className="flex py-2 gap-1">
-          <Link className='std-button' href='./client-manager'>Client Manager</Link>
+          <Link className='std-button' href='./clients'>Client Manager</Link>
           <Link className='std-button' href='./leads'>Leads</Link>
         </div>
       </section>
