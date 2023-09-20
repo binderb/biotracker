@@ -59,7 +59,7 @@ export default function NewLead () {
   const users = userData.getUsers;
   const [creatorStep, setCreatorStep] = useState(1);
   const [errStatus, setErrStatus] = useState('');
-  const [client, setClient] = useState('');
+  const [client, setClient] = useState<any>(null);
   const [leadName, setLeadName] = useState('');
   const initialDrafters = session ? [session.user] : [];
   const [drafterList, setDrafterList] = useState(initialDrafters);
@@ -154,7 +154,7 @@ export default function NewLead () {
       name: leadName,
       author: session?.user.id,
       drafters: drafterList.map((drafter:any) => drafter.id || drafter._id),
-      client: clients.filter((clientObject:any) => clientObject.code === client)[0]._id,
+      client: clients.filter((clientObject:any) => clientObject.code === client.code)[0]._id,
       content: JSON.stringify(content),
       firstNote: firstNote
     }
@@ -241,7 +241,6 @@ export default function NewLead () {
               </div>
               <textarea className='std-input w-full resize-none h-[200px] mb-4' value={firstNote} onChange={(e) => setFirstNote(e.target.value)} />
               <button className='std-button mr-1' onClick={() => handleChangeStep(-1)}>Back</button>
-              {/* <button className='std-button' onClick={() => handleChangeStep(1)}>Next</button> */}
               <button className='std-button' onClick={handleSubmitNewLead}>Submit</button>
               <div className='my-2 text-[#800] whitespace-pre font-mono'>{errStatus}</div>          
             </section>

@@ -8,6 +8,9 @@ import { useSession } from 'next-auth/react';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { useRouter } from 'next/router';
+import Link from 'next/link';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -108,7 +111,9 @@ const ClientManager = () => {
   return (
     <>
       <Navbar/>
-      { status === 'authenticated' ?
+      <div className='mt-4'>
+        <Link className='std-link ml-4' href='/'>&larr; Back</Link>
+      </div>
       <main className="grid grid-cols-12 items-top p-4 gap-2">
         <div id="client-table" className='flex flex-col col-span-8 bg-secondary/20 border border-secondary/80 p-4 rounded-xl flex-grow'>
           <h5>Client Table</h5>
@@ -116,8 +121,9 @@ const ClientManager = () => {
             <table className='w-full text-left border-collapse'>
               <thead>
                 <tr>
-                  <th className='w-[50%]'>Client</th>
-                  <th className='w-[50%]'>Code</th>
+                  <th className='w-[80%]'>Client</th>
+                  <th className='w-[10%]'>Code</th>
+                  <th className='w-[10%]'>Details</th>
                 </tr>
               </thead>
               <tbody>
@@ -125,6 +131,10 @@ const ClientManager = () => {
                 <tr key={client._id}>
                   <td className='bg-white/50 border border-secondary/80 p-1'>{client.name}</td>
                   <td className='bg-white/50 border border-secondary/80 p-1'>{client.code}</td>
+                  <td className='bg-white/50 border border-secondary/80 p-2 text-center'>
+                    <Link href={{pathname: '/clients/[id]', query: { id: client._id }}} as={`/clients/${client._id}`} className='std-button-lite' ><FontAwesomeIcon icon={faInfoCircle}/></Link>
+
+                  </td>
                 </tr>
               )}
               </tbody>
@@ -167,11 +177,6 @@ const ClientManager = () => {
           <div className='my-2 text-[#800]'>{errStatus}</div>
         </div>
       </main>
-      :
-      <main className='p-4'>
-        {`It looks like you aren't authorized to view this page (admin access only). If you think this is an error, please contact your system administrator.`}
-      </main>
-      }
     </>
   )
 }

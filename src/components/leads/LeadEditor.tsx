@@ -100,11 +100,6 @@ export default function LeadEditor ({client, content, studyPlanNames, upgradeFor
       <section>
         
         <form>
-          <div className='mr-2 font-bold'>Sponsor Information:</div>
-          <div className='flex border border-secondary rounded-md items-center p-4 mt-2 mb-4'>
-            <div className='mr-2'>Client:</div>
-            <div>{client}</div>
-          </div>
           <section className='flex items-center gap-2 pb-4'>
             <div className="font-bold">Study Plan:</div>
             <select className="std-input flex-grow" value={currentStudyPlanIndex} onChange={(e) => setCurrentStudyPlanIndex(parseInt(e.target.value))}>

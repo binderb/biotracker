@@ -238,13 +238,28 @@ export default function FormContentEditor ({users, client, leadData, content, se
                           content[currentStudyPlanIndex].associatedStudyId ? (
                               <>
                               {
-                                `${client}${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].index.toString().padStart(4,'0')}-${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].type}`
+                                `${client.code}${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].index.toString().padStart(4,'0')}-${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].type}`
                               }
                               </>
                           ) : (
                             <div className='italic'>(TBD - will be generated when lead is published)</div>
                           )
                         }
+                        </>
+                      )
+                    }
+                    {
+                      field.params[0] === 'clientName' && (
+                        <>
+                        
+                        {client.name}
+                        </>
+                      )
+                    }
+                    {
+                      field.params[0] === 'clientNDA' && (
+                        <>
+                        {client.name}
                         </>
                       )
                     }

@@ -296,7 +296,7 @@ export default function StudyPlanEditor (props:any) {
             <h5>Template Preview</h5>
             <section className='flex flex-col gap-2 md:overflow-y-auto overflow-x-visible h-[calc(100%-40px)] pr-2'>
               <LeadEditor 
-                client={'EXAMPLE'}
+                client={{name: 'EXAMPLE'}}
                 leadData={{name: 'EXAMPLE'}}
                 content={content}
                 studyPlanNames={[formName]}

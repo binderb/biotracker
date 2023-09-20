@@ -17,6 +17,9 @@ import { buildFormFooter, buildFormGeneralInfo, buildFormHeader, buildFormSectio
 import GoogleDriveConfig from "../models/GoogleDriveConfig";
 import path from "path";
 import { Types } from 'mongoose';
+import Contact from "../models/Contact";
+import ClientProject from "../models/ClientProject";
+import MailingAddress from "../models/MailingAddress";
 const fs = require('fs').promises;
 
 const resolvers = {
@@ -29,9 +32,32 @@ const resolvers = {
       await connectMongo();
       return Client.find().sort('name');
     },
+    getContacts: async () => {
+      await connectMongo();
+      return Contact.find().sort('last');
+    },
     getClientCodes: async () => {
       await connectMongo();
       return Client.find().sort('code');
+    },
+    getClient: async (_:any, args:any) => {
+      try {
+        const {clientId} = args;
+        await connectMongo();
+        const clientProjects = await ClientProject.findOne({}); // seems to be necessary for now
+        return Client.findById(clientId)
+          .populate({
+            path: 'projects',
+            model: 'ClientProject',
+            populate: {
+              path: 'contacts',
+              model: 'Contact'
+            }
+          });
+      } catch (err:any) {
+        throw err;
+      }
+      
     },
     getNewCode: async () => {
       await connectMongo();
@@ -285,6 +311,56 @@ const resolvers = {
         code: code
       });
       return newClient;
+    },
+    addContact: async (_:any, args:any) => {
+      const { contactJSON } = args;
+      try {
+        const contactData = JSON.parse(contactJSON);
+        await connectMongo();
+        if (!contactData.first) {
+          throw new Error("Contacts must at least have a first name!");
+        }
+        const newContact = await Contact.create({
+          ...contactData
+         });
+        return newContact;
+      } catch (err:any) {
+        throw err;
+      }
+    },
+    addMailingAddress: async (_:any, args:any) => {
+      const { mailingAddressJSON } = args;
+      try {
+        const mailingAddressData = JSON.parse(mailingAddressJSON);
+        await connectMongo();
+        if (!mailingAddressData.identifier) {
+          throw new Error("Addresses must at least have an identifying label for internal use!");
+        }
+        const newAddress = await MailingAddress.create({
+          ...mailingAddressData
+        });
+        return newAddress;
+      } catch (err:any) {
+        throw err;
+      }
+    },
+    updateMailingAddress: async (_:any, args:any) => {
+      const { mailingAddressId, mailingAddressJSON } = args;
+      try {
+        const mailingAddressData = JSON.parse(mailingAddressJSON);
+        await connectMongo();
+        if (!mailingAddressData.identifier) {
+          throw new Error("Addresses must at least have an identifying label for internal use!");
+        }
+        const updatedAddress = await MailingAddress.findOneAndUpdate(
+          {_id: mailingAddressId},
+          {...mailingAddressData},
+          {new: true}
+        );
+        return updatedAddress;
+      } catch (err:any) {
+        throw err;
+      }
     },
     addLead: async (_:any, args:any) => {
       const { name, author, drafters, client, content, firstNote } = args;

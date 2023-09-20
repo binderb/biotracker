@@ -18,6 +18,37 @@ export const GET_CLIENTS = gql`
       _id
       name
       code
+      referredBy {
+        _id
+      }
+      nda
+      website
+      billingAddresses {
+        _id
+      }
+      projects {
+        _id
+      }
+      accountType
+    }
+  }
+`;
+
+export const GET_CONTACTS = gql`
+  query GetContacts {
+    getContacts {
+      _id
+      first
+      last
+      referredBy {
+        _id
+        first
+        last
+      }
+      email
+      phone
+      links
+      notes
     }
   }
 `;
@@ -26,6 +57,29 @@ export const GET_CLIENT_CODES = gql`
   query GetClientCodes {
     getClientCodes {
       code
+    }
+  }
+`;
+
+export const GET_CLIENT = gql`
+  query GetClient($clientId: ID!) {
+    getClient(clientId: $clientId) {
+      _id
+      name
+      code
+      accountType
+      projects {
+        _id
+        name
+        billingAddress {
+          _id
+        }
+        contacts {
+          _id
+        }
+        keyContacts
+        nda
+      }
     }
   }
 `;
@@ -107,6 +161,7 @@ export const GET_LEAD_LATEST = gql`
       client {
         _id
         code
+        name
       }
       revisions {
         _id

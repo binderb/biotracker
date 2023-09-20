@@ -31,6 +31,55 @@ export const ADD_CLIENT = gql`
   }
 `;
 
+export const ADD_CONTACT = gql`
+  mutation addContact($contactJSON: String!) {
+    addContact(contactJSON: $contactJSON) {
+      _id
+      first
+      last
+      referredBy {
+        _id
+      }
+      email
+      phone
+      links
+      notes
+    }
+  }
+`;
+
+export const ADD_ADDRESS = gql`
+  mutation addMailingAddress($mailingAddressJSON: String!) {
+    addMailingAddress(mailingAddressJSON: $mailingAddressJSON) {
+      _id
+      identifier
+      entityName
+      addressLine1
+      addressLine2
+      city
+      stateProvince
+      country
+      postalCode
+    }
+  }
+`;
+
+export const UPDATE_ADDRESS = gql`
+  mutation updateMailingAddress($mailingAddressId: ID!, $mailingAddressJSON: String!) {
+    updateMailingAddress(mailingAddressId: $mailingAddressId, mailingAddressJSON: $mailingAddressJSON) {
+      _id
+      identifier
+      entityName
+      addressLine1
+      addressLine2
+      city
+      stateProvince
+      country
+      postalCode
+    }
+  }
+`;
+
 export const ADD_NEW_LEAD = gql`
   mutation addNewLead($name: String!, $author: ID!, $drafters: [ID]!, $client: ID!, $content: String!, $firstNote: String!) {
     addLead(name: $name, author: $author, drafters: $drafters, client: $client, content: $content, firstNote: $firstNote)

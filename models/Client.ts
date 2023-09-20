@@ -12,10 +12,13 @@ const clientSchema = new Schema({
     unique: true
   },
   referredBy: String,
-  nda: Boolean,
   website: String,
-  billingAddress: String,
-  accountType: String
+  billingAddresses: [{ type: Schema.Types.ObjectId, ref: 'MailingAddress'}],
+  projects: [{ type: Schema.Types.ObjectId, ref: 'ClientProject'}],
+  accountType: {
+    type: String,
+    default: 'active'
+  }
 });
 
 const Client = models?.Client || model('Client', clientSchema);

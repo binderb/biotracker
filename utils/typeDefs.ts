@@ -12,10 +12,49 @@ const typeDefs = gql`
     createdAt: String
   }
 
+  type Contact {
+    _id: ID
+    first: String
+    last: String
+    referredBy: Contact
+    email: String
+    phone: String
+    links: String
+    notes: String
+  }
+
+  type MailingAddress {
+    _id: ID
+    identifier: String
+    entityName: String
+    addressLine1: String
+    addressLine2: String
+    city: String
+    stateProvince: String
+    country: String
+    postalCode: String
+  }
+
+  type ClientProject {
+    _id: ID
+    client: Client
+    name: String!
+    contacts: [Contact]
+    keyContacts: [Boolean]
+    billingAddress: MailingAddress
+    nda: Boolean
+  }
+
   type Client {
     _id: ID
     name: String!
     code: String!
+    referredBy: Contact
+    nda: Boolean
+    website: String
+    billingAddresses: [MailingAddress]
+    projects: [ClientProject]
+    accountType: String
   }
 
   type Study {
@@ -117,7 +156,9 @@ const typeDefs = gql`
   type Query {
     getUsers: [User]
     getClients: [Client]
+    getContacts: [Contact]
     getClientCodes: [Client]
+    getClient(clientId:ID!): Client
     getNewCode: String
     getNextStudy(clientCode: String!): Int
     getNextForm(category: String!): Int
@@ -135,6 +176,9 @@ const typeDefs = gql`
     updateUser(updateUserId: ID!, username: String!, password: String!, first: String!, last: String!, role: String!): User
     removeUser(removeUserId: ID!): String
     addClient(name: String!, code: String!): Client
+    addContact(contactJSON: String!): Contact
+    addMailingAddress(mailingAddressJSON: String!): MailingAddress
+    updateMailingAddress(mailingAddressId: ID!, mailingAddressJSON: String!): MailingAddress
     addLead(name: String!, author: ID!, drafters: [ID]!, client: ID!, content: String!, firstNote: String!): String
     updateLeadDrafters(leadId: ID!, drafters: [ID]!): String
     updateLeadName(leadId: ID!, name: String!): String

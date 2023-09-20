@@ -3,18 +3,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import Link from "next/link"
 import { ChangeEvent, useState } from "react"
 
-interface Client {
-  _id: string,
-  name: string,
-  code: string
-}
-
 interface Props {
   session: any
   leadName: any
-  client: string
+  client: any
   users: any
-  clients: Client[]
+  clients: any[]
   studyPlanForms: any
   templateList: any
   drafterList: any
@@ -34,7 +28,7 @@ export default function LeadSetup ({session, leadName, client, users, clients, s
   }
 
   function handleClientChange (e:ChangeEvent<HTMLSelectElement>) {
-    setClient(e.target.value);
+    setClient(clients.filter((client:any) => client.code === e.target.value)[0]);
   }
 
   // function handleTemplateChange (e:ChangeEvent<HTMLSelectElement>) {
@@ -74,9 +68,9 @@ export default function LeadSetup ({session, leadName, client, users, clients, s
       </div>
       <div className='flex items-center mb-2'>
         <div className='mr-2'>Client:</div>
-        <select className='std-input mr-2' onChange={handleClientChange} value={client}>
+        <select className='std-input mr-2' onChange={handleClientChange} value={client?.code}>
           <option value=''>-- Choose --</option> 
-          {clients.map( (client:Client) => (
+          {clients.map( (client:any) => (
             <option value={client.code} key={client.code}>{`${client.name} - ${client.code}`}</option>  
           ))}
         </select>

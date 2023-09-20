@@ -101,7 +101,7 @@ export default function LeadManager (props:any) {
   const [studyPlanNames, setStudyPlanNames] = useState(props.studyPlanNames);
   const [errStatus, setErrStatus] = useState('');
   const [successStatus, setSuccessStatus] = useState('');
-  const [client, setClient] = useState(leadData.client.code);
+  const [client, setClient] = useState(leadData.client);
   const { data: getLeadsResponseData } = useQuery(GET_LEADS);
   const [addLeadRevision, { error: leadRevisionError, data: addLeadRevisionData }] = useMutation(ADD_LEAD_REVISION, {
     refetchQueries: [{query: GET_LEAD_LATEST,
@@ -273,7 +273,7 @@ export default function LeadManager (props:any) {
   async function handleShowPublish () {
     
     if (changes === 0) {
-      const nextStudyResponse = await getNextStudy({variables: {clientCode: client}});
+      const nextStudyResponse = await getNextStudy({variables: {clientCode: client.code}});
       setNextStudy(nextStudyResponse?.data.getNextStudy);
       // Check whether forms are up to date
       let formsNeedUpgrade = false;
@@ -287,7 +287,7 @@ export default function LeadManager (props:any) {
         // Only generate study IDs for studies that haven't already been saved.
         if (i > leadData.studies.length-1) {
           const formMetadata = formData.metadata;
-          studyIds.push(`${client}${(nextStudyResponse?.data.getNextStudy+(i-leadData.studies.length)).toString().padStart(4,'0')}-${JSON.parse(formMetadata).studyTypeCode}`);
+          studyIds.push(`${client.code}${(nextStudyResponse?.data.getNextStudy+(i-leadData.studies.length)).toString().padStart(4,'0')}-${JSON.parse(formMetadata).studyTypeCode}`);
         }
       }
       if (!formsNeedUpgrade) {
@@ -320,7 +320,7 @@ export default function LeadManager (props:any) {
           setCurrentlyPublishingStudy(studyIds[i-leadData.studies.length]);
           const treeResult = await publishLeadToDrive({
             variables: {
-              clientCode: client,
+              clientCode: client.code,
               studyName: studyIds[i-leadData.studies.length],
               formRevisionId: content[i].studyPlanFormRevisionId,
               formData: JSON.stringify(formDetailsResponse.data.getFormDetailsFromRevisionId),
@@ -330,7 +330,7 @@ export default function LeadManager (props:any) {
           setPublishProgressStatus(`Updating database for ${studyIds[i-leadData.studies.length]}...`);
           const newStudy = await addStudy({
             variables: {
-              clientCode: client,
+              clientCode: client.code,
               studyType: studyTypeCode,
               leadId: leadData._id,
               studyPlanIndex: i
@@ -342,12 +342,12 @@ export default function LeadManager (props:any) {
           // Update existing study.
           const formDetailsResponse = await getFormDetails({variables: {revisionId: content[i].studyPlanFormRevisionId}});
           const studyTypeCode = JSON.parse(formDetailsResponse?.data?.getFormDetailsFromRevisionId.metadata).studyTypeCode;
-          const studyName = `${client}${leadData.studies[i].index.toString().padStart(4,'0')}-${studyTypeCode}`;
+          const studyName = `${client.code}${leadData.studies[i].index.toString().padStart(4,'0')}-${studyTypeCode}`;
           setCurrentlyPublishingStudy(studyName);
           setPublishProgressStatus(`Updating files in ${studyName}...`);
           const updateResult = await updateLeadOnDrive({
             variables: {
-              clientCode: client,
+              clientCode: client.code,
               studyName: studyName,
               formRevisionId: content[i].studyPlanFormRevisionId,
               formData: JSON.stringify(formDetailsResponse.data.getFormDetailsFromRevisionId),
