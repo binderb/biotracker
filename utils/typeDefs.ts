@@ -38,7 +38,7 @@ const typeDefs = gql`
   type ClientProject {
     _id: ID
     client: Client
-    name: String!
+    name: String
     contacts: [Contact]
     keyContacts: [Boolean]
     billingAddress: MailingAddress
@@ -72,6 +72,7 @@ const typeDefs = gql`
     status: String!
     drafters: [User]
     client: Client
+    project: ClientProject
     revisions: [LeadRevision]
     notes: [LeadNote]
     published: Boolean
@@ -181,7 +182,7 @@ const typeDefs = gql`
     updateContact(contactId: ID!, contactJSON: String!): Contact
     addMailingAddress(mailingAddressJSON: String!): MailingAddress
     updateMailingAddress(mailingAddressId: ID!, mailingAddressJSON: String!): MailingAddress
-    addLead(name: String!, author: ID!, drafters: [ID]!, client: ID!, content: String!, firstNote: String!): String
+    addLead(name: String!, author: ID!, drafters: [ID]!, client: ID!, project: ID!, content: String!, firstNote: String!): String
     updateLeadDrafters(leadId: ID!, drafters: [ID]!): String
     updateLeadName(leadId: ID!, name: String!): String
     addLeadRevision(id: ID!, author: ID!, status: String!, content: String!, note: String!): LeadRevision

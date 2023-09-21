@@ -125,6 +125,13 @@ export default function ClientDetails (props:any) {
     setBillingSelected(filteredAddresses.length > 0 ? filteredAddresses[0] : null);
   },[setBillingSelected, billingSelectedId, billingAddresses]);  
 
+  useEffect(() => {
+    console.log("projectBillingId: ", projectBillingId);
+  })
+
+  useEffect(() => {
+    console.log("projects: ", projects);
+  })
 
 
   if (status !== 'authenticated') {
@@ -220,7 +227,6 @@ export default function ClientDetails (props:any) {
         mailingAddressJSON: mailingAddressJSON
       }});
       const updatedAddress = updatedAddressResponse.updateMailingAddress;
-      console.log('Updated address:',updatedAddress);
       const addressIndex = billingAddresses.indexOf(billingAddresses.filter((e:any) => e._id === billingSelected._id)[0]);
       const newAddresses = [...billingAddresses];
       newAddresses.splice(addressIndex,1,updatedAddress);
@@ -245,19 +251,18 @@ export default function ClientDetails (props:any) {
     setProjectEditId(project._id);
     setProjectName(project.name);
     setProjectNDA(project.nda);
-    setProjectBillingId(project.billingAddress._id);
+    setProjectBillingId(project.billingAddress?._id || '');
     setProjectContacts(project.contacts);
     setProjectKeyContacts(project.keyContacts);
     setEditProjectVisible(true);
   }
 
   function handleUpdateProject () {
-    console.log('Project key contacts: ',projectKeyContacts);
     const updatedProject = {
       _id: projectEditId,
       name: projectName,
       nda: projectNDA,
-      billingAddress: projectBillingId,
+      billingAddress: projectBillingId === '' ? null : billingAddresses.filter((address:any)=>address._id === projectBillingId)[0],
       contacts: projectContacts,
       keyContacts: projectKeyContacts
     }

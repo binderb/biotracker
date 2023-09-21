@@ -14,7 +14,8 @@ interface Client {
 interface Props {
   session: any
   leadName: any
-  client: string
+  client: any
+  project: any
   users: any
   clients: Client[]
   leads: any
@@ -23,6 +24,7 @@ interface Props {
   drafterList: any
   setLeadName: Function
   setClient: Function
+  setProject: Function
   setTemplateList: Function
   setContent: Function
   setDrafterList: Function
@@ -30,7 +32,7 @@ interface Props {
   setSourceLead: Function
 }
 
-export default function CloneSetup ({session, leadName, client, users, clients, leads, studyPlanForms, templateList, drafterList, setLeadName, setClient, setTemplateList, setContent, setDrafterList, sourceLead, setSourceLead}:Props) {
+export default function CloneSetup ({session, leadName, client, project, users, clients, leads, studyPlanForms, templateList, drafterList, setLeadName, setClient, setProject, setTemplateList, setContent, setDrafterList, sourceLead, setSourceLead}:Props) {
 
   const [drafterToAdd, setDrafterToAdd] = useState('');
   const [templateToAdd, setTemplateToAdd] = useState('');
@@ -114,6 +116,30 @@ export default function CloneSetup ({session, leadName, client, users, clients, 
           ))}
         </select>
         <div>Don&apos;t have a client code? <Link className='std-link' href='/clients'>Create one</Link> before starting this process!</div>
+      </div>
+      <div className='flex items-center mb-2'>
+        <div className='mr-2'>Project:</div>
+        <select className='std-input mr-2' onChange={(e)=>setProject(e.target.value)} value={project || ''} disabled={!client?.projects}>
+          <option value=''>N/A</option> 
+          {client?.projects && 
+            <>
+            {client.projects.map((project:any, index:number) => (
+              <option value={project._id} key={`project-${index}`}>{`${project.name}`}</option>  
+            ))}
+            </>  
+          }
+        </select>
+        {client && (
+          <>
+          {client.projects?.length > 0 ? (
+            <div><Link className='std-link' href={`/clients/${client._id}`}>Create a new project</Link> for this client if necessary.</div>
+          ):(
+            <div>Haven&apos;t defined any projects for this lead yet? <Link className='std-link' href={`/clients/${client._id}`}>Create one here</Link>.</div>
+          )}
+          </>
+        )}
+        
+        
       </div>
       <section className='flex flex-col justify-center mb-2'>
         <div className='mr-2'>Choose an existing lead to serve as the cloning source. Once you make your choice, the associated study plan forms will be shown below.</div>

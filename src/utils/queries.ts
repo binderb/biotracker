@@ -28,6 +28,32 @@ export const GET_CLIENTS = gql`
       }
       projects {
         _id
+        name
+        billingAddress {
+          _id
+          identifier
+          entityName
+          addressLine1
+          addressLine2
+          city
+          stateProvince
+          country
+          postalCode
+        }
+        contacts {
+          _id
+          first
+          last
+          email
+          phone
+          links
+          notes
+          referredBy {
+            _id
+          }
+        }
+        keyContacts
+        nda
       }
       accountType
     }
@@ -185,6 +211,25 @@ export const GET_LEAD_LATEST = gql`
         _id
         code
         name
+      }
+      project {
+        _id
+        name
+        billingAddress {
+          addressLine1
+          addressLine2
+          city
+          stateProvince
+          country
+          postalCode
+        }
+        contacts {
+          _id
+          first
+          last
+          email
+          phone
+        }
       }
       revisions {
         _id

@@ -227,6 +227,35 @@ export default function FormContentEditor ({users, client, leadData, content, se
                         </select>
                       )
                     }
+                    {
+                      field.params[0] === 'projectContacts' && (
+                        <>
+                        <select className='std-input w-full' value={field.data[0]} onChange={(e) => handleUpdateLeadSelectField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)}>
+                          <option value=''>-- Choose --</option>
+                          {
+                            leadData.project?.contacts?.map((contact:any, index:number) => (
+                              <option key={index} value={contact._id}>
+                                {`${contact.first} ${contact.last}`}
+                              </option>
+                            ))
+                          }
+                        </select>
+                        { leadData.project?.contacts?.filter((contact:any)=>contact._id === field.data[0])[0] && (
+                          <div className='flex flex-col p-2'>
+                            <div className='flex gap-2'>
+                              <div>Email:</div>
+                              {leadData.project?.contacts?.filter((contact:any)=>contact._id === field.data[0])[0].email || '(none specified)'}
+                            </div>
+                            <div className='flex gap-2'>
+                              <div>Phone:</div>
+                              {leadData.project?.contacts?.filter((contact:any)=>contact._id === field.data[0])[0].phone || '(none specified)'}
+                            </div>
+                          </div>
+                        
+                        )}
+                        </>
+                      )
+                    }
                   </td>
                 )}
                 {field.type === 'generated' && (
@@ -257,9 +286,9 @@ export default function FormContentEditor ({users, client, leadData, content, se
                       )
                     }
                     {
-                      field.params[0] === 'clientNDA' && (
+                      field.params[0] === 'projectName' && (
                         <>
-                        {client.name}
+                        {leadData.project?.name}
                         </>
                       )
                     }

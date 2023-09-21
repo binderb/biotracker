@@ -30,7 +30,14 @@ const resolvers = {
     },
     getClients: async () => {
       await connectMongo();
-      return Client.find().sort('name');
+      return Client.find().sort('name').populate({
+        path: 'projects',
+        model: 'ClientProject',
+        populate: {
+          path: 'contacts',
+          model: 'Contact'
+        }
+      });
     },
     getContacts: async () => {
       await connectMongo();
@@ -126,6 +133,17 @@ const resolvers = {
       await connectMongo();
       const lead = await Lead.findById(id,{'revisions': {$slice: -1} })
         .populate('client')
+        .populate({
+          path: 'project',
+          model: 'ClientProject',
+          populate: [{
+            path: 'contacts',
+            model: 'Contact'
+          },{
+            path: 'billingAddress',
+            model: 'MailingAddress'
+          }]
+        })
         .populate('revisions')
         .populate({
           path: 'author',
@@ -318,11 +336,13 @@ const resolvers = {
       try {
         const clientData = JSON.parse(clientJSON);
         await connectMongo();
-        const client = await Client.findById(clientId);
+        const client = await Client.findById(clientId).populate('projects');
         // delete any project objects that have been deleted by the user.
-        const deletedProjectIds = client.projects.filter((databaseProject:any) => clientData.projects.indexOf(databaseProject._id) < 0);
+        const clientDataProjectIds = clientData.projects.map((project:any) => project._id);
+        const deletedProjectIds = client.projects.filter((databaseProject:any) => clientDataProjectIds.indexOf(databaseProject._id) < 0);
         console.log('deleted project ids: ',deletedProjectIds)
-        await ClientProject.deleteMany({ _id: {$in: deletedProjectIds}});
+        // return 'success';
+        // await ClientProject.deleteMany({ _id: {$in: deletedProjectIds}});
         // create projects if new, or update them if existing.
         const newProjects = clientData.projects.filter((project:any) => project._id.indexOf('new-') >= 0);
         const existingProjects = clientData.projects.filter((project:any) => project._id.indexOf('new-') < 0);
@@ -434,7 +454,7 @@ const resolvers = {
       }
     },
     addLead: async (_:any, args:any) => {
-      const { name, author, drafters, client, content, firstNote } = args;
+      const { name, author, drafters, client, project, content, firstNote } = args;
       console.log('starting to generate lead.');
       await connectMongo();
       try {
@@ -458,6 +478,7 @@ const resolvers = {
           author,
           drafters,
           client,
+          project,
           revisions: [newRevision._id],
           notes: [newNote._id]
         });

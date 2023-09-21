@@ -7,6 +7,7 @@ interface Props {
   session: any
   leadName: any
   client: any
+  project: any
   users: any
   clients: any[]
   studyPlanForms: any
@@ -14,11 +15,12 @@ interface Props {
   drafterList: any
   setLeadName: Function
   setClient: Function
+  setProject: Function
   setTemplateList: Function
   setDrafterList: Function
 }
 
-export default function LeadSetup ({session, leadName, client, users, clients, studyPlanForms, templateList, drafterList, setLeadName, setClient, setTemplateList, setDrafterList}:Props) {
+export default function LeadSetup ({session, leadName, client, project, users, clients, studyPlanForms, templateList, drafterList, setLeadName, setClient, setProject, setTemplateList, setDrafterList}:Props) {
 
   const [drafterToAdd, setDrafterToAdd] = useState('');
   const [templateToAdd, setTemplateToAdd] = useState('');
@@ -29,6 +31,14 @@ export default function LeadSetup ({session, leadName, client, users, clients, s
 
   function handleClientChange (e:ChangeEvent<HTMLSelectElement>) {
     setClient(clients.filter((client:any) => client.code === e.target.value)[0]);
+  }
+
+  function handleProjectChange (e:ChangeEvent<HTMLSelectElement>) {
+    if (client?.projects) {
+      setProject(client.projects.filter((project:any) => project._id === e.target.value)[0]);
+    } else {
+      setProject(null);
+    }
   }
 
   // function handleTemplateChange (e:ChangeEvent<HTMLSelectElement>) {
@@ -75,6 +85,30 @@ export default function LeadSetup ({session, leadName, client, users, clients, s
           ))}
         </select>
         <div>Don&apos;t have a client code? <Link className='std-link' href='/clients'>Create one</Link> before starting this process!</div>
+      </div>
+      <div className='flex items-center mb-2'>
+        <div className='mr-2'>Project:</div>
+        <select className='std-input mr-2' onChange={handleProjectChange} value={project?._id || ''} disabled={!client?.projects}>
+          <option value=''>N/A</option> 
+          {client?.projects && 
+            <>
+            {client.projects.map((project:any, index:number) => (
+              <option value={project._id} key={`project-${index}`}>{`${project.name}`}</option>  
+            ))}
+            </>  
+          }
+        </select>
+        {client && (
+          <>
+          {client.projects?.length > 0 ? (
+            <div><Link className='std-link' href={`/clients/${client._id}`}>Create a new project</Link> for this client if necessary.</div>
+          ):(
+            <div>Haven&apos;t defined any projects for this lead yet? <Link className='std-link' href={`/clients/${client._id}`}>Create one here</Link>.</div>
+          )}
+          </>
+        )}
+        
+        
       </div>
       {/* <div className='flex items-center mb-2'>
         <div className='mr-2'>Lead Template:</div>

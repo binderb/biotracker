@@ -60,6 +60,7 @@ export default function NewLead () {
   const [creatorStep, setCreatorStep] = useState(1);
   const [errStatus, setErrStatus] = useState('');
   const [client, setClient] = useState<any>(null);
+  const [project, setProject] = useState<any>(null);
   const [leadName, setLeadName] = useState('');
   const initialDrafters = session ? [session.user] : [];
   const [drafterList, setDrafterList] = useState(initialDrafters);
@@ -70,6 +71,10 @@ export default function NewLead () {
   const [getLatestStudyPlanFormRevision, { data }] = useLazyQuery(GET_STUDY_PLAN_FORM_LATEST);
   const [templateList, setTemplateList] = useState<any>([]);
   const [content, setContent] = useState<any>(null);
+
+  useEffect( () => {
+    console.log(project);
+  },[project]);
 
   useEffect( () => {
     const fetchTemplateObjects = async () => {
@@ -138,7 +143,7 @@ export default function NewLead () {
   function handleChangeStep (delta:number) {
     const newCreatorStep = creatorStep + delta;
     if (newCreatorStep === 1 || newCreatorStep === 2 || newCreatorStep === 3) setErrStatus('');
-    if (newCreatorStep === 2 && (!client || !leadName)) {
+    if (newCreatorStep === 2 && (!client || !leadName || !project)) {
       setErrStatus('Please select a value for all fields before proceeding!');
       return;
     }
@@ -155,6 +160,7 @@ export default function NewLead () {
       author: session?.user.id,
       drafters: drafterList.map((drafter:any) => drafter.id || drafter._id),
       client: clients.filter((clientObject:any) => clientObject.code === client.code)[0]._id,
+      project: project._id,
       content: JSON.stringify(content),
       firstNote: firstNote
     }
@@ -189,6 +195,7 @@ export default function NewLead () {
                 session={session}
                 leadName={leadName}
                 client={client}
+                project={project}
                 users={users}
                 clients={clients}
                 studyPlanForms={studyPlanForms}
@@ -196,6 +203,7 @@ export default function NewLead () {
                 drafterList={drafterList}
                 setLeadName={setLeadName}
                 setClient={setClient}
+                setProject={setProject}
                 setTemplateList={setTemplateList}
                 setDrafterList={setDrafterList}
               />

@@ -297,7 +297,21 @@ export default function StudyPlanEditor (props:any) {
             <section className='flex flex-col gap-2 md:overflow-y-auto overflow-x-visible h-[calc(100%-40px)] pr-2'>
               <LeadEditor 
                 client={{name: 'EXAMPLE'}}
-                leadData={{name: 'EXAMPLE'}}
+                leadData={{name: 'EXAMPLE', project: {
+                  name: 'EXAMPLE PROJECT',
+                  contacts: [
+                    {
+                      _id: 'EXAMPLE1',
+                      first: 'John',
+                      last: 'Smith'
+                    },
+                    {
+                      _id: 'EXAMPLE2',
+                      first: 'Jane',
+                      last: 'Doe'
+                    }
+                  ]
+                }}}
                 content={content}
                 studyPlanNames={[formName]}
                 setContent={setContent}

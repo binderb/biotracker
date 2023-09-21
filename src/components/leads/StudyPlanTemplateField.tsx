@@ -109,6 +109,7 @@ export default function StudyPlanTemplateField ({sections, index, rowIndex, fiel
             <select className='std-input' onChange={(e)=>handleFieldParamsUpdate(e)}>
               <option value=''>-- Choose --</option>
               <option value='users'>Users</option>
+              <option value='projectContacts'>Project Contacts</option>
             </select>
           </div>
         </div>

@@ -104,8 +104,8 @@ export const UPDATE_ADDRESS = gql`
 `;
 
 export const ADD_NEW_LEAD = gql`
-  mutation addNewLead($name: String!, $author: ID!, $drafters: [ID]!, $client: ID!, $content: String!, $firstNote: String!) {
-    addLead(name: $name, author: $author, drafters: $drafters, client: $client, content: $content, firstNote: $firstNote)
+  mutation addNewLead($name: String!, $author: ID!, $drafters: [ID]!, $client: ID!, $project: ID!, $content: String!, $firstNote: String!) {
+    addLead(name: $name, author: $author, drafters: $drafters, client: $client, project: $project, content: $content, firstNote: $firstNote)
   }
 `;
 

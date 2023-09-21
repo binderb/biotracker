@@ -60,7 +60,8 @@ export default function Clone () {
   const [sourceLead, setSourceLead] = useState('');
   const [creatorStep, setCreatorStep] = useState(1);
   const [errStatus, setErrStatus] = useState('');
-  const [client, setClient] = useState('');
+  const [client, setClient] = useState<any>(null);
+  const [project, setProject] = useState<any>(null);
   const [leadName, setLeadName] = useState('');
   const initialDrafters = session ? [session.user] : [];
   const [drafterList, setDrafterList] = useState(initialDrafters);
@@ -93,6 +94,7 @@ export default function Clone () {
       author: session?.user.id,
       drafters: drafterList.map((drafter:any) => drafter.id || drafter._id),
       client: clients.filter((clientObject:any) => clientObject.code === client)[0]._id,
+      project: project._id,
       content: JSON.stringify(content),
       firstNote: firstNote
     }
@@ -127,6 +129,7 @@ export default function Clone () {
                 session={session}
                 leadName={leadName}
                 client={client}
+                project={project}
                 users={users}
                 clients={clients}
                 leads={leads}
@@ -135,6 +138,7 @@ export default function Clone () {
                 drafterList={drafterList}
                 setLeadName={setLeadName}
                 setClient={setClient}
+                setProject={setProject}
                 setTemplateList={setTemplateList}
                 setContent={setContent}
                 setDrafterList={setDrafterList}
