@@ -31,9 +31,32 @@ export const ADD_CLIENT = gql`
   }
 `;
 
+export const UPDATE_CLIENT = gql`
+  mutation updateClient($clientId: ID!, $clientJSON: String!) {
+    updateClient(clientId: $clientId, clientJSON: $clientJSON)
+  }
+`;
+
 export const ADD_CONTACT = gql`
   mutation addContact($contactJSON: String!) {
     addContact(contactJSON: $contactJSON) {
+      _id
+      first
+      last
+      referredBy {
+        _id
+      }
+      email
+      phone
+      links
+      notes
+    }
+  }
+`;
+
+export const UPDATE_CONTACT = gql`
+  mutation updateContact($contactId: ID!, $contactJSON: String!) {
+    updateContact(contactId: $contactId, contactJSON: $contactJSON) {
       _id
       first
       last

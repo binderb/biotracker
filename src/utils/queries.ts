@@ -68,6 +68,20 @@ export const GET_CLIENT = gql`
       name
       code
       accountType
+      referredBy {
+        _id
+      }
+      billingAddresses {
+        _id
+        identifier
+        entityName
+        addressLine1
+        addressLine2
+        city
+        stateProvince
+        country
+        postalCode
+      }
       projects {
         _id
         name
@@ -76,6 +90,15 @@ export const GET_CLIENT = gql`
         }
         contacts {
           _id
+          first
+          last
+          email
+          phone
+          links
+          notes
+          referredBy {
+            _id
+          }
         }
         keyContacts
         nda

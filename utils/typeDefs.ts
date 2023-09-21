@@ -176,7 +176,9 @@ const typeDefs = gql`
     updateUser(updateUserId: ID!, username: String!, password: String!, first: String!, last: String!, role: String!): User
     removeUser(removeUserId: ID!): String
     addClient(name: String!, code: String!): Client
+    updateClient(clientId: ID!, clientJSON: String!): String
     addContact(contactJSON: String!): Contact
+    updateContact(contactId: ID!, contactJSON: String!): Contact
     addMailingAddress(mailingAddressJSON: String!): MailingAddress
     updateMailingAddress(mailingAddressId: ID!, mailingAddressJSON: String!): MailingAddress
     addLead(name: String!, author: ID!, drafters: [ID]!, client: ID!, content: String!, firstNote: String!): String

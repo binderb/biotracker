@@ -5,14 +5,15 @@ import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
-import { GET_CLIENT, GET_CONTACTS } from "@/utils/queries";
+import { GET_CLIENT, GET_CLIENTS, GET_CONTACTS } from "@/utils/queries";
 import { useApolloClient, useMutation, useQuery } from "@apollo/client";
 import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faFolderMinus, faPerson, faPersonRays, faPlus, faTrashAlt, faUser, faUserGroup, faUserMinus, faUserXmark } from "@fortawesome/free-solid-svg-icons";
 import ContactNew from "@/components/clients/ContactNew";
 import ContactSearch from "@/components/clients/ContactSearch";
-import { ADD_ADDRESS, ADD_CONTACT, UPDATE_ADDRESS } from "@/utils/mutations";
+import { ADD_ADDRESS, ADD_CONTACT, UPDATE_ADDRESS, UPDATE_CLIENT, UPDATE_CONTACT } from "@/utils/mutations";
+import { ClientReferenceManifestPlugin } from "next/dist/build/webpack/plugins/flight-manifest-plugin";
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -61,25 +62,35 @@ export default function ClientDetails (props:any) {
     variables: {clientId: props.clientId}
   });
   const client = clientResponse?.getClient;
+  console.log(client);
   const {data:contactsResponse} = useQuery(GET_CONTACTS);
   const contacts = contactsResponse?.getContacts;
   const [addContact] = useMutation(ADD_CONTACT);
+  const [updateContact] = useMutation(UPDATE_CONTACT);
   const [addAddress] = useMutation(ADD_ADDRESS);
   const [updateAddress] = useMutation(UPDATE_ADDRESS);
+  const [updateClient] = useMutation(UPDATE_CLIENT);
 
+  const [mainErrStatus, setMainErrStatus] = useState('');
   const [newProjectVisible, setNewProjectVisible] = useState(false);
   const [newProjectErrStatus, setNewProjectErrStatus] = useState('');
   const [newBillingAddressVisible, setNewBillingAddressVisible] = useState(false);
   const [newBillingAddressErrStatus, setNewBillingAddressErrStatus] = useState('');
   const [editBillingAddressVisible, setEditBillingAddressVisible] = useState(false);
   const [editBillingAddressErrStatus, setEditBillingAddressErrStatus] = useState('');
+  const [addingNewContact, setAddingNewContact] = useState(false);
+  const [addingExistingContact, setAddingExistingContact] = useState(false);
+  const [editingExistingContact, setEditingExistingContact] = useState(false);
   const [newContactErrStatus, setNewContactErrStatus] = useState('');
+  const [editContactErrStatus, setEditContactErrStatus] = useState('');
   const [editProjectVisible, setEditProjectVisible] = useState(false);
   const [editProjectErrStatus, setEditProjectErrStatus] = useState('');
 
-  const [clientName, setClientName] = useState(client.name);
-  const [clientNDA, setClientNDA] = useState(client.nda);
-  const [clientAccountType, setClientAccountType] = useState(client.accountType);
+  const [clientName, setClientName] = useState(client.name || '');
+  const [clientNDA, setClientNDA] = useState(client.nda || false);
+  const [clientWebsite, setClientWebsite] = useState(client.website || '');
+  const [clientReferredBy, setClientReferredBy] = useState(client.referredBy?._id || '');
+  const [clientAccountType, setClientAccountType] = useState(client.accountType || 'active');
   const [billingAddresses, setBillingAddresses] = useState<any[]>(client.billingAddresses || []);
   const [billingSelected, setBillingSelected] = useState<any>((client.billingAddresses && client.billingAddresses.length > 0) ? client.billingAddresses[0] : {});
   const [billingSelectedId, setBillingSelectedId] = useState((client.billingAddresses && client.billingAddresses.length > 0) ? client.billingAddresses[0]._id : '')
@@ -98,8 +109,7 @@ export default function ClientDetails (props:any) {
   const [projectBillingId, setProjectBillingId] = useState('');
   const [projectContacts, setProjectContacts] = useState<any[]>([]);
   const [projectKeyContacts, setProjectKeyContacts] = useState<boolean[]>([]);
-  const [addingNewContact, setAddingNewContact] = useState(false);
-  const [addingExistingContact, setAddingExistingContact] = useState(false);
+  const [contactEditId, setContactEditId] = useState('');
   const [contactFirst, setContactFirst] = useState('');
   const [contactLast, setContactLast] = useState('');
   const [contactReferredBy, setContactReferredBy] = useState<any>(null);
@@ -161,7 +171,7 @@ export default function ClientDetails (props:any) {
       _id: `new-${projects.length}`,
       name: projectName,
       nda: projectNDA,
-      billingAddress: projectBillingId,
+      billingAddress: projectBillingId || null,
       contacts: projectContacts,
       keyContacts: projectKeyContacts
     }
@@ -235,13 +245,14 @@ export default function ClientDetails (props:any) {
     setProjectEditId(project._id);
     setProjectName(project.name);
     setProjectNDA(project.nda);
-    setProjectBillingId(project.billingAddress);
+    setProjectBillingId(project.billingAddress._id);
     setProjectContacts(project.contacts);
     setProjectKeyContacts(project.keyContacts);
     setEditProjectVisible(true);
   }
 
   function handleUpdateProject () {
+    console.log('Project key contacts: ',projectKeyContacts);
     const updatedProject = {
       _id: projectEditId,
       name: projectName,
@@ -253,7 +264,6 @@ export default function ClientDetails (props:any) {
     const projectIndex = projects.indexOf(projects.filter((e:any) => e._id === projectEditId)[0]);
     const newProjects = [...projects];
     newProjects.splice(projectIndex,1,updatedProject);
-    console.log(newProjects);
     setProjects(newProjects);
     setEditProjectVisible(false);
     setProjectName('');
@@ -310,12 +320,100 @@ export default function ClientDetails (props:any) {
     console.log([...projectContacts, contactSelected]);
   }
 
+  function handleShowEditContact (contact:any) {
+    setContactEditId(contact._id);
+    setContactFirst(contact.first);
+    setContactLast(contact.last);
+    setContactReferredBy(contact.referredBy);
+    setContactEmail(contact.email);
+    setContactPhone(contact.phone);
+    setContactLinks(contact.links);
+    setContactNotes(contact.notes);
+    setEditingExistingContact(true);
+  }
+
+  async function handleUpdateContact () {
+    try {
+      const contactJSON = JSON.stringify(
+        {
+          first: contactFirst,
+          last: contactLast,
+          referredBy: contactReferredBy?._id || null,
+          email: contactEmail,
+          phone: contactPhone,
+          links: contactLinks,
+          notes: contactNotes
+        }
+      );
+      const {data: updatedContactResponse} = await updateContact({variables:{
+        contactId: contactEditId,
+        contactJSON: contactJSON
+      }});
+      const updatedContact = updatedContactResponse.updateContact;
+      // setProjectContacts([...projectContacts, newContact]);
+      // setProjectKeyContacts([...projectKeyContacts, false]);
+      console.log('projectContacts',projectContacts)
+      const contactIndex = projectContacts.indexOf(projectContacts.filter((e:any) => e._id === updatedContact._id)[0]);
+      const newContacts = [...projectContacts];
+      newContacts.splice(contactIndex,1,updatedContact);
+      setProjectContacts(newContacts);
+      await apolloClient.query({
+        query: GET_CONTACTS,
+        fetchPolicy: 'network-only'
+      });
+      setEditingExistingContact(false);
+      setEditContactErrStatus('');
+      setContactFirst('');
+      setContactLast('');
+      setContactReferredBy(null);
+      setContactEmail('');
+      setContactPhone('');
+      setContactLinks('');
+      setContactNotes('');
+    } catch (err:any) {
+      setEditContactErrStatus(JSON.stringify(err));
+    }
+  }
+
+  async function handleSaveChanges () {
+    try {
+      console.log('Billing Addresses',billingAddresses);
+      console.log('Projects',projects);
+      const clientJSON = JSON.stringify({
+        name: clientName,
+        accountType: clientAccountType,
+        billingAddresses: billingAddresses.map((address:any) => address._id),
+        projects: projects,
+        website: clientWebsite,
+        referredBy: clientReferredBy || null
+      });
+      await updateClient({
+        variables: {
+          clientId: props.clientId,
+          clientJSON: clientJSON
+        }
+      });
+      await apolloClient.query({
+        query: GET_CLIENTS,
+        fetchPolicy: 'network-only'
+      });
+      await apolloClient.query({
+        query: GET_CLIENT,
+        variables: {clientId: props.clientId},
+        fetchPolicy: 'network-only'
+      });
+      router.push('/clients');
+    } catch (err:any) {
+      setMainErrStatus(JSON.stringify(err))
+    }
+  }
+
   return (
     <>
       <Navbar />
-      <div className='mt-4'>
+      {/* <div className='mt-4'>
         <Link className='std-link ml-4' href='/clients'>&larr; Back</Link>
-      </div>
+      </div> */}
       <main className='flex flex-col px-4'>
         <div className='flex flex-col mt-4 bg-secondary/20 border border-secondary/80 rounded-lg p-4'>
           <h5>Client Details:</h5>
@@ -459,11 +557,38 @@ export default function ClientDetails (props:any) {
                     </div>
                   </td>
                 </tr>
-                
+                {/* Client Website */}
+                <tr>
+                  <td className='bg-white/50 border border-secondary/80 p-1 font-bold'>Website URL</td>
+                  <td className='bg-white/50 border border-secondary/80 p-1'>
+                    <input className='std-input w-full' value={clientWebsite} onChange={(e)=>setClientWebsite(e.target.value)} />
+                  </td>
+                </tr>
+                {/* Client Referred By */}
+                <tr>
+                  <td className='bg-white/50 border border-secondary/80 p-1 font-bold'>Referred By</td>
+                  <td className='bg-white/50 border border-secondary/80 p-1'>
+                    <select className='std-input w-full' value={clientReferredBy} onChange={(e) => setClientReferredBy(e.target.value)}>
+                      <option value=''>N/A</option>
+                      {contacts?.length > 0 && (
+                        <>
+                          {contacts.map((contact:any,index:number) => (
+                            <option value={contact._id} key={`contact-${index}`}>{`${contact.first} ${contact.last}`}</option>
+                          ))}
+                        </>
+                      )}
+                    </select>
+                  </td>
+                </tr>
               </tbody>
             </table>
-            <div className='flex items-center justify-end gap-2 pt-4'>
-              <button className='std-button-lite'>Save Changes</button>
+            <div className='flex items-center justify-between gap-2 pt-4'>
+              <div className='text-[#800]'>{mainErrStatus}</div>
+              <div className='flex items-center gap-2'>
+                <Link href={'/clients'} className='secondary-button-lite'>Back</Link>
+                <button className='std-button-lite' onClick={handleSaveChanges}>Save Changes</button>
+              </div>
+              
             </div>
         </div>
       </main>
@@ -569,9 +694,9 @@ export default function ClientDetails (props:any) {
       <section className={`fixed ${(newProjectVisible || editProjectVisible) ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
         <section className='flex bg-white rounded-lg p-0 col-start-2 col-span-10 md:col-start-3 md:col-span-8 lg:col-start-4 lg:col-span-6'>
           <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
-            { (!addingNewContact && !addingExistingContact) && (
+            { (!addingNewContact && !addingExistingContact && !editingExistingContact) && (
             <>
-            <h5>Add Project</h5>
+            <h5>{newProjectVisible ? `Add Project` : `Edit Project Details`}</h5>
             <table className='w-full text-left border-collapse'>
             <thead>
               <tr>
@@ -603,7 +728,7 @@ export default function ClientDetails (props:any) {
                   <td className='bg-white/50 border border-secondary/80 p-2'>
                     <div className='flex items-center gap-2'>
                       <select className='std-input w-full' value={projectBillingId} onChange={(e) => setProjectBillingId(e.target.value)}>
-                        <option value=''>-- Choose --</option>
+                        <option value=''>N/A</option>
                         {billingAddresses.map((address:any, index:number) => (
                           <option key={`address-${index}`} value={address._id}>
                             {address.identifier}
@@ -635,12 +760,22 @@ export default function ClientDetails (props:any) {
                               </td>
                               <td className='bg-white/50 border border-secondary/80 p-1 font-bold'>
                                 <label className='form-control cursor-pointer'>
-                                  <input type='checkbox' checked={projectKeyContacts[index]} onChange={(e)=>setProjectKeyContacts([...projectKeyContacts].splice(index,0,!projectKeyContacts[index]))} />
+                                  <input type='checkbox' checked={projectKeyContacts[index]} onChange={()=>{
+                                    
+                                    console.log('key contacts',projectKeyContacts)
+                                    const newKeyContacts = [...projectKeyContacts];
+                                    newKeyContacts.splice(index,1,!projectKeyContacts[index]);
+                                    console.log("new key contacts: ",newKeyContacts)
+                                    setProjectKeyContacts(newKeyContacts);
+                                  }} />
                                 </label>
                               </td>
                               <td className='bg-white/50 border border-secondary/80 p-1 font-bold'>
                                 <div className='flex items-center gap-2 w-full justify-center'>
-                                  <button className='danger-button-lite' onClick={()=>{setProjectContacts(projectContacts.filter((prevContact:any)=>contact._id !== prevContact._id)); console.log(projectContacts.filter((prevContact:any)=>contact._id !== prevContact._id));console.log(projectContacts)}}>
+                                  <button className='std-button-lite' onClick={()=>handleShowEditContact(contact)}>
+                                    <FontAwesomeIcon icon={faEdit} />
+                                  </button>
+                                  <button className='danger-button-lite' onClick={()=>{setProjectContacts(projectContacts.filter((prevContact:any)=>contact._id !== prevContact._id));}}>
                                     <FontAwesomeIcon icon={faUserMinus} />
                                   </button>
                                 </div>
@@ -704,9 +839,9 @@ export default function ClientDetails (props:any) {
             
           </>
             )}
-            {addingNewContact && (
+            {(addingNewContact || editingExistingContact) && (
               <>
-                <h5>Create / Add New Contact</h5>
+                <h5>{ addingNewContact ? `Create / Add New Contact` : `Edit Contact Details`}</h5>
                 <ContactNew 
                   first={contactFirst}
                   last={contactLast}
@@ -724,16 +859,33 @@ export default function ClientDetails (props:any) {
                   setLinks={setContactLinks}
                   setNotes={setContactNotes}
                 />
-                <div className='flex gap-2'>
-                  <button className='secondary-button-lite flex-grow' onClick={() => {setAddingNewContact(false);setNewContactErrStatus('');setContactFirst('');setContactLast('');setContactReferredBy(null);setContactEmail('');setContactPhone('');setContactLinks('');setContactNotes('');}}>
-                    Cancel
-                  </button>
-                  <button className='std-button-lite flex-grow' onClick={handleAddNewContact}>
-                    Create New Contact
-                  </button>
-                  
-                </div>
-                <div className='text-[#800]'>{newContactErrStatus}</div>
+                { addingNewContact && (
+                  <>
+                    <div className='flex gap-2'>
+                      <button className='secondary-button-lite flex-grow' onClick={() => {setAddingNewContact(false);setNewContactErrStatus('');setContactFirst('');setContactLast('');setContactReferredBy(null);setContactEmail('');setContactPhone('');setContactLinks('');setContactNotes('');}}>
+                        Cancel
+                      </button>
+                      <button className='std-button-lite flex-grow' onClick={handleAddNewContact}>
+                        Create New Contact
+                      </button>
+                    </div>
+                    <div className='text-[#800]'>{newContactErrStatus}</div>
+                  </>
+                )}
+                { editingExistingContact && (
+                  <>
+                    <div className='flex gap-2'>
+                      <button className='secondary-button-lite flex-grow' onClick={() => {setEditingExistingContact(false);setEditContactErrStatus('');setContactFirst('');setContactLast('');setContactReferredBy(null);setContactEmail('');setContactPhone('');setContactLinks('');setContactNotes('');}}>
+                        Cancel
+                      </button>
+                      <button className='std-button-lite flex-grow' onClick={handleUpdateContact}>
+                        Save Changes
+                      </button>
+                    </div>
+                    <div className='text-[#800]'>{editContactErrStatus}</div>
+                  </>
+                )}
+                
               </>
             )}
             {addingExistingContact && (

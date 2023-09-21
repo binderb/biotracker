@@ -11,7 +11,7 @@ const clientSchema = new Schema({
     required: true,
     unique: true
   },
-  referredBy: String,
+  referredBy: { type: Schema.Types.ObjectId, ref: 'Contact' },
   website: String,
   billingAddresses: [{ type: Schema.Types.ObjectId, ref: 'MailingAddress'}],
   projects: [{ type: Schema.Types.ObjectId, ref: 'ClientProject'}],

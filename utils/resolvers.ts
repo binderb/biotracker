@@ -53,7 +53,8 @@ const resolvers = {
               path: 'contacts',
               model: 'Contact'
             }
-          });
+          })
+          .populate('billingAddresses');
       } catch (err:any) {
         throw err;
       }
@@ -312,6 +313,58 @@ const resolvers = {
       });
       return newClient;
     },
+    updateClient: async (_:any, args:any) => {
+      const { clientId, clientJSON } = args;
+      try {
+        const clientData = JSON.parse(clientJSON);
+        await connectMongo();
+        const client = await Client.findById(clientId);
+        // delete any project objects that have been deleted by the user.
+        const deletedProjectIds = client.projects.filter((databaseProject:any) => clientData.projects.indexOf(databaseProject._id) < 0);
+        console.log('deleted project ids: ',deletedProjectIds)
+        await ClientProject.deleteMany({ _id: {$in: deletedProjectIds}});
+        // create projects if new, or update them if existing.
+        const newProjects = clientData.projects.filter((project:any) => project._id.indexOf('new-') >= 0);
+        const existingProjects = clientData.projects.filter((project:any) => project._id.indexOf('new-') < 0);
+        console.log('newProjects',newProjects);
+        const createdProjects = [];
+        const updatedProjects = [];
+        if (newProjects.length > 0) {
+          for (let i=0; i<newProjects.length; i++) {
+            const createdProject_i = await ClientProject.create({...newProjects[i], _id: new Types.ObjectId()});
+            createdProjects.push(createdProject_i._id);
+          }
+        }
+        if (existingProjects.length > 0) {
+          for (let i=0; i<existingProjects.length; i++) {
+            const updatedProject_i = await ClientProject.findOneAndUpdate(
+            { _id: existingProjects[i]._id},
+            { ...existingProjects[i] },
+            { new: true }
+            );
+            console.log(updatedProject_i);
+            updatedProjects.push(updatedProject_i._id);
+          };
+        }
+        const newProjectSet = [...updatedProjects, ...createdProjects];
+        console.log('newProjectSet',newProjectSet);
+        // Update the client object
+        console.log('billingAddresses', clientData.billingAddresses);
+        await Client.findOneAndUpdate(
+          { _id: clientId },
+          { $set: {
+            name: clientData.name,
+            accountType: clientData.accountType,
+            billingAddresses: clientData.billingAddresses,
+            projects: newProjectSet,
+            referredBy: clientData.referredBy
+          }},
+          { new: true }
+        );
+      } catch (err:any) {
+        throw err;
+      }
+    },
     addContact: async (_:any, args:any) => {
       const { contactJSON } = args;
       try {
@@ -324,6 +377,24 @@ const resolvers = {
           ...contactData
          });
         return newContact;
+      } catch (err:any) {
+        throw err;
+      }
+    },
+    updateContact: async (_:any, args:any) => {
+      const { contactId, contactJSON } = args;
+      try {
+        const contactData = JSON.parse(contactJSON);
+        await connectMongo();
+        if (!contactData.first) {
+          throw new Error("Contacts must at least have a first name!");
+        }
+        const updatedContact = await Contact.findOneAndUpdate(
+          {_id: contactId},
+          {...contactData},
+          {new: true}
+        );
+        return updatedContact;
       } catch (err:any) {
         throw err;
       }
