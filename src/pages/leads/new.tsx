@@ -54,9 +54,9 @@ export default function NewLead () {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { data: clientData } = useQuery(GET_CLIENTS);
-  const clients = clientData.getClients;
+  const clients = clientData?.getClients;
   const { data: userData } = useQuery(GET_USERS);
-  const users = userData.getUsers;
+  const users = userData?.getUsers;
   const [creatorStep, setCreatorStep] = useState(1);
   const [errStatus, setErrStatus] = useState('');
   const [client, setClient] = useState<any>(null);
@@ -66,7 +66,7 @@ export default function NewLead () {
   const [drafterList, setDrafterList] = useState(initialDrafters);
   const [addNewLead, { error, data: addNewLeadData }] = useMutation(ADD_NEW_LEAD);
   const { data: studyPlanFormsData } = useQuery(GET_STUDY_PLAN_FORMS);
-  const studyPlanForms = studyPlanFormsData.getStudyPlanForms;
+  const studyPlanForms = studyPlanFormsData?.getStudyPlanForms;
   const [firstNote, setFirstNote] = useState('');
   const [getLatestStudyPlanFormRevision, { data }] = useLazyQuery(GET_STUDY_PLAN_FORM_LATEST);
   const [templateList, setTemplateList] = useState<any>([]);
@@ -224,7 +224,7 @@ export default function NewLead () {
               content={content}
               studyPlanNames={templateList.map((form:any) => form.name)}
               upgradeFormContent={''}
-              leadData={null}
+              leadData={{project:project}}
               users={users}
               setContent={setContent}
               setUpgradeFormContent={()=>{}}

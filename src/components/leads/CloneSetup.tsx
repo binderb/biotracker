@@ -5,19 +5,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import Link from "next/link"
 import { ChangeEvent, useEffect, useState } from "react"
 
-interface Client {
-  _id: string,
-  name: string,
-  code: string
-}
-
 interface Props {
   session: any
   leadName: any
   client: any
   project: any
   users: any
-  clients: Client[]
+  clients: any[]
   leads: any
   studyPlanForms: any
   templateList: any
@@ -48,7 +42,15 @@ export default function CloneSetup ({session, leadName, client, project, users, 
   }
 
   function handleClientChange (e:ChangeEvent<HTMLSelectElement>) {
-    setClient(e.target.value);
+    setClient(clients.filter((client:any) => client.code === e.target.value)[0]);
+  }
+
+  function handleProjectChange (e:ChangeEvent<HTMLSelectElement>) {
+    if (client?.projects) {
+      setProject(client.projects.filter((project:any) => project._id === e.target.value)[0]);
+    } else {
+      setProject(null);
+    }
   }
 
   function handleAddDrafter (e:ChangeEvent<HTMLFormElement>) {
@@ -109,9 +111,9 @@ export default function CloneSetup ({session, leadName, client, project, users, 
       </div>
       <div className='flex items-center mb-2'>
         <div className='mr-2'>Client:</div>
-        <select className='std-input mr-2' onChange={handleClientChange} value={client}>
+        <select className='std-input mr-2' onChange={handleClientChange} value={client?.code}>
           <option value=''>-- Choose --</option> 
-          {clients.map( (client:Client) => (
+          {clients.map( (client:any) => (
             <option value={client.code} key={client.code}>{`${client.name} - ${client.code}`}</option>  
           ))}
         </select>
@@ -119,7 +121,7 @@ export default function CloneSetup ({session, leadName, client, project, users, 
       </div>
       <div className='flex items-center mb-2'>
         <div className='mr-2'>Project:</div>
-        <select className='std-input mr-2' onChange={(e)=>setProject(e.target.value)} value={project || ''} disabled={!client?.projects}>
+        <select className='std-input mr-2' onChange={handleProjectChange} value={project?._id || ''} disabled={!client?.projects}>
           <option value=''>N/A</option> 
           {client?.projects && 
             <>

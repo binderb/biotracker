@@ -233,7 +233,7 @@ export default function FormContentEditor ({users, client, leadData, content, se
                         <select className='std-input w-full' value={field.data[0]} onChange={(e) => handleUpdateLeadSelectField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)}>
                           <option value=''>-- Choose --</option>
                           {
-                            leadData.project?.contacts?.map((contact:any, index:number) => (
+                            leadData?.project?.contacts?.map((contact:any, index:number) => (
                               <option key={index} value={contact._id}>
                                 {`${contact.first} ${contact.last}`}
                               </option>
@@ -288,7 +288,7 @@ export default function FormContentEditor ({users, client, leadData, content, se
                     {
                       field.params[0] === 'projectName' && (
                         <>
-                        {leadData.project?.name}
+                        {leadData?.project?.name}
                         </>
                       )
                     }

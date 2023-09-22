@@ -30,6 +30,9 @@ export async function getServerSideProps(context:any) {
 
   const apolloClient = initializeApollo();
   await apolloClient.query({
+    query: GET_LEADS,
+  });
+  await apolloClient.query({
     query: GET_CLIENTS,
   });
   await apolloClient.query({
@@ -52,11 +55,11 @@ export default function Clone () {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { data: clientData } = useQuery(GET_CLIENTS);
-  const clients = clientData.getClients;
+  const clients = clientData?.getClients;
   const { data: userData } = useQuery(GET_USERS);
-  const users = userData.getUsers;
+  const users = userData?.getUsers;
   const { data: leadData } = useQuery(GET_LEADS);
-  const leads = leadData.getLeads;
+  const leads = leadData?.getLeads;
   const [sourceLead, setSourceLead] = useState('');
   const [creatorStep, setCreatorStep] = useState(1);
   const [errStatus, setErrStatus] = useState('');
@@ -93,7 +96,7 @@ export default function Clone () {
       name: leadName,
       author: session?.user.id,
       drafters: drafterList.map((drafter:any) => drafter.id || drafter._id),
-      client: clients.filter((clientObject:any) => clientObject.code === client)[0]._id,
+      client: clients.filter((clientObject:any) => clientObject.code === client.code)[0]._id,
       project: project._id,
       content: JSON.stringify(content),
       firstNote: firstNote
@@ -162,7 +165,7 @@ export default function Clone () {
               content={content}
               studyPlanNames={templateList}
               upgradeFormContent={''}
-              leadData={null}
+              leadData={{project:project}}
               users={users}
               setContent={setContent}
               setUpgradeFormContent={()=>{}}
