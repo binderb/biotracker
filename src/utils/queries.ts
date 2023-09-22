@@ -94,6 +94,7 @@ export const GET_CLIENT = gql`
       name
       code
       accountType
+      website
       referredBy {
         _id
       }

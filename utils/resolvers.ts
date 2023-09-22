@@ -377,7 +377,8 @@ const resolvers = {
             accountType: clientData.accountType,
             billingAddresses: clientData.billingAddresses,
             projects: newProjectSet,
-            referredBy: clientData.referredBy
+            referredBy: clientData.referredBy,
+            website: clientData.website
           }},
           { new: true }
         );
