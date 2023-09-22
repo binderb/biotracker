@@ -292,6 +292,13 @@ export default function FormContentEditor ({users, client, leadData, content, se
                         </>
                       )
                     }
+                    {
+                      field.params[0] === 'projectNDA' && (
+                        <>
+                        {leadData.project?.nda ? 'Yes' : 'No'}
+                        </>
+                      )
+                    }
                   </td>
                 )}
               </Fragment>

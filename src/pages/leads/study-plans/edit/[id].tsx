@@ -299,6 +299,7 @@ export default function StudyPlanEditor (props:any) {
                 client={{name: 'EXAMPLE'}}
                 leadData={{name: 'EXAMPLE', project: {
                   name: 'EXAMPLE PROJECT',
+                  nda: true,
                   contacts: [
                     {
                       _id: 'EXAMPLE1',
