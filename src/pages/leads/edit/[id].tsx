@@ -324,6 +324,7 @@ export default function LeadManager (props:any) {
               studyName: studyIds[i-leadData.studies.length],
               formRevisionId: content[i].studyPlanFormRevisionId,
               formData: JSON.stringify(formDetailsResponse.data.getFormDetailsFromRevisionId),
+              leadJSON: JSON.stringify(leadData),
               studyData: JSON.stringify(content[i])
             }
           });
@@ -351,6 +352,7 @@ export default function LeadManager (props:any) {
               studyName: studyName,
               formRevisionId: content[i].studyPlanFormRevisionId,
               formData: JSON.stringify(formDetailsResponse.data.getFormDetailsFromRevisionId),
+              leadJSON: JSON.stringify(leadData),
               studyData: JSON.stringify(content[i])
             }
           });
@@ -648,19 +650,19 @@ export default function LeadManager (props:any) {
                     <div className='flex gap-2 items-center'>
                       { (publishInProgress || completedPublish) &&
                         <>
-                          { updatedStudies.indexOf(`${client}${study.index.toString().padStart(4,'0')}-${study.type}`) >= 0 &&
+                          { updatedStudies.indexOf(`${client.code}${study.index.toString().padStart(4,'0')}-${study.type}`) >= 0 &&
                             <FontAwesomeIcon className='text-[#080]' icon={faCircleCheck} />
                           }
-                          { currentlyPublishingStudy === `${client}${study.index.toString().padStart(4,'0')}-${study.type}` &&
+                          { currentlyPublishingStudy === `${client.code}${study.index.toString().padStart(4,'0')}-${study.type}` &&
                             <FontAwesomeIcon className='text-primary animate-spin' icon={faSpinner} />
                           }
-                          { currentlyPublishingStudy !== `${client}${study.index.toString().padStart(4,'0')}-${study.type}` && updatedStudies.indexOf(`${client}${study.index.toString().padStart(4,'0')}-${study.type}`) < 0 &&
+                          { currentlyPublishingStudy !== `${client.code}${study.index.toString().padStart(4,'0')}-${study.type}` && updatedStudies.indexOf(`${client.code}${study.index.toString().padStart(4,'0')}-${study.type}`) < 0 &&
                             <FontAwesomeIcon className='text-secondary animate-pulse' icon={faClock} />
                           }
                         </>
                       }
                       <div>
-                        {`${client}${study.index.toString().padStart(4,'0')}-${study.type}`}
+                        {`${client.code}${study.index.toString().padStart(4,'0')}-${study.type}`}
                       </div>
                     </div>
                 </div>

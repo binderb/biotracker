@@ -1,3 +1,5 @@
+import Client from "../models/Client";
+import Contact from "../models/Contact";
 import User from "../models/User";
 import connectMongo from "./connectMongo";
 
@@ -893,7 +895,7 @@ export async function buildFormGeneralInfo (fileId:string, auth:any, studyId:str
 
 }
 
-export async function buildFormSection (fileId: string, auth: any, section: any, sectionIndex: number, studyName: string) {
+export async function buildFormSection (fileId: string, auth: any, leadData: any, section: any, sectionIndex: number, studyName: string) {
   // Retrieve document for editing.
   const docs = google.docs({ version: 'v1', auth });
   let document = await docs.documents.get({ documentId: fileId });
@@ -1125,9 +1127,24 @@ export async function buildFormSection (fileId: string, auth: any, section: any,
               cellText = `${user.first} ${user.last}`;
             }
           }
+          if (field.params[0] === 'projectContacts' && field.data[0] && field.data[0].trim() !== '') {
+            const contact = await Contact.findById(field.data[0]);
+            if (contact.first) {
+              cellText = `${contact.first} ${contact.last}`;
+              cellText += `\nEmail: ${contact.email || '(none specified)'}`;
+              cellText += `\nPhone: ${contact.phone || '(none specified)'}`;
+            }
+          }
           break;
         case 'generated':
           if (field.params[0] === 'studyId') cellText = studyName;
+          if (field.params[0] === 'clientName') {
+            const client = await Client.findById(leadData.client);
+            cellText = client?.name || '';
+          }
+          if (field.params[0] === 'projectName') cellText = leadData.project?.name || 'N/A';
+          if (field.params[0] === 'projectNDA') cellText = leadData.project?.nda ? 'Yes' : 'No';
+          break;
         default:
           break; 
       }

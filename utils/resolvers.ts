@@ -841,7 +841,8 @@ const resolvers = {
     // },
     publishLeadToDrive: async (_:any, args:any) => {
       try {
-        const { clientCode, studyName, formRevisionId, formData, studyData } = args;
+        const { clientCode, studyName, formRevisionId, formData, leadJSON, studyData } = args;
+        const leadData = JSON.parse(leadJSON);
         const studyContent = JSON.parse(studyData);
         const auth = await userAuthorizeGoogleDrive();
         await connectMongo();
@@ -861,7 +862,7 @@ const resolvers = {
         await buildFormHeader(formFileId, formRevisionId, formData, auth);
         await buildFormFooter(formFileId, auth);
         for (let i=0;i<studyContent.sections.length;i++) {
-          await buildFormSection(formFileId, auth, studyContent.sections[i], i, studyName);
+          await buildFormSection(formFileId, auth, leadData, studyContent.sections[i], i, studyName);
         }
         await convertToPdf(newStudyFolderIds[3], studyName, formFileId, auth);
         console.log('Completed actions successfully.');
@@ -875,7 +876,8 @@ const resolvers = {
     },
     updateLeadOnDrive: async (_:any, args: any) => {
       try {
-        const { clientCode, studyName, formRevisionId, formData, studyData } = args;
+        const { clientCode, studyName, formRevisionId, formData, leadJSON, studyData } = args;
+        const leadData = JSON.parse(leadJSON);
         const studyContent = JSON.parse(studyData);
         const auth = await userAuthorizeGoogleDrive();
         // Get Google Drive config
@@ -888,7 +890,7 @@ const resolvers = {
         await buildFormHeader(formFileId, formRevisionId, formData, auth);
         await buildFormFooter(formFileId, auth);
         for (let i=0;i<studyContent.sections.length;i++) {
-          await buildFormSection(formFileId, auth, studyContent.sections[i], i, studyName);
+          await buildFormSection(formFileId, auth, leadData, studyContent.sections[i], i, studyName);
         }
         await deleteFileAtPath(protocolFolderId,studyName,'application/pdf',auth);
         await convertToPdf(protocolFolderId, studyName, formFileId, auth);

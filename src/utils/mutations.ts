@@ -167,14 +167,14 @@ export const CREATE_DRIVE_STUDY_TREE = gql`
 `;
 
 export const PUBLISH_LEAD_TO_DRIVE = gql`
-  mutation publishLeadToDrive($clientCode: String!, $studyName: String!, $formRevisionId: String!, $formData: String!, $studyData: String!) {
-    publishLeadToDrive(clientCode: $clientCode, studyName: $studyName, formRevisionId: $formRevisionId, formData: $formData, studyData: $studyData)
+  mutation publishLeadToDrive($clientCode: String!, $studyName: String!, $formRevisionId: String!, $formData: String!, $leadJSON: String!, $studyData: String!) {
+    publishLeadToDrive(clientCode: $clientCode, studyName: $studyName, formRevisionId: $formRevisionId, formData: $formData, leadJSON: $leadJSON, studyData: $studyData)
   }
 `;
 
 export const UPDATE_LEAD_ON_DRIVE = gql`
-  mutation updateLeadOnDrive($clientCode: String!, $studyName: String!, $formRevisionId: String!, $formData: String!, $studyData: String!) {
-    updateLeadOnDrive(clientCode: $clientCode, studyName: $studyName, formRevisionId: $formRevisionId, formData: $formData, studyData: $studyData)
+  mutation updateLeadOnDrive($clientCode: String!, $studyName: String!, $formRevisionId: String!, $formData: String!, $leadJSON: String!, $studyData: String!) {
+    updateLeadOnDrive(clientCode: $clientCode, studyName: $studyName, formRevisionId: $formRevisionId, formData: $formData, leadJSON: $leadJSON, studyData: $studyData)
   }
 `;
 
