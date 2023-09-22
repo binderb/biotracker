@@ -10,7 +10,7 @@ import { authOptions } from '../api/auth/[...nextauth]';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -132,7 +132,7 @@ const ClientManager = () => {
                   <td className='bg-white/50 border border-secondary/80 p-1'>{client.name}</td>
                   <td className='bg-white/50 border border-secondary/80 p-1'>{client.code}</td>
                   <td className='bg-white/50 border border-secondary/80 p-2 text-center'>
-                    <Link href={{pathname: '/clients/[id]', query: { id: client._id }}} as={`/clients/${client._id}`} className='std-button-lite' ><FontAwesomeIcon icon={faInfoCircle}/></Link>
+                    <Link href={{pathname: '/clients/[id]', query: { id: client._id }}} as={`/clients/${client._id}`} className='std-button-lite' ><FontAwesomeIcon icon={faEdit}/></Link>
 
                   </td>
                 </tr>

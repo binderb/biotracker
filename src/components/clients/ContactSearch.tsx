@@ -32,8 +32,8 @@ export default function ContactSearch ({contacts, addedContacts, contactSearch, 
         { matchingList.length > 0 ? (
           <>
           { matchingList.map((contact:any,index:number)=> (
-            <button key={`contact-${index}`} className={`flex w-full px-2 py-2 border border-secondary/80 border-b-1 border-l-0 border-r-0 border-t-0 last:border-b-0 cursor-pointer ${contactSelected === contact ? `bg-primary text-white` : ``} ${addedContacts.indexOf(contact) >= 0 ? `text-[#AAA] italic` : ``}`} disabled={addedContacts.indexOf(contact) >= 0} onClick={()=>setContactSelected(contact)}>
-              {`${contact.first} ${contact.last}${addedContacts.indexOf(contact) >= 0 ? ` (added)` : ``}`}
+            <button key={`contact-${index}`} className={`flex w-full px-2 py-2 border border-secondary/80 border-b-1 border-l-0 border-r-0 border-t-0 last:border-b-0 cursor-pointer ${contactSelected === contact ? `bg-primary text-white` : ``} ${addedContacts.map((addedContact:any) => addedContact._id).indexOf(contact._id) >= 0 ? `text-[#AAA] italic` : ``}`} disabled={addedContacts.map((addedContact:any)=>addedContact._id).indexOf(contact._id) >= 0} onClick={()=>setContactSelected(contact)}>
+              {`${contact.first} ${contact.last}${addedContacts.map((addedContact:any)=>addedContact._id).indexOf(contact._id) >= 0 ? ` (added)` : ``}`}
             </button>
           ))}
           </>
