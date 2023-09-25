@@ -29,7 +29,7 @@ export default function DiscussionBoard(props:Props) {
       {leadData.notes.map((note:any) => {
         return (
           <div key={note._id} className='std-input relative flex flex-col gap-2 rounded-md ml-6'>
-            <div className={`absolute left-[-22px] bg-${drafterColors[leadData.drafters.map((drafter:any)=>drafter._id).indexOf(note.author._id)] ? `[#888]`} text-white p-5 w-[44px] h-[44px] flex items-center rounded-full font-bold text-[18px] justify-center uppercase`}>
+            <div className={`absolute left-[-22px] bg-${leadData.drafters.map((drafter:any)=>drafter._id).indexOf(note.author._id) > -1 ? drafterColors[leadData.drafters.map((drafter:any)=>drafter._id).indexOf(note.author._id)] : `[#888]`} text-white p-5 w-[44px] h-[44px] flex items-center rounded-full font-bold text-[18px] justify-center uppercase`}>
               {`${note.author.first[0]}${note.author.last ? note.author.last[0] : ''}`}
             </div>
             <div className='flex flex-col gap-2 rounded-md pl-6 pr-2'>
