@@ -844,69 +844,71 @@ export default function LeadManager (props:any) {
       </section>
       <section className={`fixed ${settingsVisible ? `grid` : `hidden`} grid-cols-12 items-start pt-[5vh] bg-black/50 w-screen h-screen top-0 left-0`}>
         <section className='flex bg-white rounded-lg p-0 col-start-2 col-span-10 md:col-start-3 md:col-span-8 lg:col-start-4 lg:col-span-6'>
-          <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2'>
-            <h5>Lead Settings</h5>
-            <section className='flex flex-col justify-center mb-2'>
-              <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
-                <form className="flex items-center gap-2" onSubmit={handleAddTemplate}>
-                  <div className="font-bold">Lead Name:</div>
-                  <input className='std-input flex-grow' type='text' value={leadName} onChange={(e)=>setLeadName(e.target.value)} />
-                </form>
+          <section className='flex flex-col p-4 bg-secondary/20 rounded-lg w-full gap-2 h-[90vh] overflow-hidden'>
+            <div className='overflow-y-scroll h-[80vh] p-2 mb-4'>
+              <h5>Lead Settings</h5>
+              <section className='flex flex-col justify-center mb-2'>
+                <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
+                  <form className="flex items-center gap-2" onSubmit={handleAddTemplate}>
+                    <div className="font-bold">Lead Name:</div>
+                    <input className='std-input flex-grow' type='text' value={leadName} onChange={(e)=>setLeadName(e.target.value)} />
+                  </form>
+                </section>
               </section>
-            </section>
-            <section className='flex flex-col justify-center mb-2'>
-              <div className='mr-2'>Choose what types of studies will be included in the lead. Study plans cannot be deleted once they are added to the lead, but they can be marked as not performed.</div>
-              <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
-                <form className="flex items-center mb-2" onSubmit={handleAddTemplate}>
-                  <div className="font-bold mr-2">Study Plan Forms:</div>
-                  <button className="std-button-lite mr-2" disabled={templateToAdd === ''}>Add</button>
-                  <select className="std-input flex-grow" onChange={(e) => setTemplateToAdd(e.target.value)} value={templateToAdd}>
-                    <option value=''>-- Choose --</option>
-                    { studyPlanForms.map((template:any, index:number) => (<option key={index} value={template.name} disabled={studyPlanNames.filter((name:any) => template.name === name).length > 0}>
-                      {template.name}
-                    </option>))}
-                  </select>
-                </form>
-                <div className="font-bold mb-2">Study Plans Included:</div>
-                <ul>
-                  { templateList.length > 0 ? templateList.map((template:any, index:number) => (
-                    <li key={index} className='flex justify-between items-center std-input rounded-md mb-2'>
-                      {studyPlanForms.filter((plan:any) => template._id === plan._id)[0].name}
-                      <button className='secondary-button-lite' onClick={()=>handleRemoveTemplate(template._id)} disabled={leadContent.filter((e:any) => e.studyPlanFormId === studyPlanForms.filter((form:any) => form.name === studyPlanForms.filter((plan:any) => template._id === plan._id)[0]?.name)[0]._id).length > 0}><FontAwesomeIcon icon={faX} size='xs' /></button>
-                    </li>
-                  ))
-                  :
-                  'Please add at least one study plan.'
-                  }
-                </ul>
+              <section className='flex flex-col justify-center mb-2'>
+                <div className='mr-2'>Choose what types of studies will be included in the lead. Study plans cannot be deleted once they are added to the lead, but they can be marked as not performed.</div>
+                <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
+                  <form className="flex items-center mb-2" onSubmit={handleAddTemplate}>
+                    <div className="font-bold mr-2">Study Plan Forms:</div>
+                    <button className="std-button-lite mr-2" disabled={templateToAdd === ''}>Add</button>
+                    <select className="std-input flex-grow" onChange={(e) => setTemplateToAdd(e.target.value)} value={templateToAdd}>
+                      <option value=''>-- Choose --</option>
+                      { studyPlanForms.map((template:any, index:number) => (<option key={index} value={template.name} disabled={studyPlanNames.filter((name:any) => template.name === name).length > 0}>
+                        {template.name}
+                      </option>))}
+                    </select>
+                  </form>
+                  <div className="font-bold mb-2">Study Plans Included:</div>
+                  <ul>
+                    { templateList.length > 0 ? templateList.map((template:any, index:number) => (
+                      <li key={index} className='flex justify-between items-center std-input rounded-md mb-2'>
+                        {studyPlanForms.filter((plan:any) => template._id === plan._id)[0].name}
+                        <button className='secondary-button-lite' onClick={()=>handleRemoveTemplate(template._id)} disabled={leadContent.filter((e:any) => e.studyPlanFormId === studyPlanForms.filter((form:any) => form.name === studyPlanForms.filter((plan:any) => template._id === plan._id)[0]?.name)[0]._id).length > 0}><FontAwesomeIcon icon={faX} size='xs' /></button>
+                      </li>
+                    ))
+                    :
+                    'Please add at least one study plan.'
+                    }
+                  </ul>
+                </section>
               </section>
-            </section>
-            <section className='flex flex-col justify-center mb-2'>
-              <div className='mr-2'>Manage team members with editing access. Removing a team member will preserve all their contributions, but they will be unable to access this lead until they are added again.</div>
-              <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
-                <form className="flex items-center mb-2" onSubmit={handleAddDrafter}>
-                  <div className="font-bold mr-2">Add Members:</div>
-                  <button className="std-button-lite mr-2" disabled={drafterToAdd === ''}>Add</button>
-                  <select className="std-input flex-grow" onChange={(e) => setDrafterToAdd(e.target.value)} value={drafterToAdd}>
-                    <option value=''>-- Choose --</option>
-                    { users.map((user:any) => (<option key={user.username} value={user.username} disabled={drafterList.filter((drafter:any) => drafter.username === user.username).length > 0}>
-                      {`${user.first} ${user.last}`}
-                    </option>))}
-                  </select>
-                </form>
-                <div className="font-bold mb-2">Team members with editing access:</div>
-                <ul>
-                  { drafterList.map((drafter:any) => (
-                    <li key={drafter.username} className='flex justify-between items-center std-input rounded-md mb-2'>
-                      <div>
-                      {drafter.username === session.user.username ? `${drafter.first} ${drafter.last} (me)` : `${drafter.first} ${drafter.last}`}
-                      </div>
-                      <button className='secondary-button-lite' onClick={()=>handleRemoveDrafter(drafter.username)} disabled={drafter.username === session.user.username}><FontAwesomeIcon icon={faX} size='xs' /></button>
-                    </li>
-                  ))}
-                </ul>
+              <section className='flex flex-col justify-center mb-2'>
+                <div className='mr-2'>Manage team members with editing access. Removing a team member will preserve all their contributions, but they will be unable to access this lead until they are added again.</div>
+                <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
+                  <form className="flex items-center mb-2" onSubmit={handleAddDrafter}>
+                    <div className="font-bold mr-2">Add Members:</div>
+                    <button className="std-button-lite mr-2" disabled={drafterToAdd === ''}>Add</button>
+                    <select className="std-input flex-grow" onChange={(e) => setDrafterToAdd(e.target.value)} value={drafterToAdd}>
+                      <option value=''>-- Choose --</option>
+                      { users.map((user:any) => (<option key={user.username} value={user.username} disabled={drafterList.filter((drafter:any) => drafter.username === user.username).length > 0}>
+                        {`${user.first} ${user.last}`}
+                      </option>))}
+                    </select>
+                  </form>
+                  <div className="font-bold mb-2">Team members with editing access:</div>
+                  <ul>
+                    { drafterList.map((drafter:any) => (
+                      <li key={drafter.username} className='flex justify-between items-center std-input rounded-md mb-2'>
+                        <div>
+                        {drafter.username === session.user.username ? `${drafter.first} ${drafter.last} (me)` : `${drafter.first} ${drafter.last}`}
+                        </div>
+                        <button className='secondary-button-lite' onClick={()=>handleRemoveDrafter(drafter.username)} disabled={drafter.username === session.user.username}><FontAwesomeIcon icon={faX} size='xs' /></button>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
               </section>
-            </section>
+            </div>
             <div className='flex gap-2'>
               <button className='secondary-button-lite flex-grow' onClick={() => {setSettingsErrStatus(''); setSettingsVisible(false); setDrafterList(leadData.drafters); setTemplateList(leadContent.map((plan:any) => ({_id:plan.studyPlanFormId})));}}>
                 Cancel
