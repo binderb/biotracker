@@ -67,9 +67,10 @@ export default function LeadManager () {
         <div className='flex flex-col mt-4 bg-secondary/20 border border-secondary/80 rounded-lg p-4'>
           <h5>Current Leads:</h5>
           <ul className='flex flex-col gap-2'>
-            {leads && leads.filter((lead:any) => lead.drafters.map((drafter:any) => drafter._id).indexOf(session.user.id) > -1).length > 0 ? 
+            {//leads && leads.filter((lead:any) => lead.drafters.map((drafter:any) => drafter._id).indexOf(session.user.id) > -1).length > 0 ?
+             leads && leads.length > 0 ? 
               leads.map((lead:any) => (
-                  lead.drafters.map((drafter:any)=>drafter._id).indexOf(session.user.id) > -1 ? 
+                  // lead.drafters.map((drafter:any)=> drafter._id).indexOf(session.user.id) > -1 ? 
                   <li key={lead._id} className='std-input rounded-lg flex justify-between items-center'>
                     {lead.name}
                     <div className='flex gap-2'>
@@ -108,8 +109,8 @@ export default function LeadManager () {
                       <Link href={{pathname: '/leads/edit/[id]', query: { id: lead._id }}} as={`/leads/edit/${lead._id}`} className='std-button-lite' ><FontAwesomeIcon icon={faMagnifyingGlass}/></Link>
                     </div>
                   </li>
-                  :
-                  null
+                  // :
+                  // null
                 
               ))
               :

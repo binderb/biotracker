@@ -1,7 +1,8 @@
 import { faClockRotateLeft, faCodeCommit, faFileExport } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getFormattedDate } from "@/utils/helpers";
-interface Props {
+
+type Props = {
   leadData: any
 }
 

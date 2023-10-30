@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { ChangeEvent, MouseEventHandler, useEffect, useState } from "react";
 import { useApolloClient, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import Link from "next/link";
-import { faCircle, faCircleCheck, faCircleDot, faCircleNotch, faClock, faCog, faEllipsis, faFileExport, faFlagCheckered, faSpinner, faX } from "@fortawesome/free-solid-svg-icons";
+import { faCircle, faCircleCheck, faCircleDot, faCircleNotch, faClock, faCog, faEllipsis, faFileExport, faFlagCheckered, faInfoCircle, faSpinner, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, PUBLISH_LEAD_TO_DRIVE, CREATE_DRIVE_STUDY_TREE, UPDATE_LEAD_DRAFTERS, UPDATE_LEAD_ON_DRIVE, UPDATE_LEAD_REVISION_PUBLISH_STATUS, UPDATE_LEAD_NAME } from "@/utils/mutations";
 import { useParams } from 'next/navigation';
@@ -169,6 +169,8 @@ export default function LeadManager (props:any) {
   const [upgradeFormContent, setUpgradeFormContent] = useState<any>('');
   const [leadStudyPlanNames, setLeadStudyPlanNames] = useState(props.studyPlanNames);
   const [leadName, setLeadName] = useState(leadData.name);
+  
+  const mode = leadData.drafters.map((drafter:any)=>drafter._id).indexOf(session?.user.id) > -1 ? 'Editing' : 'Viewing';
 
   useEffect( () => {
     let changeSum = 0;
@@ -531,9 +533,15 @@ export default function LeadManager (props:any) {
       <div className='flex items-center'>
 
         <Link className='std-link ml-4 my-2' href='/leads'>&larr; Back</Link>
-        <h1 className='mx-4'>Editing: {leadData.name}</h1>
+        <h1 className='mx-4'>{mode}: {leadData.name}</h1>
       </div>
       <div className='flex justify-between items-center bg-secondary/20 border border-secondary/80 rounded-lg p-2 mx-4 flex-grow gap-2'>
+        {mode === 'Viewing' && (
+          <div className='flex gap-2 items-center bg-[#CCC] pl-2 pr-2 py-1 rounded-md text-[#555]'>
+            <FontAwesomeIcon icon={faInfoCircle} />
+            {`You are not listed as a drafter on this lead, so it is displaying in "View" mode.`}
+          </div>
+        )}
         <div className='pl-2'>
           {errStatus && 
             <div className='flex items-center gap-2 bg-[#FDD] pl-2 pr-1 py-1 rounded-md text-[#800]'>
@@ -553,7 +561,7 @@ export default function LeadManager (props:any) {
           }
         </div>
         <div className='flex gap-2'>
-          <button className='std-button-lite flex items-center gap-2' onClick={handleShowPublish}>
+          <button className='std-button-lite flex items-center gap-2' onClick={handleShowPublish} disabled={mode === 'Viewing'}>
             {
               leadData.published ?
                 <>
@@ -568,7 +576,7 @@ export default function LeadManager (props:any) {
             }
             
           </button>
-          <button className='secondary-button-lite flex items-center gap-2' onClick={handleShowSettings}>
+          <button className='secondary-button-lite flex items-center gap-2' onClick={handleShowSettings} disabled={mode === 'Viewing'}>
             <FontAwesomeIcon icon={faCog} />
           </button>
         </div>
@@ -576,18 +584,23 @@ export default function LeadManager (props:any) {
       <section className='max-md:flex max-md:flex-col-reverse md:grid md:grid-cols-12 gap-2 px-4 overflow-y-hidden h-full'>
         <div id="discussion" className='bg-secondary/20 border border-secondary/80 md:col-span-5 xl:col-span-4 p-4 rounded-lg md:overflow-y-hidden h-full'>
           <h5>Discussion</h5>
-          <div className='flex flex-col gap-2'>
-            <div className='flex justify-between items-center'>
-              <div className='font-bold'>Note:</div>
-              <div className='flex gap-2 items-center'>
-                <button className='std-button-lite' disabled={changes !== 0 || !note.trim()} onClick={handleSubmitBareNote}>Post Without Changes</button>
-                <button className='std-button-lite flex items-center gap-2' disabled={changes === 0} onClick={handleSubmitLeadRevision}>
-                  Commit Changes
-                </button>
+          { mode === 'Editing' && (
+            <>
+            <div className='flex flex-col gap-2'>
+              <div className='flex justify-between items-center'>
+                <div className='font-bold'>Note:</div>
+                <div className='flex gap-2 items-center'>
+                  <button className='std-button-lite' disabled={changes !== 0 || !note.trim()} onClick={handleSubmitBareNote}>Post Without Changes</button>
+                  <button className='std-button-lite flex items-center gap-2' disabled={changes === 0} onClick={handleSubmitLeadRevision}>
+                    Commit Changes
+                  </button>
+                </div>
               </div>
+              <textarea className='std-input mb-4 h-[150px] resize-none' value={note} onChange={(e) => setNote(e.target.value)} />
             </div>
-            <textarea className='std-input mb-4 h-[150px] resize-none' value={note} onChange={(e) => setNote(e.target.value)} />
-          </div>
+            </>
+          )}
+          
           <div className='md:overflow-y-hidden overflow-x-visible h-[calc(100%-238px)]'>
             <div className='md:overflow-y-auto overflow-x-visible h-full pr-4'>
               <DiscussionBoard leadData={leadData} />
@@ -604,15 +617,27 @@ export default function LeadManager (props:any) {
             <div className='md:overflow-y-auto h-full pr-4'>
               <section id='step-1'>
                   <section>
-                    <div className='mr-2 font-bold'>Status:</div>
-                    <div className='flex border border-secondary rounded-md items-center p-4 mt-2 mb-4'>
-                      <select className='std-input' value={leadStatus} onChange={(e) => setLeadStatus(e.target.value)}>
-                        <option value='active'>Active</option>
-                        <option value='inactive'>Inactive</option>
-                        <option value='completed'>Completed</option>
-                        <option value='cancelled'>Cancelled</option>
-                      </select>
-                    </div>
+                    {mode === 'Editing' ? (
+                      <>
+                      <div className='mr-2 font-bold'>Status:</div>
+                      <div className='flex border border-secondary rounded-md items-center p-4 mt-2 mb-4'>
+                        <select className='std-input' value={leadStatus} onChange={(e) => setLeadStatus(e.target.value)}>
+                          <option value='active'>Active</option>
+                          <option value='inactive'>Inactive</option>
+                          <option value='completed'>Completed</option>
+                          <option value='cancelled'>Cancelled</option>
+                        </select>
+                      </div>
+                      </>
+                    ):(
+                      <>
+                      <div className='mr-2 font-bold'>Status:</div>
+                      <div className='flex border border-secondary rounded-md items-center p-4 mt-2 mb-4 capitalize'>
+                        {leadStatus}
+                      </div>
+                      </>
+                    )}
+                    
                   </section>
                   <LeadEditor 
                     client={client}
@@ -625,6 +650,7 @@ export default function LeadManager (props:any) {
                     setUpgradeFormContent={setUpgradeFormContent}
                     handleUpgradeForm={handleUpgradeForm}
                     upgradable={true}
+                    mode={mode}
                   />
               </section>
             </div>

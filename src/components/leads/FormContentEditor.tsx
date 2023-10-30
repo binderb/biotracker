@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChangeEvent, Fragment } from "react";
 import DatePicker from 'react-datepicker';
 import _ from 'lodash';
+import { getFormattedDate, getFormattedDateNoTime } from "@/utils/helpers";
 
 interface Props {
   users: any
@@ -11,9 +12,10 @@ interface Props {
   content: any
   currentStudyPlanIndex: number
   setContent: Function
+  mode?: string
 }
 
-export default function FormContentEditor ({users, client, leadData, content, setContent, currentStudyPlanIndex}:Props) {
+export default function FormContentEditor ({users, client, leadData, content, setContent, currentStudyPlanIndex, mode}:Props) {
 
   function handleUpdateLeadInputField(e:ChangeEvent<HTMLInputElement>,sectionIndex:number,rowIndex:number,fieldIndex:number,dataIndex:number,type:string) {
     const newContent = [...content];
@@ -130,186 +132,359 @@ export default function FormContentEditor ({users, client, leadData, content, se
 
   return (
     <>
-    {content[currentStudyPlanIndex]?.sections && content[currentStudyPlanIndex]?.sections.map( (section:any, sectionIndex:number) => (
-      <section key={`section-${sectionIndex}`}>
-        { section.extensible &&
-          <div className='flex gap-2 items-center'>
-            <div className='mr-2 font-bold'>{section.name}{section.extensibleReference ? ` ${content[currentStudyPlanIndex]?.sections.indexOf(section)+1-section.extensibleReference}` : ` ${sectionIndex+1}`}:</div>
-            { section.extensible && section.extensibleReference && sectionIndex > section.extensibleReference &&
-              <button className='secondary-button-lite' onClick={(e) => handleDeleteExtensibleSection(e, sectionIndex)}><FontAwesomeIcon icon={faX}/></button>
-            }
-            { section.extensible &&
-              <div className='flex'>
-                <button className='std-button-lite' onClick={(e) => handleAddExtensibleSection(e, sectionIndex)}>Add</button>
-              </div>
-            }
-          </div>
-        }
-        { !section.extensible && 
-          <div className='mr-2 font-bold'>{section.name}:</div>
-        }
-        <div className='border border-secondary rounded-lg p-2 overflow-x-auto my-2'>
-        <table className='w-full'><tbody>
-        {section.rows.map( (row:any, rowIndex:number) => (
-          // <div key={rowIndex} className='flex gap-2 items-center'>
-          <tr key={`row-${rowIndex}`}>
-            {row.fields.map((field:any, fieldIndex:number) => (
-              <Fragment key={`field-${fieldIndex}`}>
-                {field.type === 'label' && (
-                  <td key={fieldIndex} className='align-top py-1'>
-                    { row.extensible &&
-                      <div className='font-bold'>{field.params[0]}{row.extensibleReference ? ` ${section.rows.indexOf(row)+1-row.extensibleReference}` : ` ${rowIndex+1}`}:</div>
+    {(!mode || mode === 'Editing') ? (
+      <>
+      {content[currentStudyPlanIndex]?.sections && content[currentStudyPlanIndex]?.sections.map( (section:any, sectionIndex:number) => (
+        <section key={`section-${sectionIndex}`}>
+          { section.extensible &&
+            <div className='flex gap-2 items-center'>
+              <div className='mr-2 font-bold'>{section.name}{section.extensibleReference ? ` ${content[currentStudyPlanIndex]?.sections.indexOf(section)+1-section.extensibleReference}` : ` ${sectionIndex+1}`}:</div>
+              { section.extensible && section.extensibleReference && sectionIndex > section.extensibleReference &&
+                <button className='secondary-button-lite' onClick={(e) => handleDeleteExtensibleSection(e, sectionIndex)}><FontAwesomeIcon icon={faX}/></button>
+              }
+              { section.extensible &&
+                <div className='flex'>
+                  <button className='std-button-lite' onClick={(e) => handleAddExtensibleSection(e, sectionIndex)}>Add</button>
+                </div>
+              }
+            </div>
+          }
+          { !section.extensible && 
+            <div className='mr-2 font-bold'>{section.name}:</div>
+          }
+          <div className='border border-secondary rounded-lg p-2 overflow-x-auto my-2'>
+          <table className='w-full'><tbody>
+          {section.rows.map( (row:any, rowIndex:number) => (
+            // <div key={rowIndex} className='flex gap-2 items-center'>
+            <tr key={`row-${rowIndex}`}>
+              {row.fields.map((field:any, fieldIndex:number) => (
+                <Fragment key={`field-${fieldIndex}`}>
+                  {field.type === 'label' && (
+                    <td key={fieldIndex} className='align-top py-1'>
+                      { row.extensible &&
+                        <div className='font-bold'>{field.params[0]}{row.extensibleReference ? ` ${section.rows.indexOf(row)+1-row.extensibleReference}` : ` ${rowIndex+1}`}:</div>
+                      }
+                      { !row.extensible &&
+                        <div className='font-bold'>{field.params[0]}:</div>
+                      }
+                    </td>
+                  )}
+                  {field.type === 'textarea' && (
+                    <td className='align-middle py-1'>
+                    <textarea className='resize-none std-input w-full h-[100px]' value={field.data} onChange={(e) => handleUpdateLeadTextArea(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
+                    </td>
+                  )}
+                  {field.type === 'input' && (
+                    <td className='flex gap-2 align-middle py-1'>
+                    <input type='text' className='std-input flex-grow w-full' value={field.data} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
+                    {/* ROW DELETE BUTTON */}
+                    { (row.extensible && row.extensibleReference !== null && rowIndex > row.extensibleReference) &&
+                      <button className='secondary-button-lite' onClick={(e) => handleDeleteExtensibleRow(e, sectionIndex, rowIndex)}><FontAwesomeIcon icon={faX}/></button>
                     }
-                    { !row.extensible &&
-                      <div className='font-bold'>{field.params[0]}:</div>
+                    {/* ROW ADD BUTTON */}
+                    {row.extensible &&
+                      <div className='flex'>
+                        <button className='std-button-lite' onClick={(e) => handleAddExtensibleRow(e, sectionIndex, rowIndex)}>Add</button>
+                      </div>
                     }
-                  </td>
-                )}
-                {field.type === 'textarea' && (
-                  <td className='align-middle py-1'>
-                  <textarea className='resize-none std-input w-full h-[100px]' value={field.data} onChange={(e) => handleUpdateLeadTextArea(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
-                  </td>
-                )}
-                {field.type === 'input' && (
-                  <td className='flex gap-2 align-middle py-1'>
-                  <input type='text' className='std-input flex-grow w-full' value={field.data} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
-                  {/* ROW DELETE BUTTON */}
-                  { (row.extensible && row.extensibleReference !== null && rowIndex > row.extensibleReference) &&
-                    <button className='secondary-button-lite' onClick={(e) => handleDeleteExtensibleRow(e, sectionIndex, rowIndex)}><FontAwesomeIcon icon={faX}/></button>
-                  }
-                  {/* ROW ADD BUTTON */}
-                  {row.extensible &&
-                    <div className='flex'>
-                      <button className='std-button-lite' onClick={(e) => handleAddExtensibleRow(e, sectionIndex, rowIndex)}>Add</button>
+                    </td>
+                    
+                  )}
+                  {field.type === 'checkbox' && (
+                    <td className='align-middle py-1'>
+                    <label className='form-control'>
+                    <input type='checkbox' checked={field.data[0]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
+                    {field.params[0]}
+                    </label>
+                    </td>
+                  )}
+                  {field.type === 'multicheckbox' && (
+                    <td className='align-top'>
+                    <div className='flex flex-col gap-2 justify-start items-start'>
+                      { field.params.map( (param:string, i:number) => (
+                          <label key={i} className='form-control'>
+                          <input type='checkbox' checked={field.data[i]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, i, field.type)} />
+                          {param}
+                          </label>
+                      ))}
                     </div>
-                  }
-                  </td>
-                  
-                )}
-                {field.type === 'checkbox' && (
-                  <td className='align-middle py-1'>
-                  <label className='form-control'>
-                  <input type='checkbox' checked={field.data[0]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)} />
-                  {field.params[0]}
-                  </label>
-                  </td>
-                )}
-                {field.type === 'multicheckbox' && (
-                  <td className='align-top'>
-                  <div className='flex flex-col gap-2 justify-start items-start'>
-                    { field.params.map( (param:string, i:number) => (
-                        <label key={i} className='form-control'>
-                        <input type='checkbox' checked={field.data[i]} onChange={(e) => handleUpdateLeadInputField(e, sectionIndex, rowIndex, fieldIndex, i, field.type)} />
-                        {param}
-                        </label>
-                    ))}
-                  </div>
-                  </td>
-                )}
-                {field.type === 'date' && (
-                  <td className='align-top'>
-                    <DatePicker className='std-input' dateFormat='MM/dd/yyyy' selected={field.data[0] ? new Date(field.data[0]) : null} onChange={(date:any) => handleUpdateLeadDateField(date, sectionIndex, rowIndex, fieldIndex, 0)} />
-                  </td>
-                )}
-                {field.type === 'database' && (
-                  <td className='align-top'>
-                    {
-                      field.params[0] === 'users' && (
-                        <select className='std-input w-full' value={field.data[0]} onChange={(e) => handleUpdateLeadSelectField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)}>
-                          <option value=''>-- Choose --</option>
-                          {
-                            users.map((user:any, index:number) => (
-                              <option key={index} value={user._id}>
-                                {`${user.first} ${user.last}`}
-                              </option>
-                            ))
-                          }
-                        </select>
-                      )
-                    }
-                    {
-                      field.params[0] === 'projectContacts' && (
-                        <>
-                        <select className='std-input w-full' value={field.data[0]} onChange={(e) => handleUpdateLeadSelectField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)}>
-                          <option value=''>-- Choose --</option>
-                          {
-                            leadData?.project?.contacts?.map((contact:any, index:number) => (
-                              <option key={index} value={contact._id}>
-                                {`${contact.first} ${contact.last}`}
-                              </option>
-                            ))
-                          }
-                        </select>
-                        { leadData.project?.contacts?.filter((contact:any)=>contact._id === field.data[0])[0] && (
-                          <div className='flex flex-col p-2'>
-                            <div className='flex gap-2'>
-                              <div>Email:</div>
-                              {leadData.project?.contacts?.filter((contact:any)=>contact._id === field.data[0])[0].email || '(none specified)'}
+                    </td>
+                  )}
+                  {field.type === 'date' && (
+                    <td className='align-top'>
+                      <DatePicker className='std-input' dateFormat='MM/dd/yyyy' selected={field.data[0] ? new Date(field.data[0]) : null} onChange={(date:any) => handleUpdateLeadDateField(date, sectionIndex, rowIndex, fieldIndex, 0)} />
+                    </td>
+                  )}
+                  {field.type === 'database' && (
+                    <td className='align-top'>
+                      {
+                        field.params[0] === 'users' && (
+                          <select className='std-input w-full' value={field.data[0]} onChange={(e) => handleUpdateLeadSelectField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)}>
+                            <option value=''>-- Choose --</option>
+                            {
+                              users.map((user:any, index:number) => (
+                                <option key={index} value={user._id}>
+                                  {`${user.first} ${user.last}`}
+                                </option>
+                              ))
+                            }
+                          </select>
+                        )
+                      }
+                      {
+                        field.params[0] === 'projectContacts' && (
+                          <>
+                          <select className='std-input w-full' value={field.data[0]} onChange={(e) => handleUpdateLeadSelectField(e, sectionIndex, rowIndex, fieldIndex, 0, field.type)}>
+                            <option value=''>-- Choose --</option>
+                            {
+                              leadData?.project?.contacts?.map((contact:any, index:number) => (
+                                <option key={index} value={contact._id}>
+                                  {`${contact.first} ${contact.last}`}
+                                </option>
+                              ))
+                            }
+                          </select>
+                          { leadData.project?.contacts?.filter((contact:any)=>contact._id === field.data[0])[0] && (
+                            <div className='flex flex-col p-2'>
+                              <div className='flex gap-2'>
+                                <div>Email:</div>
+                                {leadData.project?.contacts?.filter((contact:any)=>contact._id === field.data[0])[0].email || '(none specified)'}
+                              </div>
+                              <div className='flex gap-2'>
+                                <div>Phone:</div>
+                                {leadData.project?.contacts?.filter((contact:any)=>contact._id === field.data[0])[0].phone || '(none specified)'}
+                              </div>
                             </div>
-                            <div className='flex gap-2'>
-                              <div>Phone:</div>
-                              {leadData.project?.contacts?.filter((contact:any)=>contact._id === field.data[0])[0].phone || '(none specified)'}
+                          
+                          )}
+                          </>
+                        )
+                      }
+                    </td>
+                  )}
+                  {field.type === 'generated' && (
+                    <td className='align-top'>
+                      {
+                        field.params[0] === 'studyId' && (
+                          <>
+                          {
+                            content[currentStudyPlanIndex].associatedStudyId ? (
+                                <>
+                                {
+                                  `${client.code}${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].index.toString().padStart(4,'0')}-${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].type}`
+                                }
+                                </>
+                            ) : (
+                              <div className='italic'>(TBD - will be generated when lead is published)</div>
+                            )
+                          }
+                          </>
+                        )
+                      }
+                      {
+                        field.params[0] === 'clientName' && (
+                          <>
+                          
+                          {client.name}
+                          </>
+                        )
+                      }
+                      {
+                        field.params[0] === 'projectName' && (
+                          <>
+                          {leadData?.project?.name}
+                          </>
+                        )
+                      }
+                      {
+                        field.params[0] === 'projectNDA' && (
+                          <>
+                          {leadData.project?.nda ? 'Yes' : 'No'}
+                          </>
+                        )
+                      }
+                    </td>
+                  )}
+                </Fragment>
+              ))}
+              
+              </tr>
+          ))}
+          </tbody></table>
+          </div>
+        </section>
+      ))}
+      </>
+    ):(
+      <>
+      {content[currentStudyPlanIndex]?.sections && content[currentStudyPlanIndex]?.sections.map( (section:any, sectionIndex:number) => (
+        <section key={`section-${sectionIndex}`}>
+          { section.extensible &&
+            <div className='flex gap-2 items-center'>
+              <div className='mr-2 font-bold'>{section.name}{section.extensibleReference ? ` ${content[currentStudyPlanIndex]?.sections.indexOf(section)+1-section.extensibleReference}` : ` ${sectionIndex+1}`}:</div>
+            </div>
+          }
+          { !section.extensible && 
+            <div className='mr-2 font-bold'>{section.name}:</div>
+          }
+          <div className='border border-secondary rounded-lg p-2 overflow-x-auto my-2'>
+          <table className='w-full'><tbody>
+          {section.rows.map( (row:any, rowIndex:number) => (
+            // <div key={rowIndex} className='flex gap-2 items-center'>
+            <tr key={`row-${rowIndex}`}>
+              {row.fields.map((field:any, fieldIndex:number) => (
+                <Fragment key={`field-${fieldIndex}`}>
+                  {field.type === 'label' && (
+                    <td key={fieldIndex} className='align-top py-1'>
+                      { row.extensible &&
+                        <div className='font-bold'>{field.params[0]}{row.extensibleReference ? ` ${section.rows.indexOf(row)+1-row.extensibleReference}` : ` ${rowIndex+1}`}:</div>
+                      }
+                      { !row.extensible &&
+                        <div className='font-bold'>{field.params[0]}:</div>
+                      }
+                    </td>
+                  )}
+                  {field.type === 'textarea' && (
+                    <td className='align-middle py-1'>
+                      {field.data[0] !== '' ? (<>
+                        {field.data}
+                      </>):(<>
+                        <span className='italic'>(No data)</span> 
+                      </>)}
+                    </td>
+                  )}
+                  {field.type === 'input' && (
+                    <td className='flex gap-2 align-middle py-1'>
+                      {field.data[0] !== '' ? (<>
+                        {field.data}
+                      </>):(<>
+                        <span className='italic'>(No data)</span> 
+                      </>)}
+                    </td>
+                    
+                  )}
+                  {field.type === 'checkbox' && (
+                    <td className='align-middle py-1'>
+                    <label className='form-control'>
+                    <input type='checkbox' checked={field.data[0]} disabled={true} />
+                    {field.params[0]}
+                    </label>
+                    </td>
+                  )}
+                  {field.type === 'multicheckbox' && (
+                    <td className='align-top'>
+                    <div className='flex flex-col gap-2 justify-start items-start'>
+                      { field.params.map( (param:string, i:number) => (
+                          <label key={i} className='form-control'>
+                          <input type='checkbox' checked={field.data[i]} disabled={true} />
+                          {param}
+                          </label>
+                      ))}
+                    </div>
+                    </td>
+                  )}
+                  {field.type === 'date' && (
+                    <td className='align-top'>
+                      {field.data[0] !== '' ? (<>
+                        {getFormattedDateNoTime(new Date(field.data[0]).valueOf().toString())}
+                      </>):(<>
+                        <span className='italic'>(No data)</span> 
+                      </>)}
+                    </td>
+                  )}
+                  {field.type === 'database' && (
+                    <td className='align-top'>
+                      {
+                        field.params[0] === 'users' && (
+                          <>
+                          {users.filter((user:any)=>user._id === field.data[0])[0] ? (<>
+                            {`${users.filter((user:any)=>user._id === field.data[0])[0].first} ${users.filter((user:any)=>user._id === field.data[0])[0].last}`}
+                          </>):(<>
+                            <span className='italic'>(No data)</span> 
+                          </>)}
+                          </>
+                        )
+                      }
+                      {
+                        field.params[0] === 'projectContacts' && (
+                          <>
+                          {leadData.project?.contacts?.filter((contact:any)=>contact._id === field.data[0])[0] ? (<>
+                            <div>
+                              {`${leadData.project.contacts?.filter((contact:any)=>contact._id === field.data[0])[0]?.first} ${leadData.project?.contacts?.filter((user:any)=>user._id === field.data[0])[0].last}`}
                             </div>
-                          </div>
-                        
-                        )}
-                        </>
-                      )
-                    }
-                  </td>
-                )}
-                {field.type === 'generated' && (
-                  <td className='align-top'>
-                    {
-                      field.params[0] === 'studyId' && (
-                        <>
-                        {
-                          content[currentStudyPlanIndex].associatedStudyId ? (
-                              <>
-                              {
-                                `${client.code}${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].index.toString().padStart(4,'0')}-${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].type}`
-                              }
-                              </>
-                          ) : (
-                            <div className='italic'>(TBD - will be generated when lead is published)</div>
-                          )
-                        }
-                        </>
-                      )
-                    }
-                    {
-                      field.params[0] === 'clientName' && (
-                        <>
-                        
-                        {client.name}
-                        </>
-                      )
-                    }
-                    {
-                      field.params[0] === 'projectName' && (
-                        <>
-                        {leadData?.project?.name}
-                        </>
-                      )
-                    }
-                    {
-                      field.params[0] === 'projectNDA' && (
-                        <>
-                        {leadData.project?.nda ? 'Yes' : 'No'}
-                        </>
-                      )
-                    }
-                  </td>
-                )}
-              </Fragment>
-            ))}
-            
-            </tr>
-        ))}
-        </tbody></table>
-        </div>
-      </section>
-    ))}
+                            <div className='flex flex-col p-2'>
+                              <div className='flex gap-2'>
+                                <div>Email:</div>
+                                {leadData.project?.contacts?.filter((contact:any)=>contact._id === field.data[0])[0].email || '(none specified)'}
+                              </div>
+                              <div className='flex gap-2'>
+                                <div>Phone:</div>
+                                {leadData.project?.contacts?.filter((contact:any)=>contact._id === field.data[0])[0].phone || '(none specified)'}
+                              </div>
+                            </div>
+                          </>):(<>
+                            <span className='italic'>(No data)</span> 
+                          </>)}
+                          </>
+                        )
+                      }
+                    </td>
+                  )}
+                  {field.type === 'generated' && (
+                    <td className='align-top'>
+                      {
+                        field.params[0] === 'studyId' && (
+                          <>
+                          {
+                            content[currentStudyPlanIndex].associatedStudyId ? (
+                                <>
+                                {
+                                  `${client.code}${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].index.toString().padStart(4,'0')}-${leadData?.studies.filter((e:any) => e._id === content[currentStudyPlanIndex].associatedStudyId)[0].type}`
+                                }
+                                </>
+                            ) : (
+                              <div className='italic'>(TBD - will be generated when lead is published)</div>
+                            )
+                          }
+                          </>
+                        )
+                      }
+                      {
+                        field.params[0] === 'clientName' && (
+                          <>
+                          
+                          {client.name}
+                          </>
+                        )
+                      }
+                      {
+                        field.params[0] === 'projectName' && (
+                          <>
+                          {leadData?.project?.name}
+                          </>
+                        )
+                      }
+                      {
+                        field.params[0] === 'projectNDA' && (
+                          <>
+                          {leadData.project?.nda ? 'Yes' : 'No'}
+                          </>
+                        )
+                      }
+                    </td>
+                  )}
+                </Fragment>
+              ))}
+              
+              </tr>
+          ))}
+          </tbody></table>
+          </div>
+        </section>
+      ))}
+      </>
+    )}
+    
     </>
   );
 }

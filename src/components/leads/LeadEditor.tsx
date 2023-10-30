@@ -19,9 +19,10 @@ interface Props {
   setUpgradeFormContent: Function
   handleUpgradeForm: Function
   upgradable: boolean
+  mode?: string
 }
 
-export default function LeadEditor ({client, content, studyPlanNames, upgradeFormContent, leadData, users, setContent, setUpgradeFormContent, handleUpgradeForm, upgradable}:Props) {
+export default function LeadEditor ({client, content, studyPlanNames, upgradeFormContent, leadData, users, setContent, setUpgradeFormContent, handleUpgradeForm, upgradable, mode}:Props) {
 
   const [currentStudyPlanIndex, setCurrentStudyPlanIndex] = useState(0);
   const apolloClient = useApolloClient();
@@ -129,10 +130,16 @@ export default function LeadEditor ({client, content, studyPlanNames, upgradeFor
                       <FontAwesomeIcon icon={faExclamationCircle} />
                       Outdated Form
                       {
-                        upgradable ? (
+                        (upgradable && (!mode || mode === 'Editing')) ? (
                           <button className='underline font-bold hover:text-[#d1a93a]' onClick={(e)=>{e.preventDefault();setShowUpgradeForm(true);}}>Upgrade</button>
                         ) : (
-                          <div>(you will need to upgrade before publishing the lead)</div>
+                          <>
+                          { (!mode) ? (
+                            <div>(you will need to upgrade before publishing the lead)</div>
+                          ):(
+                            <></>
+                          )}
+                          </>
                         )
                       }
                       
@@ -149,6 +156,7 @@ export default function LeadEditor ({client, content, studyPlanNames, upgradeFor
             content={content}
             setContent={setContent}
             currentStudyPlanIndex={currentStudyPlanIndex}
+            mode={mode}
           />
         </form>
       </section>
