@@ -51,7 +51,7 @@ const Home = () => {
         <div className='font-bold'>Regular User Functions:</div>
         <div className="flex py-2 gap-1">
           <Link className='std-button' href='./clients'>Client Manager</Link>
-          <Link className='std-button' href='./leads'>Leads</Link>
+          <Link className='std-button' href='./leads'>Sales Leads</Link>
         </div>
       </section>
       { status === 'authenticated' && (session.user.role === 'dev' || session.user.role === 'admin')  && (

@@ -2,13 +2,16 @@ import Navbar from "@/components/Navbar";
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../api/auth/[...nextauth]';
 import { initializeApollo, addApolloState } from "../../../utils/apolloClient";
-import { GET_LEADS } from "@/utils/queries";
+import { GET_CLIENTS, GET_LEADS } from "@/utils/queries";
 import { useSession } from "next-auth/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRight, faBriefcase, faCheck, faCircle, faClockRotateLeft, faClone, faCodeCommit, faComment, faComments, faFile, faFileArchive, faFileClipboard, faFileLines, faFolderOpen, faMagnifyingGlass, faMagnifyingGlassArrowRight, faPen, faPlus, faX } from '@fortawesome/free-solid-svg-icons';
+import { faArrowRight, faBriefcase, faCheck, faCircle, faClockRotateLeft, faClone, faCodeCommit, faComment, faComments, faFile, faFileArchive, faFileClipboard, faFileLines, faFilter, faFolderOpen, faMagnifyingGlass, faMagnifyingGlassArrowRight, faPen, faPlus, faX } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { useQuery } from "@apollo/client";
 import { useRouter } from "next/router";
+import LeadBlock from "@/components/leads/LeadBlock";
+import { ChangeEvent, useEffect, useState } from "react";
+import Modal from "@/components/general/Modal";
 
 export async function getServerSideProps(context:any) {
   const session = await getServerSession(
@@ -26,8 +29,11 @@ export async function getServerSideProps(context:any) {
   }
 
   const apolloClient = initializeApollo();
-  const initialData = await apolloClient.query({
+  const leads = await apolloClient.query({
     query: GET_LEADS,
+  });
+  const clients = await apolloClient.query({
+    query: GET_CLIENTS,
   });
 
   return addApolloState(apolloClient, {
@@ -40,16 +46,28 @@ export async function getServerSideProps(context:any) {
 
 
 export default function LeadManager () {
-
+  
+  const router = useRouter();
   const { data: session, status } = useSession();
   const { data: leadData, error } = useQuery(GET_LEADS, {
     fetchPolicy:  'cache-only'
   });
-  const router = useRouter();
   const leads = leadData.getLeads;
-  console.log(session?.user.id)
-  console.log(leads.map((lead:any) => lead.drafters.map((drafter:any) => drafter._id).indexOf(session?.user.id)));
-
+  const { data: clientData } = useQuery(GET_CLIENTS);
+  const clients = clientData.getClients;
+  const [filter, setFilter] = useState('active');
+  const [search, setSearch] = useState('');
+  const [clientFilter, setClientFilter] = useState('');
+  const [filteredLeads, setFilteredLeads] = useState(leads.filter((lead:any)=>lead.status === filter));
+  const [showModal, setShowModal] = useState(false);
+  
+  useEffect(() => {
+    let newFilteredLeads = leads.filter((lead:any) => (lead.status === filter && lead.name.indexOf(search) > -1));
+    console.log('lead clients: ', leads.map((lead:any)=>lead.client));
+    newFilteredLeads = clientFilter !== '' ? newFilteredLeads.filter((lead:any)=>lead.client?._id === clientFilter) : newFilteredLeads;
+    setFilteredLeads(newFilteredLeads);
+  }, [search, filter, clientFilter, leads]);
+  
   if (status !== 'authenticated') {
     router.push('/login');
     return;
@@ -65,62 +83,57 @@ export default function LeadManager () {
           <Link className="std-button" href="/leads/study-plans"><FontAwesomeIcon icon={faBriefcase} className="mr-2"></FontAwesomeIcon>Study Plan Forms</Link>
         </div>
         <div className='flex flex-col mt-4 bg-secondary/20 border border-secondary/80 rounded-lg p-4'>
-          <h5>Current Leads:</h5>
+          <h5>Sales Leads</h5>
+          <div className='flex items-center gap-2 pb-4'>
+            <div>Showing:</div>
+            <select className='std-input' value={filter} onChange={(e)=>setFilter(e.target.value)}>
+              <option value='active'>Active</option>
+              <option value='inactive'>Inactive</option>
+              <option value='completed'>Completed</option>
+              <option value='cancelled'>Cancelled</option>
+            </select>
+            <div>Name Search:</div>
+            <input type='text' className='std-input flex-grow' value={search} onChange={(e)=>setSearch(e.target.value)}  />
+            <button className='std-button-lite flex gap-2 items-center' onClick={()=>setShowModal(true)}>
+              <FontAwesomeIcon icon={faFilter} />
+              More Filters...
+            </button>
+          </div>
+          <h5>Results:</h5>
           <ul className='flex flex-col gap-2'>
-            {//leads && leads.filter((lead:any) => lead.drafters.map((drafter:any) => drafter._id).indexOf(session.user.id) > -1).length > 0 ?
-             leads && leads.length > 0 ? 
-              leads.map((lead:any) => (
-                  // lead.drafters.map((drafter:any)=> drafter._id).indexOf(session.user.id) > -1 ? 
-                  <li key={lead._id} className='std-input rounded-lg flex justify-between items-center'>
-                    {lead.name}
-                    <div className='flex gap-2'>
-                      { lead.status === 'active' &&
-                        <div className='flex items-center bg-secondary/80 rounded-md text-white px-2 gap-2'>
-                          <FontAwesomeIcon className='text-green-400' icon={faCircle} size='2xs' />
-                          Active
-                        </div>
-                      }
-                      { lead.status === 'inactive' &&
-                        <div className='flex items-center bg-secondary/80 rounded-md text-white px-2 gap-2'>
-                          <FontAwesomeIcon className='text-gray-300' icon={faCircle} size='2xs' />
-                          Inactive
-                        </div>
-                      }
-                      { lead.status === 'completed' &&
-                        <div className='flex items-center bg-secondary/80 rounded-md text-white px-2 gap-2'>
-                          <FontAwesomeIcon className='text-gray-300' icon={faCheck} />
-                          Completed
-                        </div>
-                      }
-                      { lead.status === 'cancelled' &&
-                        <div className='flex items-center bg-secondary/80 rounded-md text-white px-2 gap-2'>
-                          <FontAwesomeIcon className='text-gray-300' icon={faX} size='xs' />
-                          Cancelled
-                        </div>
-                      }
-                      <div className='flex items-center bg-secondary/80 rounded-md text-white px-2 gap-2'>
-                        <FontAwesomeIcon icon={faComment} />
-                        {lead.notes.length}
-                      </div>
-                      <div className='flex items-center bg-secondary/80 rounded-md text-white px-2 gap-2'>
-                        <FontAwesomeIcon icon={faCodeCommit} />
-                        {lead.revisions.length}
-                      </div>
-                      <Link href={{pathname: '/leads/edit/[id]', query: { id: lead._id }}} as={`/leads/edit/${lead._id}`} className='std-button-lite' ><FontAwesomeIcon icon={faMagnifyingGlass}/></Link>
-                    </div>
-                  </li>
-                  // :
-                  // null
-                
+            {filteredLeads && filteredLeads.length > 0 ? 
+              filteredLeads.map((lead:any) => (
+                <LeadBlock key={lead._id} lead={lead} />
               ))
               :
               <div>
-                No leads yet.
+                No leads match your criteria.
               </div>
             }
           </ul>
         </div>
       </main>
+      <Modal showModal={showModal}>
+        <div className='flex flex-col items-start gap-2'>
+          <h5>More Filters</h5>
+          <div className='flex items-center gap-2'>
+            <div>Filter by Client:</div>
+            <select className='std-input' value={clientFilter} onChange={(e)=>setClientFilter(e.target.value)}>
+              <option value=''>-- Choose --</option>
+              {clients.map((client:any,index:number)=>(
+                <>
+                <option value={client._id}>{client.name}</option>
+                </>
+              ))}
+            </select>
+          </div>
+          <div className='flex w-full justify-end pt-4'>
+            <button className='std-button-lite' onClick={()=>setShowModal(false)}>Close</button>
+          </div>
+          
+        </div>
+        
+      </Modal>
     </>
   );
 }

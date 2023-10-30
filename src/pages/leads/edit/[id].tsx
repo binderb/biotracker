@@ -600,12 +600,20 @@ export default function LeadManager (props:any) {
             </div>
             </>
           )}
-          
-          <div className='md:overflow-y-hidden overflow-x-visible h-[calc(100%-238px)]'>
-            <div className='md:overflow-y-auto overflow-x-visible h-full pr-4'>
-              <DiscussionBoard leadData={leadData} />
+          { mode === 'Editing' && (
+            <div className='md:overflow-y-hidden overflow-x-visible h-[calc(100%-238px)]'>
+              <div className='md:overflow-y-auto overflow-x-visible h-full pr-4'>
+                <DiscussionBoard leadData={leadData} />
+              </div>
             </div>
-          </div>
+          )} 
+          { mode === 'Viewing' && (
+            <div className='md:overflow-y-hidden overflow-x-visible h-[calc(100%-40px)]'>
+              <div className='md:overflow-y-auto overflow-x-visible h-full pr-4'>
+                <DiscussionBoard leadData={leadData} />
+              </div>
+            </div>
+          )} 
         </div>
         <div id="edit-study" className='bg-secondary/20 border border-secondary/80 md:col-span-7 xl:col-span-8 p-4 rounded-lg md:overflow-y-hidden h-full'>
         <div className='flex justify-between items-center pb-2'>
