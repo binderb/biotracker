@@ -5,7 +5,7 @@ import { initializeApollo, addApolloState } from "../../../utils/apolloClient";
 import { GET_CLIENTS, GET_LEADS } from "@/utils/queries";
 import { useSession } from "next-auth/react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowRight, faBriefcase, faCheck, faCircle, faClockRotateLeft, faClone, faCodeCommit, faComment, faComments, faFile, faFileArchive, faFileClipboard, faFileLines, faFilter, faFolderOpen, faMagnifyingGlass, faMagnifyingGlassArrowRight, faPen, faPlus, faX } from '@fortawesome/free-solid-svg-icons';
+import { faArrowDown, faArrowRight, faArrowUp, faArrowUp19, faArrowUpAZ, faBriefcase, faCheck, faCircle, faClockRotateLeft, faClone, faCodeCommit, faComment, faComments, faFile, faFileArchive, faFileClipboard, faFileLines, faFilter, faFolderOpen, faMagnifyingGlass, faMagnifyingGlassArrowRight, faPen, faPlus, faX } from '@fortawesome/free-solid-svg-icons';
 import Link from "next/link";
 import { useQuery } from "@apollo/client";
 import { useRouter } from "next/router";
@@ -56,17 +56,32 @@ export default function LeadManager () {
   const { data: clientData } = useQuery(GET_CLIENTS);
   const clients = clientData.getClients;
   const [filter, setFilter] = useState('active');
+  const [sortBy, setSortBy] = useState('dateAdded');
+  const [sortAscending, setSortAscending] = useState(false);
   const [search, setSearch] = useState('');
   const [clientFilter, setClientFilter] = useState('');
   const [filteredLeads, setFilteredLeads] = useState(leads.filter((lead:any)=>lead.status === filter));
   const [showModal, setShowModal] = useState(false);
   
   useEffect(() => {
-    let newFilteredLeads = leads.filter((lead:any) => (lead.status === filter && lead.name.indexOf(search) > -1));
-    console.log('lead clients: ', leads.map((lead:any)=>lead.client));
+    // Apply name text filter
+    let newFilteredLeads = leads.filter((lead:any) => lead.name.indexOf(search) > -1);
+    // Apply status filter
+    if (filter !== 'all') newFilteredLeads = newFilteredLeads.filter((lead:any) => (lead.status === filter));
+    // Apply client filter (if applicable)
     newFilteredLeads = clientFilter !== '' ? newFilteredLeads.filter((lead:any)=>lead.client?._id === clientFilter) : newFilteredLeads;
+    
+    // Apply sorting method
+    if (sortBy === 'dateAdded') newFilteredLeads = newFilteredLeads;
+    else if (sortBy === 'name') newFilteredLeads = newFilteredLeads.sort(function(a:any, b:any) {
+      return a.name.toLowerCase().localeCompare(b.name.toLowerCase());
+    });
+
+    // Apply ascending/descending sort
+    if (!sortAscending) newFilteredLeads = newFilteredLeads.reverse();
+
     setFilteredLeads(newFilteredLeads);
-  }, [search, filter, clientFilter, leads]);
+  }, [search, filter, clientFilter, sortBy, sortAscending, leads]);
   
   if (status !== 'authenticated') {
     router.push('/login');
@@ -91,12 +106,34 @@ export default function LeadManager () {
               <option value='inactive'>Inactive</option>
               <option value='completed'>Completed</option>
               <option value='cancelled'>Cancelled</option>
+              <option value='all'>All</option>
             </select>
             <div>Name Search:</div>
             <input type='text' className='std-input flex-grow' value={search} onChange={(e)=>setSearch(e.target.value)}  />
             <button className='std-button-lite flex gap-2 items-center' onClick={()=>setShowModal(true)}>
               <FontAwesomeIcon icon={faFilter} />
               More Filters...
+            </button>
+          </div>
+          <div className='flex items-center gap-2 pb-4'>
+            <div>Sort By:</div>
+            <select className='std-input' value={sortBy} onChange={(e)=>setSortBy(e.target.value)}>
+              <option value='dateAdded'>Date Added</option>
+              <option value='name'>Lead Name</option>
+            </select>
+            <button className='secondary-button-lite flex gap-2 items-center' onClick={()=>setSortAscending(!sortAscending)}>
+              {sortAscending ? (
+                <>
+                  <FontAwesomeIcon icon={faArrowUp} />
+                  Ascending
+                </>
+              ):(
+                <>
+                  <FontAwesomeIcon icon={faArrowDown} />
+                  Descending
+                </>
+              )}
+              
             </button>
           </div>
           <h5>Results:</h5>
@@ -121,9 +158,7 @@ export default function LeadManager () {
             <select className='std-input' value={clientFilter} onChange={(e)=>setClientFilter(e.target.value)}>
               <option value=''>-- Choose --</option>
               {clients.map((client:any,index:number)=>(
-                <>
-                <option value={client._id}>{client.name}</option>
-                </>
+                <option key={index} value={client._id}>{client.name}</option>
               ))}
             </select>
           </div>
