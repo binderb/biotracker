@@ -65,7 +65,7 @@ export default function LeadManager () {
   
   useEffect(() => {
     // Apply name text filter
-    let newFilteredLeads = leads.filter((lead:any) => lead.name.indexOf(search) > -1);
+    let newFilteredLeads = leads.filter((lead:any) => lead.name.toLowerCase().indexOf(search.toLowerCase()) > -1);
     // Apply status filter
     if (filter !== 'all') newFilteredLeads = newFilteredLeads.filter((lead:any) => (lead.status === filter));
     // Apply client filter (if applicable)
