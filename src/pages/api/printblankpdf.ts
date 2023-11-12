@@ -34,7 +34,11 @@ export default async function upload (req:NextApiRequest, res:NextApiResponse) {
         if (field.type === 'label') docContents += `\\cellcolor{light-gray} `;
         switch (field.type) {
           case 'label':
-            docContents += `\\raggedright ${field.params[0]} `;
+            docContents += `\\raggedright ${field.params[0]}`;
+            if (row.extensible) {
+              docContents += row.extensibleReference ? ` ${req.body.content[0]?.sections[i].rows.indexOf(row)+1-row.extensibleReference}` : ` ${j+1}`;
+            }
+            docContents += `: `;
             break;
           case 'textarea':
             docContents += `\\makecell[tl]{\\vspace{0.4in}} `;
