@@ -4,8 +4,9 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 
 export default async function upload (req:NextApiRequest, res:NextApiResponse) {
-  
   const template = fs.readFileSync(process.cwd() + '/public/texTemplate.tex', {encoding: 'utf-8'});
+    
+  if (!template) throw new Error(`Server setup error: In order to use this feature, you need to have a 'texTemplate.tex' file available on the server.`);
 
   let docContents = ``;
   for (let i=0;i<req.body.content[0].sections.length; i++) {
@@ -59,7 +60,7 @@ export default async function upload (req:NextApiRequest, res:NextApiResponse) {
     \\vspace{0.1in} \\\\`;
     
   }
-  console.log(docContents);
+  // console.log(docContents);
 
   const filledTemplate = template
     .replace('docBranding', `\\includegraphics[width=100pt]{${process.cwd() + '/public/documentBranding.png'}}`)
@@ -71,15 +72,15 @@ export default async function upload (req:NextApiRequest, res:NextApiResponse) {
     .replace('docOwningDepartment', req.body.owningDepartment)
     .replace('docContents', docContents)
 
-  const output = fs.createWriteStream(process.cwd() + '/public/output.pdf');
+  // const output = fs.createWriteStream(process.cwd() + '/public/output.pdf');
   const pdf = latex(filledTemplate, {passes: 2});
-  pdf.pipe(output);
+  res.setHeader('Content-Disposition', 'attachment; filename=testPDF.pdf');
+  res.setHeader('Content-Type', 'application/pdf');
+  pdf.pipe(res);
   pdf.on('error', err=>console.log(err));
-  pdf.on('finish', ()=>console.log('PDF generated!'));
-
-
-  res.status(200).json({message: 'success'});
-  res.setHeader
+  pdf.on('finish', ()=> {
+    console.log('PDF generated!');
+  });
 
   // form.parse(req, (err, fields, files) => {
   //   if (err) {

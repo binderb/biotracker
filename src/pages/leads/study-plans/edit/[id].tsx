@@ -238,14 +238,36 @@ export default function StudyPlanEditor (props:any) {
       owningDepartment: `${JSON.parse(formDetails?.metadata).studyTypeCode}`,
       content: content,
     });
-    console.log(body);
-    await fetch('/api/printblankpdf', {
+    const response = await fetch('/api/printblankpdf', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: body, 
     });
+    const stream = response.body;
+    const reader = stream?.getReader();
+    let chunks:any = [];
+    const pump = async () => {
+      const readResult = await reader?.read();
+      if (readResult?.done) {
+        const blob = new Blob(chunks, { type: 'application/pdf' });
+        console.log(blob);
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = 'testPDF.pdf';
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer'
+        link.click();
+        URL.revokeObjectURL(url);
+        link.remove();
+        return;
+      }
+      chunks.push(readResult?.value);
+      pump();
+    };
+    pump();
   }
 
   function handleRevertChanges () {
