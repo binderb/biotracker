@@ -1,4 +1,4 @@
-import { faCheck, faCircle, faCodeCommit, faComment, faMagnifyingGlass, faX } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faCircle, faCodeCommit, faComment, faFolder, faFolderClosed, faMagnifyingGlass, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 
@@ -44,6 +44,18 @@ export default function LeadBlock ({lead}:Props) {
           <FontAwesomeIcon icon={faCodeCommit} />
           {lead.revisions.length}
         </div>
+        {lead.studies.length > 0 ? (
+          <button className='std-button-lite flex items-center gap-2'>
+            <FontAwesomeIcon icon={faFolderClosed} />
+            {lead.studies.length}
+          </button>
+        ):(
+          <div className='flex items-center bg-secondary/80 rounded-md text-white px-2 gap-2'>
+            <FontAwesomeIcon icon={faFolderClosed} />
+            {lead.studies.length}
+          </div>
+        )}
+        
         <Link href={{pathname: '/leads/edit/[id]', query: { id: lead._id }}} as={`/leads/edit/${lead._id}`} className='std-button-lite' ><FontAwesomeIcon icon={faMagnifyingGlass}/></Link>
       </div>
     </li>

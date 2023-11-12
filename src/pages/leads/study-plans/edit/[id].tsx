@@ -8,7 +8,7 @@ import Navbar from "@/components/Navbar";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowRotateLeft, faCheck, faCheckCircle, faCircleArrowLeft, faClockRotateLeft, faCodeCommit, faCog, faPlus, faRefresh, faX } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRotateLeft, faCheck, faCheckCircle, faCircleArrowLeft, faClockRotateLeft, faCodeCommit, faCog, faFilePdf, faPlus, faPrint, faRefresh, faX } from "@fortawesome/free-solid-svg-icons";
 import { GET_STUDY_PLAN_FORM_LATEST } from "@/utils/queries";
 import { useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import StudyPlanTemplateSection from "@/components/leads/StudyPlanTemplateSection";
@@ -229,6 +229,25 @@ export default function StudyPlanEditor (props:any) {
     }
   }
 
+  async function handleDownloadPDF () {
+    const body = JSON.stringify({
+      type: 'Form',
+      id: `F-SP-${formDetails?.formIndex.toString().padStart(3,'0')}`,
+      revision: `${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[0].studyPlanFormRevisionId)+1}`,
+      effectiveDate: 'XX-XX-XXXX',
+      owningDepartment: `${JSON.parse(formDetails?.metadata).studyTypeCode}`,
+      content: content,
+    });
+    console.log(body);
+    await fetch('/api/printblankpdf', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: body, 
+    });
+  }
+
   function handleRevertChanges () {
     const originalSections = _.cloneDeep(studyPlan.revisions[0].sections);
     setSections(originalSections);
@@ -274,6 +293,9 @@ export default function StudyPlanEditor (props:any) {
             <button className='std-button-lite flex items-center gap-2' onClick={() => setShowCommitChanges(true)} disabled={changes === 0}>
               <FontAwesomeIcon icon={faCheck} />
               Commit
+            </button>
+            <button className='secondary-button-lite flex items-center gap-2' onClick={handleDownloadPDF}>
+              <FontAwesomeIcon icon={faFilePdf} />
             </button>
             <button className='secondary-button-lite flex items-center gap-2' onClick={() => setShowSettings(true)}>
               <FontAwesomeIcon icon={faCog} />
