@@ -25,7 +25,7 @@ export default async function upload (req:NextApiRequest, res:NextApiResponse) {
     docContents += '!{\\VRule}}';
     docContents += `
     \\specialrule{0.4pt}{0pt}{0pt}
-    \\multicolumn{${maxcols}}{!{\\VRule}l!{\\VRule}}{\\cellcolor{light-gray}\\textbf{${section.name}`;
+    \\multicolumn{${maxcols}}{!{\\VRule}l!{\\VRule}}{\\cellcolor{light-gray}\\textbf{${sanitizeForLatex(section.name)}`;
     if (section.extensible) {
       docContents += section.extensibleReference ? ` ${req.body.content[0]?.sections.indexOf(section)+1-section.extensibleReference}` : ` ${i+1}`;
     }
