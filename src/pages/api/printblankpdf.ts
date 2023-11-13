@@ -64,7 +64,7 @@ export default async function upload (req:NextApiRequest, res:NextApiResponse) {
     \\vspace{0.1in} \\\\`;
     
   }
-  // console.log(docContents);
+  console.log(docContents);
 
   const filledTemplate = template
     .replace('docBranding', `\\includegraphics[width=100pt]{${process.cwd() + '/public/documentBranding.png'}}`)
@@ -83,6 +83,7 @@ export default async function upload (req:NextApiRequest, res:NextApiResponse) {
   pdf.pipe(res);
   pdf.on('error', err=>console.log(err));
   pdf.on('finish', ()=> {
+    res.status(201);
     console.log('PDF generated!');
   });
 
