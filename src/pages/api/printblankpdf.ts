@@ -3,6 +3,10 @@ import latex from 'node-latex';
 import { NextApiRequest, NextApiResponse } from 'next';
 import fs from 'fs';
 
+function sanitizeForLatex(input:string) {
+  return input.replaceAll(`&`,`\\&`);
+}
+
 export default async function upload (req:NextApiRequest, res:NextApiResponse) {
   const template = fs.readFileSync(process.cwd() + '/public/texTemplate.tex', {encoding: 'utf-8'});
     
@@ -34,7 +38,7 @@ export default async function upload (req:NextApiRequest, res:NextApiResponse) {
         if (field.type === 'label') docContents += `\\cellcolor{light-gray} `;
         switch (field.type) {
           case 'label':
-            docContents += `\\raggedright ${field.params[0]}`;
+            docContents += `\\raggedright ${sanitizeForLatex(field.params[0])}`;
             if (row.extensible) {
               docContents += row.extensibleReference ? ` ${req.body.content[0]?.sections[i].rows.indexOf(row)+1-row.extensibleReference}` : ` ${j+1}`;
             }
@@ -44,11 +48,11 @@ export default async function upload (req:NextApiRequest, res:NextApiResponse) {
             docContents += `\\makecell[tl]{\\vspace{0.4in}} `;
             break;
           case 'checkbox':
-            docContents += `\\makecell[tl]{\\checkbox{${field.data[0] ? '1' : '0'}} ${field.params[0]}} `;
+            docContents += `\\makecell[tl]{\\checkbox{${field.data[0] ? '1' : '0'}} ${sanitizeForLatex(field.params[0])}} `;
             break;
           case 'multicheckbox':
             docContents += `\\makecell[tl]{`;
-            for (let d=0;d<field.params.length;d++) docContents += `\\checkbox{${field.data[d] ? '1' : '0'}} ${field.params[d]} ${d < field.params.length-1 ? `\\\\` : ``}`;
+            for (let d=0;d<field.params.length;d++) docContents += `\\checkbox{${field.data[d] ? '1' : '0'}} ${sanitizeForLatex(field.params[d])} ${d < field.params.length-1 ? `\\\\` : ``}`;
             docContents += `} `;
             break;
           default:
