@@ -91,7 +91,7 @@ export default function LeadEditor ({client, content, studyPlanNames, upgradeFor
   },[formDetails, getStudyPlanFormLatest, currentStudyPlanIndex, content, setShowUpgradeForm, setUpgradeFormContent]);
 
   async function startHandleUpgradeForm () {
-    const note = `Upgraded form F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1} \u2192 R${formDetails?.revisions.length}.`;
+    const note = `Upgraded form F-SP-${formDetails?.formIndex.toString().padStart(3,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1} \u2192 R${formDetails?.revisions.length}.`;
     setShowUpgradeForm(false);
     await handleUpgradeForm(note);
   }
@@ -116,7 +116,7 @@ export default function LeadEditor ({client, content, studyPlanNames, upgradeFor
               <section className='flex items-center gap-2 pb-4'>
                 <div className="font-bold">Form ID:</div>
                 <div>
-                  {`F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1}`}
+                  {`F-SP-${formDetails?.formIndex.toString().padStart(3,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1}`}
                 </div>
                 {
                   formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId) === formDetails?.revisions.length-1 ?
@@ -170,13 +170,13 @@ export default function LeadEditor ({client, content, studyPlanNames, upgradeFor
                   {`You are currently using Study Plan Form `}
                 </span>
                 <span className='font-bold'>
-                  {`F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1} `}
+                  {`F-SP-${formDetails?.formIndex.toString().padStart(3,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1} `}
                 </span>
                 <span>
                   {`in this lead, but the current version is `}
                 </span>
                 <span className='font-bold'>
-                  {`F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length} `}
+                  {`F-SP-${formDetails?.formIndex.toString().padStart(3,'0')} R${formDetails?.revisions.length} `}
                 </span>
                 <span>
                   {`. You will not be able to publish the lead until all associated forms are upgraded to their current versions. Use the panel below to transfer your saved information into the new version of the form. Clicking "Commit Upgrade" will save your changes and generate an automated comment to your group summarizing the action.`}
@@ -189,7 +189,7 @@ export default function LeadEditor ({client, content, studyPlanNames, upgradeFor
                     <section className='grid grid-cols-12 gap-2'>
                       <div className='col-span-6'>
                         <h5>
-                          {`F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1}`}
+                          {`F-SP-${formDetails?.formIndex.toString().padStart(3,'0')} R${formDetails?.revisions.length === 1 ? '1' : formDetails?.revisions.map((revision:any) => revision._id).indexOf(content[currentStudyPlanIndex].studyPlanFormRevisionId)+1}`}
                         </h5>
                         <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
                           <FormContentEditor 
@@ -204,7 +204,7 @@ export default function LeadEditor ({client, content, studyPlanNames, upgradeFor
                       </div>
                       <div className='col-span-6'>
                         <h5>
-                          {`F-SP-${formDetails?.formIndex.toString().padStart(4,'0')} R${formDetails?.revisions.length}`}
+                          {`F-SP-${formDetails?.formIndex.toString().padStart(3,'0')} R${formDetails?.revisions.length}`}
                         </h5>
                         <section className='flex flex-col border border-secondary rounded-md justify-center p-4 mt-2 mb-4'>
                           <FormContentEditor 

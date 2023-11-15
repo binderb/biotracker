@@ -238,7 +238,7 @@ export default function StudyPlanEditor (props:any) {
       owningDepartment: `${JSON.parse(formDetails?.metadata).studyTypeCode}`,
       content: content,
     });
-    const response = await fetch('/api/printblankpdf', {
+    const response = await fetch('/api/generatepdf', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

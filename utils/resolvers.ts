@@ -878,6 +878,7 @@ const resolvers = {
       try {
         const { clientCode, studyName, formRevisionId, formData, leadJSON, studyData } = args;
         const leadData = JSON.parse(leadJSON);
+        const formJSON = JSON.parse(formData);
         const studyContent = JSON.parse(studyData);
         const auth = await userAuthorizeGoogleDrive();
         // Get Google Drive config
@@ -885,15 +886,57 @@ const resolvers = {
         if (!driveConfig) {
           throw new Error("Google Drive is not connected to this app. Administrators can configure a Google Drive connection in App Settings.");
         }
-        const protocolFolderId = await getFolderIdFromPath(driveConfig.studiesDriveId, `${driveConfig.studiesPath}/${clientCode}/${studyName}/Protocol`,auth);
-        const formFileId = await createAndSetupDocument(studyName, protocolFolderId, auth);
-        await buildFormHeader(formFileId, formRevisionId, formData, auth);
-        await buildFormFooter(formFileId, auth);
-        for (let i=0;i<studyContent.sections.length;i++) {
-          await buildFormSection(formFileId, auth, leadData, studyContent.sections[i], i, studyName);
-        }
-        await deleteFileAtPath(protocolFolderId,studyName,'application/pdf',auth);
-        await convertToPdf(protocolFolderId, studyName, formFileId, auth);
+        // const protocolFolderId = await getFolderIdFromPath(driveConfig.studiesDriveId, `${driveConfig.studiesPath}/${clientCode}/${studyName}/Protocol`,auth);
+        console.log('starting pdf creation...');
+        
+        const body = JSON.stringify({
+          type: 'Form',
+          id: `F-SP-${formJSON?.formIndex.toString().padStart(3,'0')}`,
+          revision: `${formJSON?.revisions.length === 1 ? '1' : formJSON?.revisions.map((revision:any) => revision._id).indexOf(studyContent.studyPlanFormRevisionId)+1}`,
+          effectiveDate: 'XX-XX-XXXX',
+          owningDepartment: `${JSON.parse(formJSON?.metadata).studyTypeCode}`,
+          content: studyContent,
+        });
+        const response = await fetch(process.cwd()+'/src/pages/api/generatepdf.ts', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: body, 
+        });
+        const stream = response.body;
+        // const reader = stream?.getReader();
+        // let chunks:any = [];
+        // const pump = async () => {
+        //   const readResult = await reader?.read();
+        //   if (readResult?.done) {
+        //     const blob = new Blob(chunks, { type: 'application/pdf' });
+        //     console.log(blob);
+        //     const link = document.createElement('a');
+        //     const url = URL.createObjectURL(blob);
+        //     link.href = url;
+        //     link.download = 'testPDF.pdf';
+        //     link.target = '_blank';
+        //     link.rel = 'noopener noreferrer'
+        //     link.click();
+        //     URL.revokeObjectURL(url);
+        //     link.remove();
+        //     return;
+        //   }
+        //   chunks.push(readResult?.value);
+        //   pump();
+        // };
+        // pump();
+
+
+        // const formFileId = await createAndSetupDocument(studyName, protocolFolderId, auth);
+        // await buildFormHeader(formFileId, formRevisionId, formData, auth);
+        // await buildFormFooter(formFileId, auth);
+        // for (let i=0;i<studyContent.sections.length;i++) {
+        //   await buildFormSection(formFileId, auth, leadData, studyContent.sections[i], i, studyName);
+        // }
+        // await deleteFileAtPath(protocolFolderId,studyName,'application/pdf',auth);
+        // await convertToPdf(protocolFolderId, studyName, formFileId, auth);
       } catch (err:any) {
         throw err;
       }

@@ -7,7 +7,7 @@ function sanitizeForLatex(input:string) {
   return input.replaceAll(`&`,`\\&`);
 }
 
-export default async function upload (req:NextApiRequest, res:NextApiResponse) {
+export default async function generatePDF (req:NextApiRequest, res:NextApiResponse) {
   const template = fs.readFileSync(process.cwd() + '/public/texTemplate.tex', {encoding: 'utf-8'});
     
   if (!template) throw new Error(`Server setup error: In order to use this feature, you need to have a 'texTemplate.tex' file available on the server.`);

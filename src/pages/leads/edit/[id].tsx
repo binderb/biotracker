@@ -8,7 +8,7 @@ import { useSession } from "next-auth/react";
 import { ChangeEvent, MouseEventHandler, useEffect, useState } from "react";
 import { useApolloClient, useLazyQuery, useMutation, useQuery } from "@apollo/client";
 import Link from "next/link";
-import { faCircle, faCircleCheck, faCircleDot, faCircleNotch, faClock, faCog, faEllipsis, faFileExport, faFlagCheckered, faInfoCircle, faSpinner, faX } from "@fortawesome/free-solid-svg-icons";
+import { faCircle, faCircleCheck, faCircleDot, faCircleNotch, faClock, faCog, faEllipsis, faFileExport, faFilePdf, faFlagCheckered, faInfoCircle, faSpinner, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ADD_LEAD_NOTE, ADD_LEAD_REVISION, ADD_NEW_LEAD, ADD_STUDY, PUBLISH_LEAD_TO_DRIVE, CREATE_DRIVE_STUDY_TREE, UPDATE_LEAD_DRAFTERS, UPDATE_LEAD_ON_DRIVE, UPDATE_LEAD_REVISION_PUBLISH_STATUS, UPDATE_LEAD_NAME } from "@/utils/mutations";
 import { useParams } from 'next/navigation';
@@ -523,7 +523,6 @@ export default function LeadManager (props:any) {
     }
 
   }
-
   
 
   return (
