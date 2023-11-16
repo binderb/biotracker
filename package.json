@@ -54,6 +54,5 @@
     "@types/lodash": "^4.14.194",
     "sass": "^1.63.4",
     "ts-node": "^10.9.1"
-  },
-  "packageManager": "yarn@4.0.1"
+  }
 }
