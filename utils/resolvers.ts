@@ -6,7 +6,7 @@ import LeadChange from "../models/LeadChange";
 import Study from "../models/Study";
 import connectMongo from "./connectMongo";
 import User from "../models/User";
-import { convertToPdf, createDirectoryIfNotExists, createDirectoryWithSubdirectories, deleteFileAtPath, getDriveIdFromName, getFolderIdFromPath, getGoogleDriveAuthUrl, listFiles, saveNewGoogleDriveToken, userAuthorizeGoogleDrive } from "./googleDrive";
+import { convertToPdf, createDirectoryIfNotExists, createDirectoryWithSubdirectories, deleteFileAtPath, getDriveIdFromName, getFolderIdFromPath, getGoogleDriveAuthUrl, listFiles, saveNewGoogleDriveToken, uploadPDF, userAuthorizeGoogleDrive } from "./googleDrive";
 import { now } from "lodash";
 import FormTemplateField from "../models/FormTemplateField";
 import FormTemplateRow from "../models/FormTemplateRow";
@@ -20,6 +20,7 @@ import { Types } from 'mongoose';
 import Contact from "../models/Contact";
 import ClientProject from "../models/ClientProject";
 import MailingAddress from "../models/MailingAddress";
+import { createPDFFile } from "./latex";
 const fs = require('fs').promises;
 
 const resolvers = {
@@ -886,57 +887,23 @@ const resolvers = {
         if (!driveConfig) {
           throw new Error("Google Drive is not connected to this app. Administrators can configure a Google Drive connection in App Settings.");
         }
-        // const protocolFolderId = await getFolderIdFromPath(driveConfig.studiesDriveId, `${driveConfig.studiesPath}/${clientCode}/${studyName}/Protocol`,auth);
-        console.log('starting pdf creation...');
         
-        const body = JSON.stringify({
+        const metadata = {
           type: 'Form',
           id: `F-SP-${formJSON?.formIndex.toString().padStart(3,'0')}`,
+          name: formJSON?.name,
           revision: `${formJSON?.revisions.length === 1 ? '1' : formJSON?.revisions.map((revision:any) => revision._id).indexOf(studyContent.studyPlanFormRevisionId)+1}`,
           effectiveDate: 'XX-XX-XXXX',
           owningDepartment: `${JSON.parse(formJSON?.metadata).studyTypeCode}`,
-          content: studyContent,
-        });
-        const response = await fetch(process.cwd()+'/src/pages/api/generatepdf.ts', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: body, 
-        });
-        const stream = response.body;
-        // const reader = stream?.getReader();
-        // let chunks:any = [];
-        // const pump = async () => {
-        //   const readResult = await reader?.read();
-        //   if (readResult?.done) {
-        //     const blob = new Blob(chunks, { type: 'application/pdf' });
-        //     console.log(blob);
-        //     const link = document.createElement('a');
-        //     const url = URL.createObjectURL(blob);
-        //     link.href = url;
-        //     link.download = 'testPDF.pdf';
-        //     link.target = '_blank';
-        //     link.rel = 'noopener noreferrer'
-        //     link.click();
-        //     URL.revokeObjectURL(url);
-        //     link.remove();
-        //     return;
-        //   }
-        //   chunks.push(readResult?.value);
-        //   pump();
-        // };
-        // pump();
+        };
+        
+        const filename = await createPDFFile(metadata,studyContent,studyName);
+        const studyFolderId = await getFolderIdFromPath(driveConfig.studiesDriveId, driveConfig.studiesPath, auth);
+        const protocolFolderId = await getFolderIdFromPath(driveConfig.studiesDriveId, `${driveConfig.studiesPath}/${clientCode}/${studyName}/Protocol`,auth);
+        const formFileId = await uploadPDF(protocolFolderId,filename,auth);
+        fs.unlink(process.cwd()+`/public/${filename}`);
 
-
-        // const formFileId = await createAndSetupDocument(studyName, protocolFolderId, auth);
-        // await buildFormHeader(formFileId, formRevisionId, formData, auth);
-        // await buildFormFooter(formFileId, auth);
-        // for (let i=0;i<studyContent.sections.length;i++) {
-        //   await buildFormSection(formFileId, auth, leadData, studyContent.sections[i], i, studyName);
-        // }
-        // await deleteFileAtPath(protocolFolderId,studyName,'application/pdf',auth);
-        // await convertToPdf(protocolFolderId, studyName, formFileId, auth);
+        
       } catch (err:any) {
         throw err;
       }

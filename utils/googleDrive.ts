@@ -1,14 +1,38 @@
-const fs = require('fs').promises;
+import fs from 'fs';
+const fsPromises = require('fs').promises;
 import path from "path";
 const { OAuth2Client } = require('google-auth-library');
 const {google} = require('googleapis');
 
-// If modifying these scopes, delete token.json.
+export async function uploadPDF(folderId:string, filename:string, auth:any) {
+  const drive = google.drive({ version: 'v3', auth });
+  const fileMetaData = {
+    name: `${filename}.pdf`,
+    fields: 'id',
+    parents: [folderId],
+  };
+  const media = {
+    mimeType: 'application/pdf',
+    body: fs.createReadStream(process.cwd()+`/public/${filename}`),
+  };
+  try {
+    const file = await drive.files.create({
+      supportsAllDrives: true,
+      includeItemsFromAllDrives: true,
+      resource: fileMetaData,
+      media: media,
+    });
+    return file.data.id;
+  } catch (err) {
+    // TODO(developer) - Handle error
+    throw err;
+  }
+}
 
 async function loadSavedCredentialsIfExist() {
   try {
     const credentialsPath = path.join(process.cwd(),process.env.GOOGLE_TOKEN_PATH!);
-    const content = await fs.readFile(credentialsPath);
+    const content = await fsPromises.readFile(credentialsPath);
     const credentials = JSON.parse(content);
     // const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_PATH!);
     return google.auth.fromJSON(credentials);
@@ -20,7 +44,7 @@ async function loadSavedCredentialsIfExist() {
 export async function saveNewGoogleDriveToken(code:string) {
   try {
     const credentialsPath = path.join(process.cwd(),process.env.GOOGLE_CREDENTIALS_PATH!);
-    const content = await fs.readFile(credentialsPath);
+    const content = await fsPromises.readFile(credentialsPath);
     const credentials = JSON.parse(content).web;
     const client = new OAuth2Client(
       credentials.client_id,
@@ -38,7 +62,7 @@ export async function saveNewGoogleDriveToken(code:string) {
       client_secret: credentials.client_secret,
       refresh_token: client.credentials.refresh_token,
     });
-    await fs.writeFile(path.join(process.cwd(),process.env.GOOGLE_TOKEN_PATH!), payload);
+    await fsPromises.writeFile(path.join(process.cwd(),process.env.GOOGLE_TOKEN_PATH!), payload);
     // Update config database entry.
     const drive = google.drive({version: 'v3', auth: client});
     const userResponse = await drive.about.get({
@@ -54,7 +78,7 @@ export async function saveNewGoogleDriveToken(code:string) {
 
 export async function getGoogleDriveAuthUrl() {
   const credentialsPath = path.join(process.cwd(),process.env.GOOGLE_CREDENTIALS_PATH!);
-  const content = await fs.readFile(credentialsPath);
+  const content = await fsPromises.readFile(credentialsPath);
   const credentials = JSON.parse(content).web;
   const SCOPES = [
     'https://www.googleapis.com/auth/drive.metadata.readonly',
@@ -107,7 +131,6 @@ export async function listFiles(driveName:string,path:string,auth:any) {
     }
     const driveId = targetDrive.id;
     const folderId = await getFolderIdFromPath(driveId, path, auth);
-    console.log(folderId);
     const query = `'${folderId}' in parents and trashed=false`;
     const results = await drive.files.list({
       supportsAllDrives: true,
@@ -184,7 +207,6 @@ export async function createDirectoryWithSubdirectories(directoryName:string, pa
   });
   const directoryId = res.data.id;
   const directoryIds = [directoryId];
-  console.log('specific study directory id: ',directoryId);
 
   // Create the subdirectories
 
@@ -210,21 +232,18 @@ export async function getFolderIdFromPath(driveId:string, path:string, auth:any)
 
   // Split the path into its component parts
   const pathParts = path.split('/').filter((part:any) => part !== '');
-  console.log(pathParts);
   let parentFolderId = null;
   if (pathParts.length > 0) {
     for (let i = 0; i < pathParts.length; i++) {
       let parentId = driveId;
       if (i > 0) parentId = parentFolderId;
       const query = `'${parentId}' in parents and name='${pathParts[i]}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
-      console.log(query);
       const res = await drive.files.list({
         supportsAllDrives: true,
         includeItemsFromAllDrives: true,
         q: query,
         fields: 'nextPageToken, files(id, name)',
       });
-      console.log(res.data);
 
       if (res.data.files.length === 0) {
         throw new Error(`Folder not found on target drive: ${path}`);
