@@ -845,6 +845,7 @@ const resolvers = {
         const { clientCode, studyName, formRevisionId, formData, leadJSON, studyData } = args;
         const leadData = JSON.parse(leadJSON);
         const studyContent = JSON.parse(studyData);
+        const formJSON = JSON.parse(formData);
         const auth = await userAuthorizeGoogleDrive();
         await connectMongo();
         // Get Google Drive config
@@ -853,20 +854,31 @@ const resolvers = {
           throw new Error("Google Drive is not connected to this app. Administrators can configure a Google Drive connection in App Settings.");
         }
         const studyFolderId = await getFolderIdFromPath(driveConfig.studiesDriveId, driveConfig.studiesPath, auth);
-        console.log('study folder id: ', studyFolderId);
         const clientFolderId = await createDirectoryIfNotExists(clientCode, studyFolderId, auth);
-        console.log('client folder id: ', clientFolderId);
         const newStudyFolderIds = await createDirectoryWithSubdirectories(studyName, clientFolderId, ['Data','Forms','Protocol'], auth);
-        console.log('new study folder id: ',newStudyFolderIds[3])
-        const formFileId = await createAndSetupDocument(studyName, newStudyFolderIds[3], auth);
-        console.log('form file id: ', formFileId)
-        await buildFormHeader(formFileId, formRevisionId, formData, auth);
-        await buildFormFooter(formFileId, auth);
-        for (let i=0;i<studyContent.sections.length;i++) {
-          await buildFormSection(formFileId, auth, leadData, studyContent.sections[i], i, studyName);
-        }
-        await convertToPdf(newStudyFolderIds[3], studyName, formFileId, auth);
-        console.log('Completed actions successfully.');
+
+        const metadata = {
+          type: 'Form',
+          id: `F-SP-${formJSON?.formIndex.toString().padStart(3,'0')}`,
+          name: formJSON?.name,
+          revision: `${formJSON?.revisions.length === 1 ? '1' : formJSON?.revisions.map((revision:any) => revision._id).indexOf(studyContent.studyPlanFormRevisionId)+1}`,
+          effectiveDate: 'XX-XX-XXXX',
+          owningDepartment: `${JSON.parse(formJSON?.metadata).studyTypeCode}`,
+        };
+        
+        const filename = await createPDFFile(metadata,studyContent,studyName);
+        const protocolFolderId = newStudyFolderIds[3];
+        const formFileId = await uploadPDF(protocolFolderId,filename,auth);
+        fs.unlink(process.cwd()+`/public/${filename}`);
+        
+        // const formFileId = await createAndSetupDocument(studyName, newStudyFolderIds[3], auth);
+        // await buildFormHeader(formFileId, formRevisionId, formData, auth);
+        // await buildFormFooter(formFileId, auth);
+        // for (let i=0;i<studyContent.sections.length;i++) {
+        //   await buildFormSection(formFileId, auth, leadData, studyContent.sections[i], i, studyName);
+        // }
+        // await convertToPdf(newStudyFolderIds[3], studyName, formFileId, auth);
+        // console.log('Completed actions successfully.');
       } catch (err:any) {
         throw err;
       }
@@ -883,6 +895,7 @@ const resolvers = {
         const studyContent = JSON.parse(studyData);
         const auth = await userAuthorizeGoogleDrive();
         // Get Google Drive config
+        await connectMongo();
         const driveConfig = await GoogleDriveConfig.findOne({});
         if (!driveConfig) {
           throw new Error("Google Drive is not connected to this app. Administrators can configure a Google Drive connection in App Settings.");
@@ -898,7 +911,6 @@ const resolvers = {
         };
         
         const filename = await createPDFFile(metadata,studyContent,studyName);
-        const studyFolderId = await getFolderIdFromPath(driveConfig.studiesDriveId, driveConfig.studiesPath, auth);
         const protocolFolderId = await getFolderIdFromPath(driveConfig.studiesDriveId, `${driveConfig.studiesPath}/${clientCode}/${studyName}/Protocol`,auth);
         const formFileId = await uploadPDF(protocolFolderId,filename,auth);
         fs.unlink(process.cwd()+`/public/${filename}`);
