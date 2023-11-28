@@ -4,7 +4,6 @@ const clientProjectSchema = new Schema({
   name: {
     type: String,
     required: true,
-    unique: true
   },
   nda: Boolean,
   client: { type: Schema.Types.ObjectId, ref: 'Client' },

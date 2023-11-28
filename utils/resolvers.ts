@@ -391,10 +391,16 @@ const resolvers = {
       const { contactJSON } = args;
       try {
         const contactData = JSON.parse(contactJSON);
-        await connectMongo();
-        if (!contactData.first) {
-          throw new Error("Contacts must at least have a first name!");
+        if (!contactData.first || !contactData.last) {
+          throw new Error("Contacts must at least have a first and last name!");
         }
+        await connectMongo();
+        const contacts = await Contact.find({});
+        const contactNames = contacts.map(e => e.first+' '+e.last);
+        if (contactNames.includes(contactData.first+' '+contactData.last)) {
+          throw new Error("Client already exists! Please choose a different name.");
+        }
+        
         const newContact = await Contact.create({
           ...contactData
          });
