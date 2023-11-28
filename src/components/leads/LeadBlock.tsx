@@ -44,7 +44,7 @@ export default function LeadBlock ({lead}:Props) {
           <FontAwesomeIcon icon={faCodeCommit} />
           {lead.revisions.length}
         </div>
-        {lead.studies.length > 0 ? (
+        {/* {lead.studies.length > 0 ? (
           <button className='std-button-lite flex items-center gap-2'>
             <FontAwesomeIcon icon={faFolderClosed} />
             {lead.studies.length}
@@ -54,7 +54,7 @@ export default function LeadBlock ({lead}:Props) {
             <FontAwesomeIcon icon={faFolderClosed} />
             {lead.studies.length}
           </div>
-        )}
+        )} */}
         
         <Link href={{pathname: '/leads/edit/[id]', query: { id: lead._id }}} as={`/leads/edit/${lead._id}`} className='std-button-lite' ><FontAwesomeIcon icon={faMagnifyingGlass}/></Link>
       </div>
