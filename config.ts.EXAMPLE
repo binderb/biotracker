@@ -1,9 +1,0 @@
-const isServer = typeof window === 'undefined';
-
-const config = {
-  webTitle: 'Example Title',
-  nextAuthBasePath: '/path/api/auth',
-  graphqlURI: isServer ? 'http://localhost:3000/api/graphql' : '/api/graphql', // in production, the server option should be the FULL PATH to the graphql config.
-};
-
-export default config;

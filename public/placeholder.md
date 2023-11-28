@@ -1,1 +1,0 @@
-To incorporate your own branding, add a favicon and a 'logo.png' file to this folder.
