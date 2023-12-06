@@ -20,7 +20,6 @@ export default function LoginBox() {
       });
       if (response) {
         if (response.ok && response.url) {
-          console.log('success!',response.url);
           router.push('/');
         } else {
           if (response.error) setLoginStatus(response.error || 'An unknown error occurred.');
