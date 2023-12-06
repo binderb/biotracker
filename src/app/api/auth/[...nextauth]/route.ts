@@ -36,7 +36,7 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
-  secret: process.env.JWT_SECRET,
+  // secret: process.env.JWT_SECRET,
   callbacks: {
     async jwt({token, user}) {
       console.log('callback running...');

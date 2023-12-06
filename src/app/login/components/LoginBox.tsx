@@ -19,10 +19,11 @@ export default function LoginBox() {
         password: formData.get('password'),
       });
       if (response) {
-        if (response.ok) {
+        if (response.ok && response.url) {
+          console.log('success!',response.url);
           router.push('/');
         } else {
-          setLoginStatus(response.error || 'An unknown error occurred.');
+          if (response.error) setLoginStatus(response.error || 'An unknown error occurred.');
         }
       }
     } catch (err: any) {
