@@ -1,0 +1,8 @@
+const isServer = typeof window === 'undefined';
+
+const config = {
+  webTitle: 'Example Title',
+  nextAuthBasePath: '/path/api/auth',
+};
+
+export default config;

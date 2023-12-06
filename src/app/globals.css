@@ -3,25 +3,138 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --drafter1: #09a0fe;
+  --drafter2: #fe9409;
+  --drafter3: #74b300;
+  --drafter4: #ca007c;
+  --drafter5: #7f09fe;
+  --drafter6: #009da5;
+  --drafter7: #cca300;
+  --drafter8: #fe0909;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+/* h1 {
+  @apply font-bold text-[20px]
+} */
+
+h2 {
+  @apply font-bold
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+h5 {
+  @apply font-bold pb-2 text-primary text-[18px]
+}
+
+.std-input {
+  @apply p-2 bg-white/50 border border-secondary/80 rounded-md
+}
+
+.std-link {
+  @apply font-bold text-primary underline hover:text-primaryHover
+}
+
+.nav-link {
+  @apply font-bold text-primary hover:text-primaryHover
+}
+
+.std-button {
+  @apply py-2 px-4 bg-primary text-white rounded-full hover:bg-primaryHighlight
+}
+
+.std-button:disabled {
+  @apply opacity-50 hover:bg-primary
+}
+
+.std-button-lite {
+  @apply py-1 px-3 bg-primary text-white rounded-md hover:bg-primaryHighlight
+}
+
+.std-button-lite:disabled {
+  @apply opacity-50 hover:bg-primary
+}
+
+.secondary-button {
+  @apply py-2 px-4 bg-secondary text-white rounded-full hover:bg-secondaryHighlight
+}
+
+.secondary-button:disabled {
+  @apply opacity-50 hover:bg-secondary
+}
+
+.secondary-button-lite {
+  @apply py-1 px-3 bg-secondary text-white rounded-md hover:bg-secondaryHover
+}
+
+.secondary-button-lite:disabled {
+  @apply opacity-50 hover:bg-secondary
+}
+
+.danger-button-lite {
+  @apply py-1 px-3 bg-[#800] text-white rounded-md hover:bg-[#A00]
+}
+
+.danger-button-lite:disabled {
+  @apply opacity-50 hover:bg-primary
+}
+
+
+.visible-cell {
+  @apply bg-[#FFFFFF88] p-2
+}
+
+.form-control {
+  @apply flex my-2 px-2 gap-2
+}
+
+input[type='checkbox'] {
+  appearance: none;
+  width: 1.65em;
+  height: 1.65em;
+  border: 0.15em solid;
+  border-radius: 0.15em;
+  transform: translateY(-0.075em);
+  display: grid;
+  place-content: center;
+  @apply border-secondary/80;
+}
+
+input[type="checkbox"]::before {
+  content: "";
+  width: 1.1em;
+  height: 1.1em;
+  transform: scale(0);
+  transform-origin: center;
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  @apply bg-primary;
+}
+input[type="checkbox"]:checked::before {
+  transform: scale(1);
+}
+
+.radio-check {
+  @apply hidden
+}
+
+.radio-label {
+  @apply cursor-pointer
+}
+
+.radio-group .radio-label {
+  @apply flex items-center gap-2 w-full px-2 py-2 bg-white/0 border border-secondary/80 mb-[-1px]
+}
+
+.radio-label:first-of-type {
+  @apply rounded-t-md
+}
+
+.radio-label:last-of-type {
+  @apply rounded-b-md
+}
+
+.radio-check+.radio-label:hover {
+  @apply bg-white/80
+}
+
+.radio-check:checked+.radio-label {
+  @apply bg-primary text-white
 }
