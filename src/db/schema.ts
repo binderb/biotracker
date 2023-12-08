@@ -1,6 +1,9 @@
 import { relations } from "drizzle-orm";
 import { boolean, integer, pgEnum, pgTable, serial, text, varchar } from "drizzle-orm/pg-core";
 
+export type UserSelection = typeof users.$inferSelect;
+export type ClientSelection = typeof clients.$inferSelect;
+
 export const clientAccountTypeEnum = pgEnum('accountType',['active','inactive']);
 
 export const users = pgTable('users', {
@@ -18,29 +21,28 @@ export const clients = pgTable('clients', {
   code: varchar('code', {length: 3}).notNull().unique(),
   referredBy: integer('referred_by').references(()=>contacts.id),
   website: varchar('website', {length: 500}),
-  // billingAddresses: 
   accountType: clientAccountTypeEnum('accountType')
 });
 
 export const clientsRelations = relations(clients, ({many}) => ({
   projects: many(projects),
+  billingAddresses: many(clientsToAddresses)
 }));
 
 export const projects = pgTable('projects', {
   id: serial('id').primaryKey(),
   name: varchar('name', {length: 500}).notNull(),
   nda: boolean('nda'),
-  client: integer('client').references(()=>clients.id),
+  client: integer('client').notNull().references(()=>clients.id),
   billingAddress: integer('billingAddress').references(()=>addresses.id),
-  // contacts:
-  // keyContacts:
 });
 
-export const projectsRelations = relations(projects, ({one})=>({
+export const projectsRelations = relations(projects, ({one,many})=>({
   client: one(clients, {
     fields: [projects.client],
     references: [clients.id],
-  })
+  }),
+  projectsToContacts: many(projectsToContacts),
 }));
 
 export const contacts = pgTable('contacts', {
@@ -54,13 +56,34 @@ export const contacts = pgTable('contacts', {
   notes: text('notes'),
 });
 
-export const contactsRelations = relations(contacts, ({one}) => ({
+export const contactsRelations = relations(contacts, ({one,many}) => ({
   contactReferredBy: one(contacts, {
     fields: [contacts.id],
     references: [contacts.referredBy]
   }),
-  clients: one(clients),
-}))
+  clients: one(clients, {
+    fields: [contacts.id],
+    references: [clients.referredBy]
+  }),
+  projectsToContacts: many(projectsToContacts),
+}));
+
+export const projectsToContacts = pgTable('projects_to_contacts', {
+  projectId: integer('project_id').notNull().references(()=>projects.id),
+  contactId: integer('contact_id').notNull().references(()=>contacts.id),
+  keyContact: boolean('key_contact').default(false),
+});
+
+export const projectsToContactsRelations = relations(projectsToContacts, ({one}) => ({
+  project: one(projects, {
+    fields: [projectsToContacts.projectId],
+    references: [projects.id]
+  }),
+  contact: one(contacts, {
+    fields: [projectsToContacts.contactId],
+    references: [contacts.id]
+  }),
+}));
 
 export const addresses = pgTable('addresses', {
   id: serial('id').primaryKey(),
@@ -72,4 +95,17 @@ export const addresses = pgTable('addresses', {
   stateProvince: varchar('state_province', {length: 256}),
   country: varchar('country', {length: 256}),
   postalCode: varchar('postal_code', {length: 25}),
+});
+
+export const addressesRelations = relations(addresses, ({one,many}) => ({
+  projectBillingAddress: one(projects, {
+    fields: [addresses.id],
+    references: [projects.billingAddress]
+  }),
+  clients: many(clientsToAddresses),
+}));
+
+export const clientsToAddresses = pgTable('clients_to_addresses', {
+  clientId: integer('client_id').notNull().references(()=>clients.id),
+  addressId: integer('address_id').notNull().references(()=>addresses.id),
 });

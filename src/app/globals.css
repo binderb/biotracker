@@ -22,7 +22,11 @@ h2 {
 }
 
 h5 {
-  @apply font-bold pb-2 text-primary text-[18px]
+  @apply font-bold text-primary text-[18px]
+}
+
+.ui-box {
+  @apply flex flex-col col-span-8 bg-secondary/20 border border-secondary/80 p-4 rounded-xl
 }
 
 .std-input {
@@ -38,7 +42,7 @@ h5 {
 }
 
 .std-button {
-  @apply py-2 px-4 bg-primary text-white rounded-full hover:bg-primaryHighlight
+  @apply py-2 px-4 bg-primary text-white rounded-full hover:bg-primaryHighlight flex items-center gap-2
 }
 
 .std-button:disabled {
@@ -46,7 +50,7 @@ h5 {
 }
 
 .std-button-lite {
-  @apply py-1 px-3 bg-primary text-white rounded-md hover:bg-primaryHighlight
+  @apply py-2 px-3 bg-primary text-white rounded-md hover:bg-primaryHighlight flex items-center gap-2
 }
 
 .std-button-lite:disabled {
@@ -62,7 +66,7 @@ h5 {
 }
 
 .secondary-button-lite {
-  @apply py-1 px-3 bg-secondary text-white rounded-md hover:bg-secondaryHover
+  @apply py-2 px-3 bg-secondary text-white rounded-md hover:bg-secondaryHover
 }
 
 .secondary-button-lite:disabled {
@@ -70,7 +74,7 @@ h5 {
 }
 
 .danger-button-lite {
-  @apply py-1 px-3 bg-[#800] text-white rounded-md hover:bg-[#A00]
+  @apply py-2 px-3 bg-[#800] text-white rounded-md hover:bg-[#A00]
 }
 
 .danger-button-lite:disabled {

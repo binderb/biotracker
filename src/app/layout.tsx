@@ -4,10 +4,10 @@ import config from '../../config';
 import './globals.css';
 import SessionProvider from '@/lib/SessionProvider';
 import { getServerSession } from 'next-auth';
-import { authOptions } from './api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/authOptions';
 
 const source = Source_Sans_3({
-  weight: ['300', '400', '900'],
+  weight: ['300', '400', '700', '900'],
   subsets: ['latin'],
   variable: '--source',
 });
