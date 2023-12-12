@@ -26,7 +26,7 @@ h5 {
 }
 
 .ui-box {
-  @apply flex flex-col col-span-8 bg-secondary/20 border border-secondary/80 p-4 rounded-xl
+  @apply flex flex-col gap-4 bg-secondary/20 border border-secondary/80 p-4 rounded-xl
 }
 
 .std-input {
@@ -79,6 +79,22 @@ h5 {
 
 .danger-button-lite:disabled {
   @apply opacity-50 hover:bg-primary
+}
+
+.tab-group button {
+  @apply bg-white/50 hover:bg-white duration-200 px-3 py-2 border-[1px] border-secondary/80 ml-[-1px]
+}
+
+.tab-group button.selected {
+  @apply bg-primary text-white
+}
+
+.tab-group button:first-child {
+  @apply rounded-l-md
+}
+
+.tab-group button:last-child {
+  @apply rounded-r-md
 }
 
 

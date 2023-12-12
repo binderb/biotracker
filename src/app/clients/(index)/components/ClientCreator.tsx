@@ -1,20 +1,21 @@
 'use client';
 
 import Modal from '@/app/(global components)/Modal';
-import { ClientSelection, clients } from '@/db/schema';
+import { Client, clients } from '@/db/schema';
 import { useEffect, useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import { addClient, generateClientCode } from '../actions';
 import SubmitButton from '@/app/(global components)/SubmitButton';
 
 type Props = {
-  clients: ClientSelection[];
+  buttonText: string
+  clients: Client[]
 };
 
-export default function ClientCreator({ clients }: Props) {
+export default function ClientCreator({ clients, buttonText }: Props) {
   const [showCreator, setShowCreator] = useState(false);
   const [clientSearch, setClientSearch] = useState('');
-  const [matchingList, setMatchingList] = useState<(ClientSelection)[]>(clients);
+  const [matchingList, setMatchingList] = useState<(Client)[]>(clients);
   const [code, setCode] = useState('');
   const [creatorStatus, setCreatorStatus] = useState('');
 
@@ -50,7 +51,7 @@ export default function ClientCreator({ clients }: Props) {
     <>
       <button className='std-button-lite' onClick={() => setShowCreator(true)}>
         <FaPlus />
-        Add Client
+        {buttonText}
       </button>
       <Modal showModal={showCreator} className='w-[90vw] md:w-[60%]'>
         <h5>Add New Client</h5>

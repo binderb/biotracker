@@ -1,8 +1,16 @@
 import { relations } from "drizzle-orm";
 import { boolean, integer, pgEnum, pgTable, serial, text, varchar } from "drizzle-orm/pg-core";
+import { db } from ".";
 
-export type UserSelection = typeof users.$inferSelect;
-export type ClientSelection = typeof clients.$inferSelect;
+export type User = typeof users.$inferSelect;
+export type Client = typeof clients.$inferSelect;
+export type ClientWithProjectsAddresses = typeof clients.$inferSelect & {
+  billingAddresses: {
+    address: typeof addresses.$inferSelect
+  }[] | null
+  projects: typeof projects.$inferSelect[] | null
+};
+export type Address = typeof addresses.$inferSelect;
 
 export const clientAccountTypeEnum = pgEnum('accountType',['active','inactive']);
 
@@ -102,10 +110,21 @@ export const addressesRelations = relations(addresses, ({one,many}) => ({
     fields: [addresses.id],
     references: [projects.billingAddress]
   }),
-  clients: many(clientsToAddresses),
+  clientBillingAddresses: many(clientsToAddresses),
 }));
 
 export const clientsToAddresses = pgTable('clients_to_addresses', {
   clientId: integer('client_id').notNull().references(()=>clients.id),
   addressId: integer('address_id').notNull().references(()=>addresses.id),
 });
+
+export const clientsToAddressesRelations = relations(clientsToAddresses, ({one}) => ({
+  client: one(clients, {
+    fields: [clientsToAddresses.clientId],
+    references: [clients.id]
+  }),
+  address: one(addresses, {
+    fields: [clientsToAddresses.addressId],
+    references: [addresses.id]
+  })
+}));

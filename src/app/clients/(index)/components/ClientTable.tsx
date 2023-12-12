@@ -1,18 +1,18 @@
 'use client';
-import { ClientSelection } from "@/db/schema";
+import { Client } from "@/db/schema";
 import Link from "next/link";
 import { FaEdit, FaSearch } from "react-icons/fa";
 import ClientCreator from "./ClientCreator";
 import { useEffect, useState } from "react";
 
 type Props = {
-  clients: ClientSelection[];
+  clients: Client[];
 }
 
 export function ClientTable ({clients}:Props) {
 
   const [clientSearch, setClientSearch] = useState('');
-  const [matchingList, setMatchingList] = useState<(ClientSelection)[]>(clients);
+  const [matchingList, setMatchingList] = useState<(Client)[]>(clients);
 
   useEffect(() => {
     const regex = new RegExp(`${clientSearch}`, 'gi');
@@ -26,7 +26,7 @@ export function ClientTable ({clients}:Props) {
       <section className='flex items-center gap-2'>
         <FaSearch />
         <input type='text' className='std-input flex-grow' value={clientSearch} onChange={(e)=>setClientSearch(e.target.value)} />
-        <ClientCreator clients={clients} />
+        <ClientCreator clients={clients} buttonText={'Add Client'} />
       </section>
       {matchingList.length > 0 && (
         <table className='w-full text-left border-collapse'>
