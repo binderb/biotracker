@@ -4,9 +4,13 @@ import { db } from ".";
 
 export type User = typeof users.$inferSelect;
 export type Client = typeof clients.$inferSelect;
-export type ClientWithProjectsAddresses = typeof clients.$inferSelect & {
+export type Contact = typeof contacts.$inferSelect;
+export type ClientWithAllDetails = typeof clients.$inferSelect & {
   billingAddresses: {
     address: typeof addresses.$inferSelect
+  }[] | null
+  contacts: {
+    contact: typeof contacts.$inferSelect
   }[] | null
   projects: typeof projects.$inferSelect[] | null
 };
@@ -34,7 +38,8 @@ export const clients = pgTable('clients', {
 
 export const clientsRelations = relations(clients, ({many}) => ({
   projects: many(projects),
-  billingAddresses: many(clientsToAddresses)
+  billingAddresses: many(clientsToAddresses),
+  contacts: many(clientsToContacts),
 }));
 
 export const projects = pgTable('projects', {
@@ -50,7 +55,7 @@ export const projectsRelations = relations(projects, ({one,many})=>({
     fields: [projects.client],
     references: [clients.id],
   }),
-  projectsToContacts: many(projectsToContacts),
+  contacts: many(projectsToContacts),
 }));
 
 export const contacts = pgTable('contacts', {
@@ -73,7 +78,24 @@ export const contactsRelations = relations(contacts, ({one,many}) => ({
     fields: [contacts.id],
     references: [clients.referredBy]
   }),
+  clientsToContacts: many(clientsToContacts),
   projectsToContacts: many(projectsToContacts),
+}));
+
+export const clientsToContacts = pgTable('clients_to_contacts', {
+  clientId: integer('client_id').notNull().references(()=>clients.id),
+  contactId: integer('contact_id').notNull().references(()=>contacts.id),
+});
+
+export const clientsToContactsRelations = relations(clientsToContacts, ({one}) => ({
+  client: one(clients, {
+    fields: [clientsToContacts.clientId],
+    references: [clients.id]
+  }),
+  contact: one(contacts, {
+    fields: [clientsToContacts.contactId],
+    references: [contacts.id]
+  }),
 }));
 
 export const projectsToContacts = pgTable('projects_to_contacts', {

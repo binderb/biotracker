@@ -1,21 +1,50 @@
 'use client';
 
-import { Address, ClientWithProjectsAddresses, clients } from '@/db/schema';
+import { Address, ClientWithAllDetails, Contact, clients, contacts } from '@/db/schema';
 import { Suspense, useEffect, useState } from 'react';
-import { FaEdit, FaPlus, FaSpinner } from 'react-icons/fa';
+import { FaAddressBook, FaEdit, FaPlus, FaSpinner, FaTrashAlt } from 'react-icons/fa';
 import AddressBookModal from '../../../(_modal panels)/AddressBookModal';
+import ContactBookModal from '@/app/(_modal panels)/ContactBookModal';
 
 type Props = {
-  client: ClientWithProjectsAddresses;
+  client: ClientWithAllDetails;
 };
 
 export default function ClientDetailsForm({ client }: Props) {
-  const [billingAddressList, setBillingAddressList] = useState<Address[]>(client?.billingAddresses?.map((joinTable)=>joinTable.address) ?? new Array<Address>());
+  const [billingAddressList, setBillingAddressList] = useState<Address[]>(client?.billingAddresses?.map((joinTableEntry)=>joinTableEntry.address) ?? new Array<Address>());
+  const [contactsList, setContactsList] = useState<Contact[]>(client?.contacts?.map((joinTableEntry)=>joinTableEntry.contact) ?? new Array<Contact>());
   const [addressVisible, setAddressVisible] = useState(false);
+  const [contactVisible, setContactVisible] = useState(false);
   const [projectVisible, setProjectVisible] = useState(false);
 
   function addToBillingAddressList (address:Address) {
+    if (billingAddressList.map((listAddress)=>listAddress.id).includes(address.id)) {
+      throw new Error("Already added this address!");
+    }
     setBillingAddressList([...billingAddressList, address]);
+  }
+
+  function updateBillingAddressList (address:Address) {
+    if (billingAddressList.map((listAddress)=>listAddress.id).includes(address.id)) {
+      const newBillingAddressList = [...billingAddressList];
+      newBillingAddressList.splice(billingAddressList.map((listAddress)=>listAddress.id).indexOf(address.id),1,address);
+      setBillingAddressList(newBillingAddressList);
+    }
+  }
+
+  function addToContactsList (contact:Contact) {
+    if (contactsList.map((listContact)=>listContact.id).includes(contact.id)) {
+      throw new Error("Already added this contact!");
+    }
+    setContactsList([...contactsList, contact]);
+  }
+
+  function updateContactsList (contact:Contact) {
+    if (contactsList.map((listContact)=>listContact.id).includes(contact.id)) {
+      const newContactsList = [...contactsList];
+      newContactsList.splice(contactsList.map((listContact)=>listContact.id).indexOf(contact.id),1,contact);
+      setContactsList(newContactsList);
+    }
   }
 
   useEffect(() => {
@@ -80,10 +109,10 @@ export default function ClientDetailsForm({ client }: Props) {
                               <div className='flex items-center gap-2 w-full justify-center'>
                                 {/* <button className='std-button-lite' onClick={()=>handleShowEditProject(project)}>
                                     <FontAwesomeIcon icon={faEdit} />
-                                  </button>
-                                  <button className='danger-button-lite' onClick={()=>{setProjects(projects.filter((prevProject:any)=>project._id !== prevProject._id));}}>
-                                    <FontAwesomeIcon icon={faTrashAlt} />
                                   </button> */}
+                                  <button className='danger-button-lite' onClick={()=>{setBillingAddressList(billingAddressList.filter((prevAddress)=>address.id !== prevAddress.id));}}>
+                                    <FaTrashAlt />
+                                  </button>
                               </div>
                             </td>
                           </tr>
@@ -101,7 +130,54 @@ export default function ClientDetailsForm({ client }: Props) {
                   </tbody>
                 </table>
                 <div className='flex items-center gap-2 p-1'>
-                  <AddressBookModal addNewFunction={addToBillingAddressList} confirmSearchFunction={()=>{}} fallbackContents={<><FaSpinner className='animate-spin'/>Add</>} showModal={addressVisible} setShowModal={setAddressVisible} buttonContents={<><FaPlus/>Add</>} />
+                  <AddressBookModal addNewFunction={addToBillingAddressList} saveChangesFunction={updateBillingAddressList} confirmSearchFunction={addToBillingAddressList} fallbackContents={<><FaSpinner className='animate-spin'/>Address Book</>} showModal={addressVisible} setShowModal={setAddressVisible} buttonContents={<><FaAddressBook/>Address Book</>} />
+                </div>
+              </td>
+            </tr>
+            {/* Contacts */}
+            <tr>
+              <td className='bg-white/50 border border-secondary/80 p-1 font-bold'>Contacts</td>
+              <td className='bg-white/50 border border-secondary/80 p-2'>
+                
+                <table className='w-full text-left border-collapse my-2'>
+                  <thead>
+                    <tr>
+                      <th className='w-[80%]'>Contact Name</th>
+                      <th className='w-[20%]'>Options</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contactsList.length > 0 ? (
+                      <>
+                        {contactsList.map((contact, index: number) => (
+                          <tr key={`project-${index}`}>
+                            <td className='bg-white/50 border border-secondary/80 p-1'>{`${contact.first} ${contact.last}`}</td>
+                            <td className='bg-white/50 border border-secondary/80 p-1 font-bold'>
+                              <div className='flex items-center gap-2 w-full justify-center'>
+                                {/* <button className='std-button-lite' onClick={()=>handleShowEditProject(project)}>
+                                    <FontAwesomeIcon icon={faEdit} />
+                                  </button> */}
+                                  <button className='danger-button-lite' onClick={()=>{setContactsList(contactsList.filter((prevContact)=>contact.id !== prevContact.id));}}>
+                                    <FaTrashAlt />
+                                  </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </>
+                    ) : (
+                      <>
+                        <tr>
+                          <td colSpan={3} className='bg-white/50 border border-secondary/80 p-1 italic'>
+                            No contacts on file.
+                          </td>
+                        </tr>
+                      </>
+                    )}
+                  </tbody>
+                </table>
+                <div className='flex items-center gap-2 p-1'>
+                  <ContactBookModal addNewFunction={addToContactsList} saveChangesFunction={updateContactsList} confirmSearchFunction={addToContactsList} fallbackContents={<><FaSpinner className='animate-spin'/>Contact Book</>} showModal={contactVisible} setShowModal={setContactVisible} buttonContents={<><FaAddressBook/>Contact Book</>} />
                 </div>
               </td>
             </tr>

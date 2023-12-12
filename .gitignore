@@ -4,6 +4,8 @@
 config.ts
 data
 drizzle
+credentials.json
+token.json
 
 # Docker
 docker-compose.prod.yaml
