@@ -223,7 +223,7 @@ export default function ContactBookModal({ fallbackContents, buttonContents, sho
                 </div>
                 {matchingList.length > 0 ? (
                   <div className='flex flex-col gap-2'>
-                    <div>{`Select an address:`}</div>
+                    <div>{`Select a contact:`}</div>
                     <div className='border border-secondary/80 w-full h-[200px] mb-2 overflow-y-scroll bg-white/50'>
                       <>
                         {matchingList.map((contact, index: number) => (

@@ -1,55 +1,74 @@
 'use client';
 
-import { Address, ClientWithAllDetails, Contact, clients, contacts } from '@/db/schema';
+import { Address, ClientWithAllDetails, Contact, ProjectWithAllDetails, clients, contacts } from '@/db/schema';
 import { Suspense, useEffect, useState } from 'react';
 import { FaAddressBook, FaEdit, FaPlus, FaSpinner, FaTrashAlt } from 'react-icons/fa';
+import { BiSolidBusiness } from 'react-icons/bi';
 import AddressBookModal from '../../../(_modal panels)/AddressBookModal';
 import ContactBookModal from '@/app/(_modal panels)/ContactBookModal';
+import ProjectModal from './ProjectModal';
 
 type Props = {
   client: ClientWithAllDetails;
 };
 
 export default function ClientDetailsForm({ client }: Props) {
-  const [billingAddressList, setBillingAddressList] = useState<Address[]>(client?.billingAddresses?.map((joinTableEntry)=>joinTableEntry.address) ?? new Array<Address>());
-  const [contactsList, setContactsList] = useState<Contact[]>(client?.contacts?.map((joinTableEntry)=>joinTableEntry.contact) ?? new Array<Contact>());
+  const [billingAddressList, setBillingAddressList] = useState<Address[]>(client?.billingAddresses?.map((joinTableEntry) => joinTableEntry.address) ?? new Array<Address>());
+  const [contactsList, setContactsList] = useState<Contact[]>(client?.contacts?.map((joinTableEntry) => joinTableEntry.contact) ?? new Array<Contact>());
+  const [projectsList, setProjectsList] = useState<ProjectWithAllDetails[]>(client.projects || []);
   const [addressVisible, setAddressVisible] = useState(false);
   const [contactVisible, setContactVisible] = useState(false);
-  const [projectVisible, setProjectVisible] = useState(false);
+  const [newProjectVisible, setNewProjectVisible] = useState(false);
+  const [editProjectVisible, setEditProjectVisible] = useState(false);
 
-  function addToBillingAddressList (address:Address) {
-    if (billingAddressList.map((listAddress)=>listAddress.id).includes(address.id)) {
-      throw new Error("Already added this address!");
+  function addToBillingAddressList(address: Address) {
+    if (billingAddressList.map((listAddress) => listAddress.id).includes(address.id)) {
+      throw new Error('Already added this address!');
     }
     setBillingAddressList([...billingAddressList, address]);
   }
 
-  function updateBillingAddressList (address:Address) {
-    if (billingAddressList.map((listAddress)=>listAddress.id).includes(address.id)) {
+  function updateBillingAddressList(address: Address) {
+    if (billingAddressList.map((listAddress) => listAddress.id).includes(address.id)) {
       const newBillingAddressList = [...billingAddressList];
-      newBillingAddressList.splice(billingAddressList.map((listAddress)=>listAddress.id).indexOf(address.id),1,address);
+      newBillingAddressList.splice(billingAddressList.map((listAddress) => listAddress.id).indexOf(address.id), 1, address);
       setBillingAddressList(newBillingAddressList);
     }
   }
 
-  function addToContactsList (contact:Contact) {
-    if (contactsList.map((listContact)=>listContact.id).includes(contact.id)) {
-      throw new Error("Already added this contact!");
+  function addToContactsList(contact: Contact) {
+    if (contactsList.map((listContact) => listContact.id).includes(contact.id)) {
+      throw new Error('Already added this contact!');
     }
     setContactsList([...contactsList, contact]);
   }
 
-  function updateContactsList (contact:Contact) {
-    if (contactsList.map((listContact)=>listContact.id).includes(contact.id)) {
+  function updateContactsList(contact: Contact) {
+    if (contactsList.map((listContact) => listContact.id).includes(contact.id)) {
       const newContactsList = [...contactsList];
-      newContactsList.splice(contactsList.map((listContact)=>listContact.id).indexOf(contact.id),1,contact);
+      newContactsList.splice(contactsList.map((listContact) => listContact.id).indexOf(contact.id), 1, contact);
       setContactsList(newContactsList);
     }
   }
 
+  function addToProjectsList(project: ProjectWithAllDetails) {
+    if (projectsList.map((listProject) => listProject.name).includes(project.name)) {
+      throw new Error('Already added a project with this name!');
+    }
+    setProjectsList([...projectsList, project]);
+  }
+
+  function updateProjectsList(project: ProjectWithAllDetails) {
+    if (projectsList.map((listProject) => listProject.id).includes(project.id)) {
+      const newProjectsList = [...projectsList];
+      newProjectsList.splice(projectsList.map((listContact) => listContact.id).indexOf(project.id), 1, project);
+      setProjectsList(newProjectsList);
+    }
+  }
+
   useEffect(() => {
-    console.log("billing list updated: ",billingAddressList)
-  },[billingAddressList])
+    console.log('billing list updated: ', billingAddressList);
+  }, [billingAddressList]);
 
   return (
     <>
@@ -91,7 +110,6 @@ export default function ClientDetailsForm({ client }: Props) {
             <tr>
               <td className='bg-white/50 border border-secondary/80 p-1 font-bold'>Billing Addresses</td>
               <td className='bg-white/50 border border-secondary/80 p-2'>
-                
                 <table className='w-full text-left border-collapse my-2'>
                   <thead>
                     <tr>
@@ -110,9 +128,13 @@ export default function ClientDetailsForm({ client }: Props) {
                                 {/* <button className='std-button-lite' onClick={()=>handleShowEditProject(project)}>
                                     <FontAwesomeIcon icon={faEdit} />
                                   </button> */}
-                                  <button className='danger-button-lite' onClick={()=>{setBillingAddressList(billingAddressList.filter((prevAddress)=>address.id !== prevAddress.id));}}>
-                                    <FaTrashAlt />
-                                  </button>
+                                <button
+                                  className='danger-button-lite'
+                                  onClick={() => {
+                                    setBillingAddressList(billingAddressList.filter((prevAddress) => address.id !== prevAddress.id));
+                                  }}>
+                                  <FaTrashAlt />
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -130,7 +152,25 @@ export default function ClientDetailsForm({ client }: Props) {
                   </tbody>
                 </table>
                 <div className='flex items-center gap-2 p-1'>
-                  <AddressBookModal addNewFunction={addToBillingAddressList} saveChangesFunction={updateBillingAddressList} confirmSearchFunction={addToBillingAddressList} fallbackContents={<><FaSpinner className='animate-spin'/>Address Book</>} showModal={addressVisible} setShowModal={setAddressVisible} buttonContents={<><FaAddressBook/>Address Book</>} />
+                  <AddressBookModal
+                    addNewFunction={addToBillingAddressList}
+                    saveChangesFunction={updateBillingAddressList}
+                    confirmSearchFunction={addToBillingAddressList}
+                    fallbackContents={
+                      <>
+                        <FaSpinner className='animate-spin' />
+                        Address Book
+                      </>
+                    }
+                    showModal={addressVisible}
+                    setShowModal={setAddressVisible}
+                    buttonContents={
+                      <>
+                        <FaAddressBook />
+                        Address Book
+                      </>
+                    }
+                  />
                 </div>
               </td>
             </tr>
@@ -138,7 +178,6 @@ export default function ClientDetailsForm({ client }: Props) {
             <tr>
               <td className='bg-white/50 border border-secondary/80 p-1 font-bold'>Contacts</td>
               <td className='bg-white/50 border border-secondary/80 p-2'>
-                
                 <table className='w-full text-left border-collapse my-2'>
                   <thead>
                     <tr>
@@ -157,9 +196,13 @@ export default function ClientDetailsForm({ client }: Props) {
                                 {/* <button className='std-button-lite' onClick={()=>handleShowEditProject(project)}>
                                     <FontAwesomeIcon icon={faEdit} />
                                   </button> */}
-                                  <button className='danger-button-lite' onClick={()=>{setContactsList(contactsList.filter((prevContact)=>contact.id !== prevContact.id));}}>
-                                    <FaTrashAlt />
-                                  </button>
+                                <button
+                                  className='danger-button-lite'
+                                  onClick={() => {
+                                    setContactsList(contactsList.filter((prevContact) => contact.id !== prevContact.id));
+                                  }}>
+                                  <FaTrashAlt />
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -177,7 +220,25 @@ export default function ClientDetailsForm({ client }: Props) {
                   </tbody>
                 </table>
                 <div className='flex items-center gap-2 p-1'>
-                  <ContactBookModal addNewFunction={addToContactsList} saveChangesFunction={updateContactsList} confirmSearchFunction={addToContactsList} fallbackContents={<><FaSpinner className='animate-spin'/>Contact Book</>} showModal={contactVisible} setShowModal={setContactVisible} buttonContents={<><FaAddressBook/>Contact Book</>} />
+                  <ContactBookModal
+                    addNewFunction={addToContactsList}
+                    saveChangesFunction={updateContactsList}
+                    confirmSearchFunction={addToContactsList}
+                    fallbackContents={
+                      <>
+                        <FaSpinner className='animate-spin' />
+                        Contacts Book
+                      </>
+                    }
+                    showModal={contactVisible}
+                    setShowModal={setContactVisible}
+                    buttonContents={
+                      <>
+                        <FaAddressBook />
+                        Contacts Book
+                      </>
+                    }
+                  />
                 </div>
               </td>
             </tr>
@@ -193,19 +254,36 @@ export default function ClientDetailsForm({ client }: Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {client.projects && client.projects.length > 0 ? (
+                    {projectsList.length > 0 ? (
                       <>
-                        {client.projects.map((project: any, index: number) => (
+                        {projectsList.map((project: any, index: number) => (
                           <tr key={`project-${index}`}>
                             <td className='bg-white/50 border border-secondary/80 p-1'>{project.name}</td>
-                            <td className='bg-white/50 border border-secondary/80 p-1 font-bold'>
+                            <td className='bg-white/50 border border-secondary/80 p-1'>
                               <div className='flex items-center gap-2 w-full justify-center'>
-                                {/* <button className='std-button-lite' onClick={()=>handleShowEditProject(project)}>
-                                    <FontAwesomeIcon icon={faEdit} />
-                                  </button>
-                                  <button className='danger-button-lite' onClick={()=>{setProjects(projects.filter((prevProject:any)=>project._id !== prevProject._id));}}>
-                                    <FontAwesomeIcon icon={faTrashAlt} />
-                                  </button> */}
+                                <ProjectModal
+                                  mode='edit'
+                                  project={project}
+                                  clientId={client.id}
+                                  clientAddresses={billingAddressList}
+                                  clientContacts={contactsList}
+                                  buttonContents={
+                                    <>
+                                      <FaEdit />
+                                    </>
+                                  }
+                                  showModal={editProjectVisible}
+                                  setShowModal={setEditProjectVisible}
+                                  addNewFunction={addToProjectsList}
+                                  saveChangesFunction={updateProjectsList}
+                                />
+                                <button
+                                  className='danger-button-lite'
+                                  onClick={() => {
+                                    setProjectsList(projectsList.filter((prevProject: any) => project.id !== prevProject.id));
+                                  }}>
+                                  <FaTrashAlt />
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -223,10 +301,22 @@ export default function ClientDetailsForm({ client }: Props) {
                   </tbody>
                 </table>
                 <div className='p-1'>
-                  <button className='std-button-lite flex items-center gap-2' onClick={() => setProjectVisible(true)}>
-                    <FaPlus />
-                    <div>Add</div>
-                  </button>
+                  <ProjectModal
+                    mode='new'
+                    clientId={client.id}
+                    clientAddresses={billingAddressList}
+                    clientContacts={contactsList}
+                    buttonContents={
+                      <>
+                        <FaPlus />
+                        Add
+                      </>
+                    }
+                    showModal={newProjectVisible}
+                    setShowModal={setNewProjectVisible}
+                    addNewFunction={addToProjectsList}
+                    saveChangesFunction={updateProjectsList}
+                  />
                 </div>
               </td>
             </tr>

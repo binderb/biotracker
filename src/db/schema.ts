@@ -4,6 +4,11 @@ import { db } from ".";
 
 export type User = typeof users.$inferSelect;
 export type Client = typeof clients.$inferSelect;
+export type ProjectWithAllDetails = typeof projects.$inferSelect & {
+  contacts: {
+    contact: typeof contacts.$inferSelect
+  }[] | null
+};
 export type Contact = typeof contacts.$inferSelect;
 export type ClientWithAllDetails = typeof clients.$inferSelect & {
   billingAddresses: {
@@ -12,7 +17,7 @@ export type ClientWithAllDetails = typeof clients.$inferSelect & {
   contacts: {
     contact: typeof contacts.$inferSelect
   }[] | null
-  projects: typeof projects.$inferSelect[] | null
+  projects: ProjectWithAllDetails[] | null
 };
 export type Address = typeof addresses.$inferSelect;
 
