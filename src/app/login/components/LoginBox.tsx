@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import SubmitButton from '@/app/(global components)/SubmitButton';
 
@@ -9,6 +9,7 @@ export default function LoginBox() {
   const [loginStatus, setLoginStatus] = useState('');
   const formStatus = useFormStatus();
   const router = useRouter();
+  const params = useSearchParams();
 
   async function handleLogin(formData: FormData) {
     setLoginStatus('');
@@ -20,7 +21,7 @@ export default function LoginBox() {
       });
       if (response) {
         if (response.ok && response.url) {
-          router.push('/');
+          router.push(params.get('callbackUrl') || '/');
         } else {
           if (response.error) setLoginStatus(response.error || 'An unknown error occurred.');
         }

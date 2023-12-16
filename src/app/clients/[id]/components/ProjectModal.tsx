@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from 'react';
 
 type Props = {
   mode: string;
+  newId?: number;
   clientId: number;
   clientAddresses: Address[];
   clientContacts: Contact[];
@@ -17,7 +18,7 @@ type Props = {
   saveChangesFunction: (project: ProjectWithAllDetails) => void;
 };
 
-export default function ProjectModal({ showModal, setShowModal, addNewFunction, saveChangesFunction, clientAddresses, clientContacts, buttonContents, project, clientId, mode }: Props) {
+export default function ProjectModal({ showModal, setShowModal, addNewFunction, saveChangesFunction, clientAddresses, clientContacts, buttonContents, project, clientId, mode, newId }: Props) {
   const [status, setStatus] = useState('');
   const [contactList, setContactList] = useState<Contact[]>(project?.contacts?.map((joinTableEntry) => joinTableEntry.contact) ?? []);
   const [contactToAdd, setContactToAdd] = useState<Contact | null>(null);
@@ -30,7 +31,9 @@ export default function ProjectModal({ showModal, setShowModal, addNewFunction, 
 
   function handleClose() {
     setStatus('');
-    setContactList([]);
+    if (mode === 'new') {
+      setContactList([]);
+    }
     createForm.current?.reset();
     editForm.current?.reset();
     setContactToAdd(null);
@@ -43,8 +46,9 @@ export default function ProjectModal({ showModal, setShowModal, addNewFunction, 
       if (!formJSON.name) throw new Error('Every project must have a name!');
       const newProject: ProjectWithAllDetails = {
         ...formJSON,
-        id: -1,
+        id: newId ?? -1,
         client: clientId,
+        billingAddress: formJSON.billingAddress || null,
         contacts: contactList.map((contact) => ({ contact: contact })),
       };
       addNewFunction(newProject);
@@ -58,13 +62,15 @@ export default function ProjectModal({ showModal, setShowModal, addNewFunction, 
     try {
       const formJSON = Object.fromEntries(formData) as unknown as ProjectWithAllDetails;
       if (!formJSON.name) throw new Error('Every project must have a name!');
-      const newProject: ProjectWithAllDetails = {
+      const updatedProject: ProjectWithAllDetails = {
         ...formJSON,
-        id: -1,
+        id: project?.id ?? -1,
         client: clientId,
+        billingAddress: formJSON.billingAddress || null,
         contacts: contactList.map((contact) => ({ contact: contact })),
       };
-      saveChangesFunction(newProject);
+      console.log('updated project', updatedProject);
+      saveChangesFunction(updatedProject);
       handleClose();
     } catch (err: any) {
       setStatus(err.message);
