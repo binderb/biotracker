@@ -1,6 +1,6 @@
 import { integer, pgTable, serial, varchar } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { saleslead, salesleadrevision, salesleadnote } from "./schema_salesleadModule";
+import { salesleads, salesleadrevisions, salesleadnotes } from "./schema_salesleadsModule";
 
 export type User = typeof users.$inferSelect;
 
@@ -14,15 +14,15 @@ export const users = pgTable('users', {
 });
 
 export const usersRelations = relations(users, ({many}) => ({
-  authorOfSalesleads: many(saleslead),
-  authorOfSalesleadrevisions: many(salesleadrevision),
-  authorOfSalesleadnotes: many(salesleadnote),
+  authorOfSalesleads: many(salesleads),
+  authorOfSalesleadrevisions: many(salesleadrevisions),
+  authorOfSalesleadnotes: many(salesleadnotes),
   contributorToSalesleads: many(usersToSalesleadcontributors),
 }));
 
 export const usersToSalesleadcontributors = pgTable('users_to_salesleadcontributors', {
   contributor: integer('contributor').notNull().references(() => users.id),
-  saleslead: integer('saleslead').notNull().references(() => saleslead.id),
+  saleslead: integer('saleslead').notNull().references(() => salesleads.id),
 });
 
 export const usersToSalesleadcontributorsRelations = relations(usersToSalesleadcontributors, ({one}) => ({
@@ -30,8 +30,8 @@ export const usersToSalesleadcontributorsRelations = relations(usersToSalesleadc
     fields: [usersToSalesleadcontributors.contributor],
     references: [users.id],
   }),
-  saleslead: one(saleslead, {
+  saleslead: one(salesleads, {
     fields: [usersToSalesleadcontributors.saleslead],
-    references: [saleslead.id],
+    references: [salesleads.id],
   }),
 }));

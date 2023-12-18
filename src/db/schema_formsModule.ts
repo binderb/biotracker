@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { boolean, integer, json, pgEnum, pgTable, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
-import { salesleadformdata } from './schema_salesleadModule';
+import { salesleadformdata } from './schema_salesleadsModule';
 
 export type Form = typeof forms.$inferSelect;
 export type FormWithAllLevels = typeof forms.$inferSelect & {

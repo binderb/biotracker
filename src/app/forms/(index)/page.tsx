@@ -2,9 +2,26 @@ import Nav from '@/app/(global components)/Nav';
 import { db } from '@/db';
 import Link from 'next/link';
 import { FaEdit, FaPlus } from 'react-icons/fa';
+import { getFormID } from '../functions';
 
 export default async function Forms() {
-  const forms = await db.query.forms.findMany();
+  const forms = await db.query.forms.findMany({
+    with: {
+      revisions: {
+        with: {
+          sections: {
+            with: {
+              rows: {
+                with: {
+                  fields: true,
+                },
+              },
+            },
+          },
+        }
+      }
+    }
+  });
 
   return (
     <>
@@ -27,7 +44,7 @@ export default async function Forms() {
             {forms.length === 0 && <div className='italic'>No forms are in the system yet.</div>}
             {forms.map((form) => (
               <div key={form.id} className='flex justify-between items-center std-input'>
-                {form.name}
+                {`${form.name} (${getFormID(form)})`}
                 <Link className='std-button-lite' href={`/forms/${form.id}`}>
                   <FaEdit />
                 </Link>

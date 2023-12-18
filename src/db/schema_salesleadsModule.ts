@@ -3,6 +3,9 @@ import { clients, projects } from './schema_clientModule';
 import { users, usersToSalesleadcontributors } from './schema_usersModule';
 import { forms, formrevisions, formsections, formrows, formfields } from './schema_formsModule';
 import { relations } from 'drizzle-orm';
+import { quotes } from './schema_quotesModule';
+import { studies } from './schema_studiesModule';
+import { files } from './schema_filesModule';
 
 export const salesleadStatusEnum = pgEnum('status', [
   'inprogress', 
@@ -11,65 +14,56 @@ export const salesleadStatusEnum = pgEnum('status', [
   'cancelled',
 ]);
 
-export const saleslead = pgTable('saleslead', {
+export const salesleads = pgTable('salesleads', {
   id: serial('id').primaryKey(),
   name: varchar('name', { length: 500 }).notNull(),
   author: integer('author').notNull().references(() => users.id),
   status: salesleadStatusEnum('status'),
   client: integer('client').notNull().references(() => clients.id),
   project: integer('project').notNull().references(() => projects.id),
-  //files
-  //studies
-  //quote
 });
 
-export const salesleadRelations = relations(saleslead, ({one,many}) => ({
-  revisions: many(salesleadrevision),
-  notes: many(salesleadnote),
+export const salesleadsRelations = relations(salesleads, ({one,many}) => ({
+  revisions: many(salesleadrevisions),
+  notes: many(salesleadnotes),
   author: one(users, {
-    fields: [saleslead.author],
+    fields: [salesleads.author],
     references: [users.id],
   }),
   contributors: many(usersToSalesleadcontributors),
+  quote: one(quotes, {
+    fields: [salesleads.id],
+    references: [quotes.saleslead],
+  }),
+  studies: many(studies),
+  files: many(files),
 }));
 
-export const salesleadrevision = pgTable('salesleadrevision', {
+export const salesleadrevisions = pgTable('salesleadrevisions', {
   id: serial('id').primaryKey(),
-  saleslead: integer('saleslead').notNull().references(() => saleslead.id),
+  saleslead: integer('saleslead').notNull().references(() => salesleads.id),
   created: timestamp('created').notNull(),
   author: integer('author').notNull().references(() => users.id),
-  //files
-  //studies
 });
 
-export const salesleadrevisionRelations = relations(salesleadrevision, ({one,many}) => ({
-  saleslead: one(saleslead, {
-    fields: [salesleadrevision.saleslead],
-    references: [saleslead.id],
+export const salesleadrevisionsRelations = relations(salesleadrevisions, ({one,many}) => ({
+  saleslead: one(salesleads, {
+    fields: [salesleadrevisions.saleslead],
+    references: [salesleads.id],
   }),
   formdata: many(salesleadformdata),
 }));
 
 export const salesleadformdata = pgTable('salesleadformdata', {
   id: serial('id').primaryKey(),
-  salesleadrevision: integer('salesleadrevision').notNull().references(() => salesleadrevision.id),
-  // form (necessary?)
-  form: integer('form').notNull().references(() => forms.id),
-  // form revision (necessary?)
-  formrevision: integer('formrevision').notNull().references(() => formrevisions.id),
-  // form section (necessary?)
-  formsection: integer('formsection').notNull().references(() => formsections.id),
-  // form row (necessary?)
-  formrow: integer('formrow').notNull().references(() => formrows.id),
-  // form field
+  salesleadrevision: integer('salesleadrevision').notNull().references(() => salesleadrevisions.id),
   formfield: integer('formfield').notNull().references(() => formfields.id),
-  // value 
   value: json('value').notNull(),
 });
 
-export const salesleadnote = pgTable('salesleadnote', {
+export const salesleadnotes = pgTable('salesleadnotes', {
   id: serial('id').primaryKey(),
-  salesleadrevision: integer('salesleadrevision').notNull().references(() => salesleadrevision.id),
+  salesleadrevision: integer('salesleadrevision').notNull().references(() => salesleadrevisions.id),
   created: timestamp('created').notNull(),
   newRevision: boolean('newRevision').notNull(),
   author: integer('author').notNull().references(() => users.id),
