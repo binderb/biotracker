@@ -96,6 +96,7 @@ export default function FormTextEditor({ formContents, setFormContents, text, se
       form: -1,
       created: new Date(),
       sections: sections,
+      note: 'Form created.',
     };
     setFormContents(newFormContents);
   }

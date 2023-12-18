@@ -1,5 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { boolean, integer, json, pgEnum, pgTable, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { salesleadformdata } from './schema_salesleadModule';
 
 export type Form = typeof forms.$inferSelect;
 export type FormWithAllLevels = typeof forms.$inferSelect & {
@@ -27,6 +28,7 @@ export const forms = pgTable('forms', {
   name: varchar('name', { length: 500 }).notNull(),
   docType: formDocTypeEnum('docType').notNull(),
   functionalArea: formFunctionalAreaEnum('functionalArea').notNull(),
+  index: integer('index').notNull(),
 });
 
 export const formsRelations = relations(forms, ({ many }) => ({
@@ -39,6 +41,7 @@ export const formrevisions = pgTable('formrevisions', {
     .notNull()
     .references(() => forms.id),
   created: timestamp('created').notNull(),
+  note: varchar('note', { length: 500 }).notNull(),
 });
 
 export const formrevisionsRelations = relations(formrevisions, ({ one, many }) => ({
@@ -49,7 +52,7 @@ export const formrevisionsRelations = relations(formrevisions, ({ one, many }) =
   sections: many(formsections),
 }));
 
-export const formsections = pgTable('formsection', {
+export const formsections = pgTable('formsections', {
   id: serial('id').primaryKey(),
   formrevision: integer('formrevision')
     .notNull()
@@ -66,7 +69,7 @@ export const formsectionsRelations = relations(formsections, ({ one, many }) => 
   }),
 }));
 
-export const formrows = pgTable('formrow', {
+export const formrows = pgTable('formrows', {
   id: serial('id').primaryKey(),
   formsection: integer('formsection').notNull().references(() => formsections.id),
   extensible: boolean('extensible').notNull(),
@@ -80,7 +83,7 @@ export const formrowsRelations = relations(formrows, ({ one, many }) => ({
   }),
 }));
 
-export const formfields = pgTable('formfield', {
+export const formfields = pgTable('formfields', {
   id: serial('id').primaryKey(),
   formrow: integer('formrow')
     .notNull()

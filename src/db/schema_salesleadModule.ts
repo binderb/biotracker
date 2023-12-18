@@ -53,15 +53,17 @@ export const salesleadrevisionRelations = relations(salesleadrevision, ({one,man
 export const salesleadformdata = pgTable('salesleadformdata', {
   id: serial('id').primaryKey(),
   salesleadrevision: integer('salesleadrevision').notNull().references(() => salesleadrevision.id),
-  // form revision
+  // form (necessary?)
+  form: integer('form').notNull().references(() => forms.id),
+  // form revision (necessary?)
   formrevision: integer('formrevision').notNull().references(() => formrevisions.id),
-  // form section
+  // form section (necessary?)
   formsection: integer('formsection').notNull().references(() => formsections.id),
-  // form row
+  // form row (necessary?)
   formrow: integer('formrow').notNull().references(() => formrows.id),
   // form field
   formfield: integer('formfield').notNull().references(() => formfields.id),
-  // value
+  // value 
   value: json('value').notNull(),
 });
 

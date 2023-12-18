@@ -2,15 +2,18 @@
 
 import { db } from '@/db';
 import { FormWithAllLevels, forms, formrevisions, formsections, formrows, formfields } from '@/db/schema_formsModule';
+import { eq, max } from 'drizzle-orm';
 
 export async function addNewForm(form: FormWithAllLevels) {
   try {
+    const index = await db.select({ value: max(forms.index) }).from(forms).where(eq(forms.docType,form.docType)) as { value: number }[];
     const newFormResponse = await db
       .insert(forms)
       .values({
         name: form.name,
         docType: form.docType,
         functionalArea: form.functionalArea,
+        index: index[0].value + 1,
       })
       .returning();
     const newForm = newFormResponse[0];
@@ -19,6 +22,7 @@ export async function addNewForm(form: FormWithAllLevels) {
       .values({
         form: newForm.id,
         created: new Date(),
+        note: form.revisions[0].note,
       })
       .returning();
     const newFormRevision = newFormRevisionResponse[0];
