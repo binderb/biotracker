@@ -15,11 +15,15 @@ export default async function Home() {
           <div className='font-bold'>Regular User Functions:</div>
           <div className='flex py-2 gap-1'>
             <Link className='std-button' href='/clients'>
-              Client Manager
+              Clients Module
+            </Link>
+            <Link className='std-button' href='/forms'>
+              Forms Module
             </Link>
             <Link className='std-button' href='/leads'>
-              Sales Leads
+              Sales Leads Module
             </Link>
+            
           </div>
         </section>
         {(session && ['admin','dev'].includes(session.user.role)) && (

@@ -1,7 +1,7 @@
 'use client';
 
 import Modal from '@/app/(global components)/Modal';
-import { Client, clients } from '@/db/schema';
+import { Client, clients } from '@/db/schema_clientModule';
 import { useEffect, useState } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import { addClient, generateClientCode } from '../actions';

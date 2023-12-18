@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { clients } from '@/db/schema';
+import { clients } from '@/db/schema_clientModule';
 import { revalidatePath } from 'next/cache';
 
 export async function generateClientCode() {

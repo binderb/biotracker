@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { ClientWithAllDetails, ProjectWithAllDetails, clients, clientsToAddresses, clientsToContacts, projects, projectsToContacts } from '@/db/schema';
+import { ClientWithAllDetails, ProjectWithAllDetails, clients, clientsToAddresses, clientsToContacts, projects, projectsToContacts } from '@/db/schema_clientModule';
 import { eq, inArray, notInArray } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 

@@ -1,5 +1,5 @@
 import Modal from '@/app/(global components)/Modal';
-import { Address, Client, clients } from '@/db/schema';
+import { Address, Client, clients } from '@/db/schema_clientModule';
 import { FaPlus, FaSearch, FaSpinner } from 'react-icons/fa';
 // import { addClient, generateClientCode } from '../actions';
 import SubmitButton from '@/app/(global components)/SubmitButton';

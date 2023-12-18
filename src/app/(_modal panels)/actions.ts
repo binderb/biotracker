@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { Address, Contact, addresses, contacts } from '@/db/schema';
+import { Address, Contact, addresses, contacts } from '@/db/schema_clientModule';
 import { asc, desc, eq } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 

@@ -1,5 +1,5 @@
 'use client';
-import { Client } from "@/db/schema";
+import { Client } from "@/db/schema_clientModule";
 import Link from "next/link";
 import { FaEdit, FaSearch } from "react-icons/fa";
 import ClientCreator from "./ClientCreator";

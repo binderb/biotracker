@@ -1,5 +1,5 @@
 import Modal from '@/app/(global components)/Modal';
-import { Address, Contact, ProjectWithAllDetails } from '@/db/schema';
+import { Address, Contact, ProjectWithAllDetails } from '@/db/schema_clientModule';
 import { FaSearch, FaTrashAlt } from 'react-icons/fa';
 import SubmitButton from '@/app/(global components)/SubmitButton';
 import { useState, useEffect, useRef } from 'react';

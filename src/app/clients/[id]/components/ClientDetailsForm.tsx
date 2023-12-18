@@ -1,6 +1,6 @@
 'use client';
 
-import { Address, ClientWithAllDetails, Contact, ProjectWithAllDetails, clients, contacts } from '@/db/schema';
+import { Address, ClientWithAllDetails, Contact, ProjectWithAllDetails, clients, contacts } from '@/db/schema_clientModule';
 import { Suspense, useEffect, useState } from 'react';
 import { FaAddressBook, FaEdit, FaPlus, FaSpinner, FaTrashAlt } from 'react-icons/fa';
 import { BiSolidBusiness } from 'react-icons/bi';
