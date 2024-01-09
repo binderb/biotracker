@@ -28,7 +28,7 @@ export default async function Forms() {
             {leads.map((lead) => (
               <div key={lead.id} className='flex justify-between items-center std-input'>
                 {`${lead.name}`}
-                <Link className='std-button-lite' href={`/forms/${lead.id}`}>
+                <Link className='std-button-lite' href={`/leads/${lead.id}`}>
                   <FaEdit />
                 </Link>
               </div>

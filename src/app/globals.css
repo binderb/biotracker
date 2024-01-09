@@ -37,6 +37,14 @@ h5 {
   @apply p-2 bg-white/50 border border-secondary/80 rounded-md
 }
 
+.std-upload {
+  @apply bg-white p-[8px] rounded-lg border border-secondary
+}
+
+input::file-selector-button.std-upload {
+  @apply p-2 px-3 m-[-9px] mr-2 rounded-md rounded-r-none border-solid cursor-pointer bg-[#EEE] border-secondary hover:bg-[#F5F5F5] border-[1px] duration-200
+}
+
 .std-link {
   @apply font-bold text-primary underline hover:text-primaryHover
 }
