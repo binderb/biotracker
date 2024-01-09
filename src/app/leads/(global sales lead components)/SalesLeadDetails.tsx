@@ -81,7 +81,6 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
 
     const latestrevisionWithData = {...latestrevision, sections: newSections};
     const studyPlanToAdd = { formrevision: {...latestrevisionWithData, form: simpleForm}};
-    console.log(JSON.stringify(studyPlanToAdd));
     const newStudyPlans = [...leadDetails.revisions[0].studyplans, studyPlanToAdd];
     const newLeadDetails = { ...leadDetails, revisions: [{ ...leadDetails.revisions[0], studyplans: newStudyPlans }] } as SalesLeadWithAllDetails;
     setLeadDetails(newLeadDetails);
