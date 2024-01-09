@@ -67,8 +67,21 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
     if (planToAdd === '') return;
     const studyPlanForm = studyPlans.filter((plan) => plan.id === parseInt(planToAdd))[0];
     const {revisions, ...simpleForm} = studyPlanForm;
-    const studyPlanToAdd = { formrevision: {...studyPlanForm.revisions[studyPlanForm.revisions.length-1], form: simpleForm}};
+    const latestrevision = studyPlanForm.revisions[studyPlanForm.revisions.length-1];
+    // for each field in latestrevision, add a salesleadformdata property with a blank value and a salesleadrevision value of leadDetails.id or 0 if that is undefined or null
+    const newSections = latestrevision.sections.map((section) => {
+      const newRows = section.rows.map((row) => {
+        const newFields = row.fields.map((field) => {
+          return {...field, salesleadformdata: [{value: '', salesleadrevision: leadDetails.id ?? 0}]};
+        });
+        return {...row, fields: newFields};
+      });
+      return {...section, rows: newRows};
+    });
 
+    const latestrevisionWithData = {...latestrevision, sections: newSections};
+    const studyPlanToAdd = { formrevision: {...latestrevisionWithData, form: simpleForm}};
+    console.log(JSON.stringify(studyPlanToAdd));
     const newStudyPlans = [...leadDetails.revisions[0].studyplans, studyPlanToAdd];
     const newLeadDetails = { ...leadDetails, revisions: [{ ...leadDetails.revisions[0], studyplans: newStudyPlans }] } as SalesLeadWithAllDetails;
     setLeadDetails(newLeadDetails);

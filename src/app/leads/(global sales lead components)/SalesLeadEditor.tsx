@@ -42,7 +42,7 @@ export default function SalesLeadEditor({ mode, users, clients, leadDetails, set
                 ))}
               </select>
             </div>
-            <FormView formContents={leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision} />
+            <FormView mode='salesleadedit' leadDetails={leadDetails} setLeadDetails={setLeadDetails} currentStudyPlanIndex={currentStudyPlanIndex} formContents={leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision} />
           </>
         )}
         {(mode === 'new' && leadDetails.revisions[0].studyplans.length > 0) && (

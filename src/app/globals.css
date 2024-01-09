@@ -29,6 +29,10 @@ h5 {
   @apply flex flex-col gap-4 bg-secondary/20 border border-secondary/80 p-4 rounded-xl
 }
 
+.ui-box-thin {
+  @apply flex flex-col gap-4 bg-secondary/20 border border-secondary/80 p-2 rounded-xl
+}
+
 .ui-subbox {
   @apply flex flex-col gap-4 border border-secondary/80 p-4 rounded-xl
 }
@@ -65,7 +69,15 @@ input::file-selector-button.std-upload {
   @apply py-2 px-3 bg-primary text-white rounded-md hover:bg-primaryHighlight flex items-center gap-2
 }
 
+.std-button-lite-thin {
+  @apply py-1 px-2 bg-primary text-white rounded-md hover:bg-primaryHighlight flex items-center gap-2
+}
+
 .std-button-lite:disabled {
+  @apply opacity-50 hover:bg-primary
+}
+
+.std-button-lite-thin:disabled {
   @apply opacity-50 hover:bg-primary
 }
 

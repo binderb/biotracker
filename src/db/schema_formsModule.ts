@@ -24,7 +24,7 @@ export type SalesFormSectionWithAllLevelsAndData = typeof formsections.$inferSel
   rows: SalesFormRowWithAllLevelsAndData[];
 };
 export type SalesFormRowWithAllLevelsAndData = typeof formrows.$inferSelect & {
-  fields: (typeof formfields.$inferSelect)[];
+  fields: SalesFormFieldAndData[];
 };
 export type SalesFormFieldAndData = typeof formfields.$inferSelect & {
   salesleadformdata: typeof salesleadformdata.$inferSelect[];

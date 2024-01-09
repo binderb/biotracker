@@ -1,13 +1,13 @@
 import Nav from "@/app/(global components)/Nav";
 import { db } from "@/db";
-import { SalesLeadWithAllDetails, salesleadrevisions, leads } from "@/db/schema_salesleadsModule";
-import { desc, eq } from "drizzle-orm";
+import { SalesLeadWithAllDetails, salesleadrevisions, leads, salesleadformdata } from "@/db/schema_salesleadsModule";
+import { and, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import SalesLeadViewer from "./components/SalesLeadViewer";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { User, users } from "@/db/schema_usersModule";
-import { forms } from "@/db/schema_formsModule";
+import { formfields, forms } from "@/db/schema_formsModule";
 
 
 
@@ -34,6 +34,13 @@ export default async function EditSalesLead({ params }: { params: { id: number }
       },
     },
   });
+  const leadrev = await db.query.salesleadrevisions.findFirst({
+    where: eq(salesleadrevisions.saleslead, params.id),
+    orderBy: [
+      desc(salesleadrevisions.created)
+    ],
+  });
+  const leadrevId = leadrev?.id ?? 0;
   const lead = await db.query.leads.findFirst({
     where: eq(leads.id, params.id),
     with: {
@@ -70,7 +77,10 @@ export default async function EditSalesLead({ params }: { params: { id: number }
                         with: {
                           fields: {
                             with: {
-                              salesleadformdata: true
+                              // salesleadformdata: true,
+                              salesleadformdata: {
+                                where: eq(salesleadformdata.salesleadrevision, leadrevId),
+                              }
                             }
                           },
                         },
@@ -116,7 +126,7 @@ export default async function EditSalesLead({ params }: { params: { id: number }
         <h1 className='text-[20px] font-bold'>{`${lead?.name ?? '(Lead Not Found)'}`}</h1>
       </div>
       <main className='md:h-[calc(100vh-95px)] overflow-x-hidden flex flex-col gap-2 p-4'>
-        <SalesLeadViewer currentUser={currentUser} users={usersList} clients={clients} studyPlans={studyPlans} salesLead={lead} />
+        <SalesLeadViewer mode='edit' currentUser={currentUser} users={usersList} clients={clients} studyPlans={studyPlans} salesLead={lead} />
       </main>
     </>
   )

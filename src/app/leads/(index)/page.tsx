@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { FaEdit, FaPlus } from 'react-icons/fa';
 
 export default async function Forms() {
-  const leads = await db.query.salesleads.findMany();
+  const leads = await db.query.leads.findMany();
 
   return (
     <>

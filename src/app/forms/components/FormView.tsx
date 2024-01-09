@@ -1,11 +1,26 @@
 'use client';
 import { FormRevisionWithAllLevels } from "@/db/schema_formsModule"
+import { SalesLeadWithAllDetails } from "@/db/schema_salesleadsModule";
 
 type Props = {
+  mode: 'view' | 'salesleadedit'
   formContents: FormRevisionWithAllLevels
+  leadDetails?: SalesLeadWithAllDetails
+  setLeadDetails?: (leadDetails: SalesLeadWithAllDetails) => void
+  currentStudyPlanIndex?: number
 }
 
-export default function FormView ({ formContents }: Props) {
+export default function FormView ({ formContents, mode, leadDetails, setLeadDetails, currentStudyPlanIndex }: Props) {
+
+  function handleTextChange (currentStudyPlanIndex: number, sectionIndex: number, rowIndex: number, fieldIndex: number, value: string) {
+    if (leadDetails && setLeadDetails) {
+      const newLeadDetails = {...leadDetails}
+      newLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value = value
+      setLeadDetails(newLeadDetails);
+    }
+
+  }
+
   return (
     <>
     <section className='ui-subbox'>
@@ -46,8 +61,15 @@ export default function FormView ({ formContents }: Props) {
                       )}
                       {field.type === 'input' && (
                         <>
-                        <input className='std-input w-full' />
-                        </>
+                        {mode === 'view' && (
+                          <input className='std-input w-full' />
+                        )}
+                        {(mode === 'salesleadedit' && leadDetails && currentStudyPlanIndex !== undefined) && (
+                          <>
+                          <input className='std-input w-full' value={leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string} onChange={(e)=>handleTextChange(currentStudyPlanIndex,sectionIndex,rowIndex,fieldIndex,e.target.value)} />
+                          </>
+                        )}
+                        </>                        
                       )}
                       {field.type === 'textarea' && (
                         <>

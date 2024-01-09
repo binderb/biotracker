@@ -143,7 +143,7 @@ export default function FormEditor({ mode, form }: Props) {
           ))}
         </div>
         {currentTab === 'texteditor' && <FormTextEditor formContents={formContents} setFormContents={setFormContents} text={textEditorText} setText={setTextEditorText} />}
-        {currentTab === 'formpreview' && <FormView formContents={formContents} />}
+        {currentTab === 'formpreview' && <FormView mode='view' formContents={formContents} />}
       </form>
     </>
   );
