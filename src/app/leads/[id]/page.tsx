@@ -131,7 +131,17 @@ export default async function EditSalesLead({ params }: { params: { id: number }
         <h1 className='text-[20px] font-bold'>{`${lead?.name ?? '(Lead Not Found)'}`}</h1>
       </div>
       <main className='md:h-[calc(100vh-95px)] overflow-x-hidden flex flex-col gap-2 p-4'>
-        <SalesLeadViewer mode='edit' config={config ?? null} currentUser={currentUser} users={usersList} clients={clients} studyPlans={studyPlans} salesLead={lead} />
+        {lead.contributors.map((joinTableEntry) => joinTableEntry.contributor.id).includes(currentUser.id) && (
+          <>
+            <SalesLeadViewer mode='edit' config={config ?? null} currentUser={currentUser} users={usersList} clients={clients} studyPlans={studyPlans} salesLead={lead} />
+          </>
+        )}
+        {!lead.contributors.map((joinTableEntry) => joinTableEntry.contributor.id).includes(currentUser.id) && (
+          <>
+            <SalesLeadViewer mode='view' config={config ?? null} currentUser={currentUser} users={usersList} clients={clients} studyPlans={studyPlans} salesLead={lead} />
+          </>
+        )}
+        
       </main>
     </>
   )

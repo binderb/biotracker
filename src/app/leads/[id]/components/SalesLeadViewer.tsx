@@ -129,6 +129,9 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
       <section className='ui-box-thin'>
         {/* TOP BAR */}
         <div className='w-full flex justify-end gap-2'>
+          
+        </div>
+        <div className='w-full flex justify-end gap-2'>
           {config && (
             <Link className='std-button-lite' href={`https://drive.google.com/drive/u/0/folders/${config?.salesleadDriveId ?? '_'}/${leadDetails.repository}`} target='_blank' rel='noopener noreferrer'>
               <FaFolderOpen />
