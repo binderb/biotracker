@@ -78,7 +78,7 @@ export default function UserManager({ users }: Props) {
                   <div className='w-full h-full flex justify-center'>
                     <button
                       aria-label='edit'
-                      className='mr-1 py-1 px-3 rounded-md bg-primary hover:bg-primaryHover text-white text-[12px]'
+                      className='std-button-lite'
                       onClick={() => {
                         setCurrentUser(user);
                         setShowEditor(true);
