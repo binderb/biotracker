@@ -1,0 +1,97 @@
+\documentclass[]{article}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\definecolor{light-gray}{gray}{0.85}
+\usepackage{lastpage}
+
+\usepackage{tabularx}
+\newcolumntype{Y}{>{\centering\arraybackslash}X}
+\newcolumntype{Z}{>{\raggedleft\arraybackslash}X}
+
+
+% For checkboxes
+\usepackage{pifont,amssymb} % for the symbols
+\usepackage[shortlabels]{enumitem}
+\newcommand{\checkbox}[1]{%
+  \ifnum#1=1
+    \makebox[0pt][l]{\raisebox{0.15ex}{\hspace{0.0em}$\times$}}%
+  \fi
+  $\square$%
+}
+
+\newcommand{\emptysquare}{$\square$}
+\newcommand{\checkedsquare}{\makebox[0pt][l]{\raisebox{1pt}[0pt][0pt]{\large\hspace{1pt}\cmark}}$\square$}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\correctanswer}{{\renewcommand{\emptysquare}{\checkedsquare}\item\leavevmode}}
+
+
+
+% For local fonts
+\usepackage{sourcesanspro}
+
+\usepackage{makecell}
+\usepackage{setspace}
+
+\usepackage{array,booktabs}
+\newcommand\VRule[1][\arrayrulewidth]{\vrule width #1}
+\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+\renewcommand{\arraystretch}{1.2}
+
+\usepackage{fancyhdr}
+
+
+% --------------------------
+% Page Size and Margins
+% --------------------------
+
+% For page dimensions and margins
+\usepackage{geometry}
+\geometry{
+	letterpaper,
+	textwidth=6.5in,
+	textheight=7.9in,
+  top=2in,
+  bindingoffset=0pt,
+  marginparsep=0pt,
+  marginparwidth=0pt,
+  headheight=78.6pt,
+  headsep=0in,
+  % showframe=true
+}
+
+% Remove unwanted default whitespace
+\setlength\parindent{0pt}
+\setlength\tabcolsep{2pt}
+\setlength\tabbingsep{0pt}
+
+\renewcommand{\footrulewidth}{0.4pt}
+\rfoot{
+  \thepage\ of \pageref{LastPage}
+}
+\cfoot{}
+\lfoot{
+  Confidential
+}
+
+\pagestyle{fancy}
+
+\begin{document}
+  \fancyhead[L]{
+    \begin{tabularx}{\textwidth}{!{\VRule}M{111pt}!{\VRule}Y!{\VRule}Y!{\VRule}Y!{\VRule}Y!{\VRule}}
+      \specialrule{0.4pt}{0pt}{0pt}
+      \vspace{6pt}\raisebox{-0.5\height}{docBranding}\vspace{6pt} & \normalsize{\textbf{\textsc{docType}}} & \makecell{\small{\textbf{Document Number}} \\ \small{docId}} & \makecell{\small{\textbf{Revision}} \\ \small{docRevision}} & \makecell{\small{\textbf{Effective Date}} \\ \small{docEffectiveDate}} \\
+      \specialrule{0.4pt}{0pt}{0pt}
+      \multicolumn{5}{!{\VRule}l!{\VRule}}{\textbf{Title:} docTitle} \\
+      \specialrule{0.4pt}{0pt}{0pt}
+      \multicolumn{5}{!{\VRule}l!{\VRule}}{\textbf{Owning Department:} docOwningDepartment} \\
+      \specialrule{0.4pt}{0pt}{0pt}
+    \end{tabularx}
+  }
+  
+  
+  \newpage
+  docContents
+
+\end{document}

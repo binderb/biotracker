@@ -1,18 +1,20 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Google Drive API
+# App
+config.ts
+data
+drizzle
 credentials.json
-credentials_backup.json
 token.json
 
-# Custom branding
-public/*
-!public/placeholder.md
-config.ts
+# Docker
+docker-compose.prod.yaml
 
 # dependencies
-pm2.config.js
 /node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
 
 # testing
 /coverage
