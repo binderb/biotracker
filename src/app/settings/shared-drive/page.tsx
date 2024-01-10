@@ -11,7 +11,7 @@ export default async function Settings () {
     <>
       <Nav />
       <div className='mt-4'>
-        <Link className='std-link ml-4' href='/'>
+        <Link className='std-link ml-4' href='/settings'>
           &larr; Back
         </Link>
       </div>
