@@ -9,9 +9,10 @@ const fsPromises = require('fs').promises;
 
 export async function saveGoogleDriveToken (authCode:string) {
   try {
-    const credentialsPath = path.join(process.cwd(),process.env.GOOGLE_CREDENTIALS_PATH!);
-    const content = await fsPromises.readFile(credentialsPath);
-    const credentials = JSON.parse(content).web;
+    if (!process.env.GOOGLE_CREDENTIALS) {
+      throw new Error('GOOGLE_CREDENTIALS environment variable not set');
+    }
+    const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS).web;
     const client = new OAuth2Client(
       credentials.client_id,
       credentials.client_secret,

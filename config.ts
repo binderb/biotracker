@@ -1,8 +1,7 @@
 const isServer = typeof window === 'undefined';
 
 const config = {
-  webTitle: 'Example Title',
-  nextAuthBasePath: '/path/api/auth',
+  webTitle: 'B.O.S. - BioSim Operations',
 };
 
 export default config;

@@ -1,0 +1,37 @@
+# This file will start a PostgreSQL database container and a pgAdmin container,
+# but will not pull anything for the app itself. It also doesn't set up any volumes.
+services:
+  biotracker:
+    image: binderlab/biotracker:main
+    ports:
+      - 3001:3000
+    environment:
+      - NEXTAUTH_URL: 
+      - NEXTAUTH_SECRET: 
+      - NEXT_PUBLIC_BRANDING_PRIMARY: 
+      - NEXT_PUBLIC_BRANDING_SECONDARY:
+      - POSTGRES_URL: 
+      - POSTGRES_SEED_USERNAME: 
+      - POSTGRES_SEED_PASSWORD: 
+      - POSTGRES_SEED_FIRST: 
+      - POSTGRES_SEED_LAST:
+      - POSTGRES_SEED_ROLE: 
+      - GOOGLE_CREDENTIALS: 
+  db:
+    container_name: pg_container
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER: 
+      - POSTGRES_PASSWORD: 
+      - POSTGRES_DB: 
+    ports:
+      - 5432:5432
+    volumes:
+      - ./data:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  
