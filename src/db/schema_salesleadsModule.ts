@@ -5,7 +5,6 @@ import { forms, formrevisions, formsections, formrows, formfields, Form, FormWit
 import { relations } from 'drizzle-orm';
 import { quotes } from './schema_quotesModule';
 import { studies } from './schema_studiesModule';
-import { files } from './schema_filesModule';
 
 // Using this type is convenient when creating a new lead since there won't be any revisions yet, and no id.
 // When editing a lead, we'll need to use the id of the latest revision, and the study plans will be
