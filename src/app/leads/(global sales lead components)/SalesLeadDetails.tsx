@@ -103,6 +103,11 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
     setLeadDetails({ ...leadDetails, contributors: [...leadDetails.contributors.filter((contributor) => contributor.contributor.id !== id)] });
   }
 
+  function handleStatusChange(status: string) {
+    const statusAsEnum = salesleadStatusEnum.enumValues.filter((enumValue) => enumValue === status)[0] ?? null;
+    setLeadDetails({ ...leadDetails, status:statusAsEnum });
+  }
+
   return (
     <>
           <section className='ui-subbox'>
@@ -185,8 +190,7 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                         {(leadDetails.created.getMonth() + 1).toString().padStart(2, '0')}
                         {leadDetails.created.getDate().toString().padStart(2, '0')} - {leadDetails.client?.name.split(' ')[0] ?? ''}
                         {' ('}
-                        <input className='std-input flex-grow' name='name' value={leadDetails.name.split(/\((.*)\)$/s)[1]} onChange={(e)=>setLeadDetails({ ...leadDetails, name: `${leadDetails.created.getFullYear()}${
-    (leadDetails.created.getMonth() + 1).toString().padStart(2, '0')}${leadDetails.created.getDate().toString().padStart(2, '0')} - ${leadDetails.client?.name.split(' ')[0] ?? ''} (${e.target.value})` })} />
+                        <input className='std-input flex-grow' name='name' value={leadDetails.name.split(/\((.*)\)$/s)[1]} onChange={(e)=>setLeadDetails({ ...leadDetails, name: `${leadDetails.created.getFullYear()}${(leadDetails.created.getMonth() + 1).toString().padStart(2, '0')}${leadDetails.created.getDate().toString().padStart(2, '0')} - ${leadDetails.client?.name.split(' ')[0] ?? ''} (${e.target.value})` })} />
                         {')'}
                       </div>
 
@@ -197,7 +201,7 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                 <tr>
                   <td className='bg-white/50 border border-secondary/80 p-1 font-bold align-top py-2'>Status:</td>
                   <td className='bg-white/50 border border-secondary/80 p-1'>
-                    <select className='std-input w-full' name='status' defaultValue={leadDetails.status ?? ''}>
+                    <select className='std-input w-full' name='status' value={leadDetails.status ?? ''} onChange={(e)=>handleStatusChange(e.target.value)}>
                       <option value=''>-- Choose --</option>
                       {salesleadStatusEnum.enumValues.map((key) => (
                         <option key={key} value={key}>

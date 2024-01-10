@@ -35,11 +35,12 @@ export type SalesLeadWithAllDetails = {
     contributor: Omit<typeof users.$inferSelect, 'password'>
   }[]
   revisions: SalesLeadRevisionWithAllDetails[]
-  notes: typeof salesleadnotes.$inferSelect[]
+  notes: SalesLeadNoteWithAllDetails[]
   author: Omit<typeof users.$inferSelect, 'password'>
   client: Client
   quote: typeof quotes.$inferSelect | null
   studies: typeof studies.$inferSelect[]
+  repository: string | null
 };
 type SalesLeadRevisionWithAllDetails = typeof salesleadrevisions.$inferSelect & {
   studyplans: {
@@ -47,6 +48,9 @@ type SalesLeadRevisionWithAllDetails = typeof salesleadrevisions.$inferSelect & 
       form: Form
     }
   }[]
+}
+type SalesLeadNoteWithAllDetails = typeof salesleadnotes.$inferSelect & {
+  author: Omit<typeof users.$inferSelect, 'password'>
 }
 
 export const salesleadStatusEnum = pgEnum('status', [
@@ -65,7 +69,7 @@ export const leads = pgTable('leads', {
   status: salesleadStatusEnum('status'),
   client: integer('client').notNull().references(() => clients.id),
   project: integer('project').notNull().references(() => projects.id),
-  //repository: varchar('repository', { length: 500 }),
+  repository: varchar('repository', { length: 500 }),
 });
 
 export const leadsRelations = relations(leads, ({one,many}) => ({
@@ -144,6 +148,7 @@ export const salesleadformdataRelations = relations(salesleadformdata, ({one}) =
 
 export const salesleadnotes = pgTable('leadnotes', {
   id: serial('id').primaryKey(),
+  saleslead: integer('saleslead').notNull().references(() => leads.id),
   salesleadrevision: integer('salesleadrevision').notNull().references(() => salesleadrevisions.id),
   created: timestamp('created').notNull(),
   newRevision: boolean('newRevision').notNull(),
@@ -153,7 +158,11 @@ export const salesleadnotes = pgTable('leadnotes', {
 
 export const salesleadnotesRelations = relations(salesleadnotes, ({one}) => ({
   saleslead: one(leads, {
-    fields: [salesleadnotes.salesleadrevision],
+    fields: [salesleadnotes.saleslead],
     references: [leads.id],
+  }),
+  author: one(users, {
+    fields: [salesleadnotes.author],
+    references: [users.id],
   }),
 }));

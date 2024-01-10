@@ -4,7 +4,9 @@ import { db } from "@/db";
 import { projects } from "@/db/schema_clientModule";
 import { NewSalesLead, SalesLeadWithAllDetails, salesleadformdata, salesleadrevisions, salesleadrevisionsToFormrevisions, leads } from "@/db/schema_salesleadsModule";
 import { usersToSalesleadcontributors } from "@/db/schema_usersModule";
+import { createDirectoryIfNotExists, getFolderIdFromPath, getGoogleDriveClient } from "@/lib/GoogleDriveFunctions";
 import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
 
 export async function getProjectsForClient(clientId:number) {
   const clientProjects = await db.query.projects.findMany({
@@ -36,12 +38,33 @@ export async function addSalesLead(salesLead:SalesLeadWithAllDetails) {
     if (salesLead.revisions[0].studyplans.length === 0) {
       throw new Error('Please add at least one study plan!');
     }
-    // create sales lead
+    if (salesLead.status === 'Won' && !salesLead.quote) {
+      throw new Error('Please provide a quote reference for sales leads marked as won!');
+    }
+    if (!salesLead.status) {
+      throw new Error('Please provide a status for the sales lead!');
+    }
     const fullName = salesLead.name.trim();
     const existingName = await db.query.leads.findFirst({where: eq(leads.name, fullName)});
     if (existingName) {
       throw new Error(`A sales lead with the name ${fullName} already exists! Please choose a different name.`);
     }
+
+    // TODO: create a repository for the sales lead in Google Drive
+    const googleDrive = await getGoogleDriveClient();
+    const repositoryName = `${fullName.replaceAll(' ','').split(/\(/s)[0]}-${fullName.replaceAll(' ','-').split(/\((.*)\)$/s)[1]}`;
+    console.log('repositoryName',repositoryName);
+    const config = await db.query.configs.findFirst();
+    if (!config) {
+      throw new Error('No configuration object found in database. Please ensure you have connected a Google Drive account.');
+    }
+    if (!config.salesleadDriveId || !config.salesleadPath) {
+      throw new Error('No sales lead drive ID or path found in database. Please ensure you have connected a Google Drive account.');
+    }
+    const salesLeadFolderId = await getFolderIdFromPath(config.salesleadDriveId, config.salesleadPath, googleDrive);
+    const newSalesLeadFolderId = await createDirectoryIfNotExists(repositoryName,salesLeadFolderId,googleDrive);
+    
+    // create sales lead
     const newSalesLeadResponse = await db.insert(leads).values({
       name: fullName,
       created: new Date(),
@@ -49,6 +72,7 @@ export async function addSalesLead(salesLead:SalesLeadWithAllDetails) {
       status: salesLead.status,
       client: salesLead.client.id,
       project: salesLead.project.id,
+      repository: newSalesLeadFolderId,
     }).returning();
     const newSalesLead = newSalesLeadResponse[0];
     // create sales lead contributors
@@ -85,6 +109,9 @@ export async function addSalesLead(salesLead:SalesLeadWithAllDetails) {
         }
       }
     }
+    
+
+    revalidatePath('/leads');
     return {status: 201, data: newSalesLead};
   } catch (error) {
     throw error;

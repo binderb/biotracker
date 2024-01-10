@@ -25,7 +25,7 @@ export const usersToSalesleadcontributors = pgTable('users_to_salesleadcontribut
   saleslead: integer('saleslead').notNull().references(() => leads.id),
 });
 
-export const usersToSalesleadcontributorsRelations = relations(usersToSalesleadcontributors, ({one}) => ({
+export const usersToSalesleadcontributorsRelations = relations(usersToSalesleadcontributors, ({one, many}) => ({
   contributor: one(users, {
     fields: [usersToSalesleadcontributors.contributor],
     references: [users.id],
@@ -34,4 +34,5 @@ export const usersToSalesleadcontributorsRelations = relations(usersToSalesleadc
     fields: [usersToSalesleadcontributors.saleslead],
     references: [leads.id],
   }),
+  salesleadnotes: many(salesleadnotes),
 }));

@@ -1,6 +1,6 @@
 import Nav from "@/app/(global components)/Nav";
 import { db } from "@/db";
-import { SalesLeadWithAllDetails, salesleadrevisions, leads, salesleadformdata } from "@/db/schema_salesleadsModule";
+import { SalesLeadWithAllDetails, salesleadrevisions, leads, salesleadformdata, salesleadnotes } from "@/db/schema_salesleadsModule";
 import { and, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import SalesLeadViewer from "./components/SalesLeadViewer";
@@ -16,6 +16,7 @@ export default async function EditSalesLead({ params }: { params: { id: number }
   const currentUser = await db.query.users.findFirst({where: eq(users.id,parseInt(session!.user.id))}) as User;
   const usersList = await db.query.users.findMany();
   const clients = await db.query.clients.findMany();
+  const config = await db.query.configs.findFirst();
   const studyPlans = await db.query.forms.findMany({
     where: eq(forms.docType, 'studyplan'),
     with: {
@@ -77,7 +78,6 @@ export default async function EditSalesLead({ params }: { params: { id: number }
                         with: {
                           fields: {
                             with: {
-                              // salesleadformdata: true,
                               salesleadformdata: {
                                 where: eq(salesleadformdata.salesleadrevision, leadrevId),
                               }
@@ -93,7 +93,12 @@ export default async function EditSalesLead({ params }: { params: { id: number }
           },
         }
       },
-      notes: true,
+      notes: {
+        orderBy: [desc(salesleadnotes.created)],
+        with: {
+          author: true,
+        }
+      },
       author: {
         columns: {
           password: false,
@@ -126,7 +131,7 @@ export default async function EditSalesLead({ params }: { params: { id: number }
         <h1 className='text-[20px] font-bold'>{`${lead?.name ?? '(Lead Not Found)'}`}</h1>
       </div>
       <main className='md:h-[calc(100vh-95px)] overflow-x-hidden flex flex-col gap-2 p-4'>
-        <SalesLeadViewer mode='edit' currentUser={currentUser} users={usersList} clients={clients} studyPlans={studyPlans} salesLead={lead} />
+        <SalesLeadViewer mode='edit' config={config ?? null} currentUser={currentUser} users={usersList} clients={clients} studyPlans={studyPlans} salesLead={lead} />
       </main>
     </>
   )

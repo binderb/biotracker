@@ -1,13 +1,11 @@
 'use client';
 
-import { Client, ProjectWithAllDetails } from '@/db/schema_clientModule';
+import { Client } from '@/db/schema_clientModule';
 import { FormWithAllLevels } from '@/db/schema_formsModule';
 import { useState } from 'react';
-import SalesLeadEditor from '../../(global sales lead components)/SalesLeadEditor';
 import { User } from '@/db/schema_usersModule';
-import { NewSalesLead, SalesLeadWithAllDetails } from '@/db/schema_salesleadsModule';
+import { SalesLeadWithAllDetails } from '@/db/schema_salesleadsModule';
 import SubmitButton from '@/app/(global components)/SubmitButton';
-import { sleep } from '@/debug/Sleep';
 import { Flip, ToastContainer, toast } from 'react-toastify';
 import { addSalesLead } from '../actions';
 import SalesLeadDetails from '../../(global sales lead components)/SalesLeadDetails';
@@ -26,8 +24,7 @@ export default function SalesLeadCreator({ currentUser, users, clients, studyPla
   const [status, setStatus] = useState('');
   const [leadDetails, setLeadDetails] = useState<SalesLeadWithAllDetails>({
     id: 0,
-    name: `${(new Date()).getFullYear()}${
-    ((new Date()).getMonth() + 1).toString().padStart(2, '0')}${(new Date()).getDate().toString().padStart(2, '0')} - ()`,
+    name: `${new Date().getFullYear()}${(new Date().getMonth() + 1).toString().padStart(2, '0')}${new Date().getDate().toString().padStart(2, '0')} - ()`,
     created: new Date(),
     author: currentUser,
     status: 'In Progress',
@@ -52,17 +49,20 @@ export default function SalesLeadCreator({ currentUser, users, clients, studyPla
         contributor: currentUser,
       },
     ],
-    revisions: [{
-      id: 0,
-      created: new Date(),
-      studyplans: [],
-      saleslead: 0,
-      author: currentUser.id,
-    }],
+    revisions: [
+      {
+        id: 0,
+        created: new Date(),
+        studyplans: [],
+        saleslead: 0,
+        author: currentUser.id,
+      },
+    ],
     notes: [],
     studies: [],
     quote: null,
-    });
+    repository: null,
+  });
 
   function notify(type: string, message: string) {
     if (type === 'error')
@@ -88,7 +88,7 @@ export default function SalesLeadCreator({ currentUser, users, clients, studyPla
 
   return (
     <>
-      <section className='ui-box'>
+      <section className='ui-box-thin'>
         <div className='w-full flex justify-end'>
           <form className='flex items-center gap-2' action={handleCreateNewLead}>
             <div className='my-2 text-[#800] whitespace-pre'>{status}</div>
