@@ -4,6 +4,9 @@ import logo from '@@/public/logo.png';
 import LoginBox from './components/LoginBox';
 
 export default async function Login() {
+
+  console.log('environment variables',process.env);
+
   return (
     <>
       <main className='flex flex-col items-center pt-12 font-source'>
