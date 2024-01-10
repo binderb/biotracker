@@ -12,12 +12,10 @@ import { loadSavedTokenIfExists, getGoogleDriveClient, getDriveIdFromName, listF
 
 
 export async function authorizeGoogleDrive () {
-  if (!process.env.GOOGLE_CREDENTIALS_PATH) {
-    throw new Error('GOOGLE_CREDENTIALS_PATH environment variable not set');
+  if (!process.env.GOOGLE_CREDENTIALS) {
+    throw new Error('GOOGLE_CREDENTIALS environment variable not set');
   }
-  const credentialsPath = path.join(process.cwd(),process.env.GOOGLE_CREDENTIALS_PATH);
-  const content = await fsPromises.readFile(credentialsPath);
-  const credentials = JSON.parse(content).web;
+  const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS).web;
   const SCOPES = [
     'https://www.googleapis.com/auth/drive.metadata.readonly',
     'https://www.googleapis.com/auth/drive.file',
