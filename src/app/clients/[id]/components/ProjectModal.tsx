@@ -128,7 +128,7 @@ export default function ProjectModal({ showModal, setShowModal, addNewFunction, 
                       <select className='std-input w-full' name='billingAddress'>
                         <option value=''>N/A</option>
                         {clientAddresses.map((address) => (
-                          <option key={address.id}>{address.identifier}</option>
+                          <option key={address.id} value={address.id}>{address.identifier}</option>
                         ))}
                       </select>
                     </td>

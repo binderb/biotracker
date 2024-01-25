@@ -6,9 +6,10 @@ import FormTextEditor from './FormTextEditor';
 import FormView from '@/app/forms/components/FormView';
 import SubmitButton from '@/app/(global components)/SubmitButton';
 import { sleep } from '@/debug/Sleep';
-import { addNewForm } from '../actions';
+import { addFormRevision, addNewForm } from '../actions';
 import { encodeText } from '../functions';
 import { useRouter } from 'next/navigation';
+import { Flip, ToastContainer, toast } from 'react-toastify';
 
 type Props = {
   mode: 'new' | 'edit',
@@ -26,7 +27,6 @@ export default function FormEditor({ mode, form }: Props) {
     note: 'Form created.'
   });
   const [textEditorText, setTextEditorText] = useState((mode === 'edit' && form) ? encodeText(form.revisions[0]) : '');
-  const [status, setStatus] = useState('');
 
   const tabs = [
     {
@@ -39,11 +39,32 @@ export default function FormEditor({ mode, form }: Props) {
     },
   ];
 
+  function notify(type: string, message: string) {
+    if (type === 'error') {
+      toast.error(message, {
+        transition: Flip,
+        theme: 'colored',
+        position: toast.POSITION.TOP_RIGHT,
+        autoClose: 4000,
+        hideProgressBar: true,
+      });
+    }
+    if (type === 'success') {
+      toast.success(message, {
+        transition: Flip,
+        theme: 'dark',
+        position: toast.POSITION.TOP_RIGHT,
+        autoClose: 4000,
+        hideProgressBar: true,
+      });
+    }
+  }
+
   async function handleCreateNewForm(formData: FormData) {
     try {
-      if (!formData.get('name')) throw new Error('Form name is required');
-      if (!formData.get('docType')) throw new Error('Document type is required');
-      if (!formData.get('functionalArea')) throw new Error('Functional area is required');
+      if (!formData.get('name')) throw new Error('Form name is required.');
+      if (!formData.get('docType')) throw new Error('Document type is required.');
+      if (!formData.get('functionalArea')) throw new Error('Functional area is required.');
       const newForm: FormWithAllLevels = {
         id: -1,
         index: -1,
@@ -55,16 +76,27 @@ export default function FormEditor({ mode, form }: Props) {
       const newFormResponse = await addNewForm(newForm);
       router.push('/forms');
     } catch (err: any) {
-      setStatus(err.message);
+      notify('error', err.message);
     }
   }
 
   async function handleUpdateForm(formData: FormData) {
     try {
-      await sleep(1000);
-      throw new Error("Update functionality not yet implemented.");
+      if (!form) {
+        throw new Error("Form not found.");
+      }
+      const newFormRevision: FormWithAllLevels = {
+        id: form.id,
+        index: form.index,
+        name: formData.get('name') as string,
+        docType: form.docType,
+        functionalArea: formData.get('functionalArea') as Form['functionalArea'],
+        revisions: [{...formContents, note: 'Form updated.'}],
+      };
+      const newFormRevisionResponse = await addFormRevision(newFormRevision);
+      notify('success', 'Form updated successfully.');
     } catch (err:any) {
-      setStatus(err.message);
+      notify('error', err.message);
     }
   }
 
@@ -75,7 +107,6 @@ export default function FormEditor({ mode, form }: Props) {
           <h5>Basic Details</h5>
           
           <div className='flex items-center gap-2'>
-            <div className='text-[#800]'>{status}</div>
             {mode === 'new' && (
               <SubmitButton text='Create Form' pendingText='Creating...' />
             )}
@@ -107,7 +138,7 @@ export default function FormEditor({ mode, form }: Props) {
               <tr>
                 <td className='bg-white/50 border border-secondary/80 p-1 font-bold'>Document Type</td>
                 <td className='bg-white/50 border border-secondary/80 p-1'>
-                  <select className='std-input w-full' name='docType' defaultValue={(mode === 'edit' && form) ? form.docType : ''}>
+                  <select className='std-input w-full' name='docType' defaultValue={(mode === 'edit' && form) ? form.docType : ''} disabled={mode==='edit'}>
                     <option value=''>-- Select a Document Type --</option>
                     {formDocTypeEnum.enumValues.map((key) => (
                       <option key={key} value={key}>
@@ -145,6 +176,7 @@ export default function FormEditor({ mode, form }: Props) {
         {currentTab === 'texteditor' && <FormTextEditor formContents={formContents} setFormContents={setFormContents} text={textEditorText} setText={setTextEditorText} />}
         {currentTab === 'formpreview' && <FormView mode='view' formContents={formContents} />}
       </form>
+      <ToastContainer />
     </>
   );
 }
