@@ -1,7 +1,7 @@
 'use client';
 import { FormRevisionWithAllLevels } from '@/db/schema_formsModule';
 import { SalesLeadWithAllDetails } from '@/db/schema_salesleadsModule';
-import { param } from 'drizzle-orm';
+import DatePicker from 'react-datepicker';
 
 type Props = {
   mode: 'view' | 'salesleadedit';
@@ -24,6 +24,14 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
     if (leadDetails && setLeadDetails) {
       const newLeadDetails = { ...leadDetails };
       (newLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[paramIndex] = value ? 'true' : 'false';
+      setLeadDetails(newLeadDetails);
+    }
+  }
+
+  function handleDateChange(currentStudyPlanIndex: number, sectionIndex: number, rowIndex: number, fieldIndex: number, date: Date | null) {
+    if (leadDetails && setLeadDetails) {
+      const newLeadDetails = { ...leadDetails };
+      (newLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0] = date ? date.toISOString() : '';
       setLeadDetails(newLeadDetails);
     }
   }
@@ -118,7 +126,6 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                               <>
                               {Array.isArray(field.params) && field.params.length > 0 && (
                                 <>
-                                {/* {JSON.stringify((leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[1])} */}
                                 {field.params.map((param,paramIndex) => (
                                   <label key={paramIndex} className='form-control'>
                                   <input type='checkbox' checked={(leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[paramIndex] === 'true' ? true : false} onChange={(e) => handleCheckboxChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, paramIndex, e.target.checked)} />
@@ -127,6 +134,30 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                                 ))}
                                 </>
                               )}
+                              </>
+                            )}
+                          </>
+                        )}
+                        {field.type === 'date' && (
+                          <>
+                            {mode === 'view' && (
+                              <>
+                                <DatePicker className='std-input w-full' dateFormat='MM/dd/yyyy' selected={null} onChange={()=>{}} />
+                              </>
+                            )}
+                            {mode === 'salesleadedit' && leadDetails && currentStudyPlanIndex !== undefined && (
+                              <>
+                              <DatePicker className='std-input w-full' dateFormat='MM/dd/yyyy' selected={(leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0] ? new Date((leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0]) : null} onChange={(date) => handleDateChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, date)} />
+                              {/* {Array.isArray(field.params) && field.params.length > 0 && (
+                                <>
+                                {field.params.map((param,paramIndex) => (
+                                  <label key={paramIndex} className='form-control'>
+                                  <input type='checkbox' checked={(leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[paramIndex] === 'true' ? true : false} onChange={(e) => handleCheckboxChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, paramIndex, e.target.checked)} />
+                                  {param}
+                                  </label>
+                                ))}
+                                </>
+                              )} */}
                               </>
                             )}
                           </>

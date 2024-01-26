@@ -195,3 +195,7 @@ input[type="checkbox"]:checked::before {
 .radio-check:checked+.radio-label {
   @apply bg-primary text-white
 }
+
+.react-datepicker-wrapper {
+  @apply w-full
+}
