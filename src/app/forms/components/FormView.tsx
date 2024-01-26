@@ -15,7 +15,7 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
   function handleTextChange(currentStudyPlanIndex: number, sectionIndex: number, rowIndex: number, fieldIndex: number, value: string) {
     if (leadDetails && setLeadDetails) {
       const newLeadDetails = { ...leadDetails };
-      newLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value = value;
+      (newLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0] = value;
       setLeadDetails(newLeadDetails);
     }
   }
@@ -23,7 +23,7 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
   function handleCheckboxChange(currentStudyPlanIndex: number, sectionIndex: number, rowIndex: number, fieldIndex: number, paramIndex: number, value: boolean) {
     if (leadDetails && setLeadDetails) {
       const newLeadDetails = { ...leadDetails };
-      newLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value = value ? 'true' : 'false';
+      (newLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[paramIndex] = value ? 'true' : 'false';
       setLeadDetails(newLeadDetails);
     }
   }
@@ -90,7 +90,7 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                             {mode === 'salesleadedit' && leadDetails && currentStudyPlanIndex !== undefined && (
                               <>
                                 <label className='form-control'>
-                                  <input type='checkbox' checked={leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as boolean} onChange={(e) => handleCheckboxChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, 0, e.target.checked)} />
+                                  <input type='checkbox' checked={leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value === 'true' ? true : false} onChange={(e) => handleCheckboxChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, 0, e.target.checked)} />
                                   {Array.isArray(field.params) && field.params.length > 0 && field.params[0]}
                                 </label>
                               </>
@@ -118,9 +118,10 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                               <>
                               {Array.isArray(field.params) && field.params.length > 0 && (
                                 <>
+                                {/* {JSON.stringify((leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[1])} */}
                                 {field.params.map((param,paramIndex) => (
                                   <label key={paramIndex} className='form-control'>
-                                  <input type='checkbox' checked={leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[paramIndex].value as boolean} onChange={(e) => handleCheckboxChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, paramIndex, e.target.checked)} />
+                                  <input type='checkbox' checked={(leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[paramIndex] === 'true' ? true : false} onChange={(e) => handleCheckboxChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, paramIndex, e.target.checked)} />
                                   {param}
                                   </label>
                                 ))}
