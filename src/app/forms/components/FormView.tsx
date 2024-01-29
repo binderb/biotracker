@@ -1,6 +1,8 @@
 'use client';
+import { ClientWithAllDetails } from '@/db/schema_clientModule';
 import { FormRevisionWithAllLevels } from '@/db/schema_formsModule';
 import { SalesLeadWithAllDetails } from '@/db/schema_salesleadsModule';
+import { User } from '@/db/schema_usersModule';
 import DatePicker from 'react-datepicker';
 
 type Props = {
@@ -9,9 +11,11 @@ type Props = {
   leadDetails?: SalesLeadWithAllDetails;
   setLeadDetails?: (leadDetails: SalesLeadWithAllDetails) => void;
   currentStudyPlanIndex?: number;
+  users?: User[];
+  client?: ClientWithAllDetails[];
 };
 
-export default function FormView({ formContents, mode, leadDetails, setLeadDetails, currentStudyPlanIndex }: Props) {
+export default function FormView({ formContents, mode, leadDetails, setLeadDetails, currentStudyPlanIndex, users, client }: Props) {
   function handleTextChange(currentStudyPlanIndex: number, sectionIndex: number, rowIndex: number, fieldIndex: number, value: string) {
     if (leadDetails && setLeadDetails) {
       const newLeadDetails = { ...leadDetails };
@@ -148,16 +152,55 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                             {mode === 'salesleadedit' && leadDetails && currentStudyPlanIndex !== undefined && (
                               <>
                               <DatePicker className='std-input w-full' dateFormat='MM/dd/yyyy' selected={(leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0] ? new Date((leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0]) : null} onChange={(date) => handleDateChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, date)} />
-                              {/* {Array.isArray(field.params) && field.params.length > 0 && (
+                              </>
+                            )}
+                          </>
+                        )}
+                        {field.type === 'database' && (
+                          <>
+                            {mode === 'view' && (
+                              <>
+                              {Array.isArray(field.params) && field.params.length > 0 && (
                                 <>
-                                {field.params.map((param,paramIndex) => (
-                                  <label key={paramIndex} className='form-control'>
-                                  <input type='checkbox' checked={(leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[paramIndex] === 'true' ? true : false} onChange={(e) => handleCheckboxChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, paramIndex, e.target.checked)} />
-                                  {param}
-                                  </label>
-                                ))}
+                                {field.params[0] === 'users' && (
+                                  <select className='std-input italic w-full'>
+                                    <option>(List of users)</option>
+                                  </select>
+                                )}
+                                {field.params[0] === 'contacts' && (
+                                  <select className='std-input italic w-full'>
+                                    <option>(List of project contacts)</option>
+                                  </select>
+                                )}
                                 </>
-                              )} */}
+                              )}
+                              </>
+                            )}
+                            {mode === 'salesleadedit' && leadDetails && currentStudyPlanIndex !== undefined && (
+                              <>
+                              {Array.isArray(field.params) && field.params.length > 0 && (
+                                <>
+                                {field.params[0] === 'users' && users && (
+                                  <select className='std-input w-full' value={leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string} onChange={(e) => handleTextChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, e.target.value)}>
+                                    <option value=''>-- Choose --</option>
+                                    {users.map((user) => (
+                                      <option key={user.id} value={user.id}>{`${user.first} ${user.last}`}</option>
+                                    ))}
+                                  </select>
+                                )}
+                                {field.params[0] === 'contacts' && leadDetails.project.contacts && (
+                                  <div className='italic'>
+                                    <select className='std-input w-full' value={leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string} onChange={(e) => handleTextChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, e.target.value)}>
+                                    <option value=''>-- Choose --</option>
+                                    {leadDetails.project.contacts.map((joinTableEntry) => joinTableEntry.contact).map((contact) => (
+                                      <option key={contact.id} value={contact.id}>{`${contact.first} ${contact.last}`}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  </div>
+                                )}
+                                </>
+                              )}
                               </>
                             )}
                           </>
