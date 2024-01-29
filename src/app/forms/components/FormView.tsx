@@ -205,6 +205,50 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                             )}
                           </>
                         )}
+                        {field.type === 'generated' && (
+                          <>
+                            {mode === 'view' && (
+                              <>
+                              {Array.isArray(field.params) && field.params.length > 0 && (
+                                <>
+                                {field.params[0] === 'studyId' && (
+                                  <div className='italic'>(Study ID)</div>
+                                )}
+                                {field.params[0] === 'clientName' && (
+                                  <div className='italic'>(Client Name)</div>
+                                )}
+                                {field.params[0] === 'projectName' && (
+                                  <div className='italic'>(Project Name)</div>
+                                )}
+                                {field.params[0] === 'projectNDA' && (
+                                  <div className='italic'>(Project NDA status)</div>
+                                )}
+                                </>
+                              )}
+                              </>
+                            )}
+                            {mode === 'salesleadedit' && leadDetails && currentStudyPlanIndex !== undefined && (
+                              <>
+                              {Array.isArray(field.params) && field.params.length > 0 && (
+                                <>
+                                {field.params[0] === 'studyId' && (
+                                  <div className='italic'>(Study ID will be generated when lead is published)</div>
+                                )}
+                                {field.params[0] === 'clientName' && (
+                                  <div>{leadDetails.client.name}</div>
+                                )}
+                                {field.params[0] === 'projectName' && (
+                                  <div>{leadDetails.project.name}</div>
+                                )}
+                                {field.params[0] === 'projectNDA' && (
+                                  <div>{leadDetails.project.nda ? 'Yes' : 'No'}</div>
+                                )}
+                                </>
+                              )}
+                              </>
+                            )}
+                          </>
+                        )}
                       </td>
                     ))}
                   </tr>
