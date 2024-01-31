@@ -152,6 +152,7 @@ input[type='checkbox'] {
   display: grid;
   place-content: center;
   cursor: pointer;
+  z-index: 100;
   @apply border-secondary/80;
 }
 

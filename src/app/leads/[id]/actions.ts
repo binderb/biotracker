@@ -72,7 +72,7 @@ export async function addSalesLeadRevision(leadDetails: SalesLeadWithAllDetails,
       formrevision: studyPlan.formrevision.id,
     });
   }
-  // for each form field in each study plan, create an empty sales lead form data entry
+  // for each form field in each study plan, create a sales lead form data entry
   for (const studyPlan of leadDetails.revisions[0].studyplans) {
     for (const section of studyPlan.formrevision.sections) {
       for (const row of section.rows) {

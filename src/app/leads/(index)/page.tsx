@@ -1,8 +1,10 @@
 import Nav from '@/app/(global components)/Nav';
 import { db } from '@/db';
+import { asc } from 'drizzle-orm';
 import Link from 'next/link';
 import { FaCheck, FaCircle, FaComment, FaEdit, FaFolderOpen, FaPause, FaPlus } from 'react-icons/fa';
 import { FaCodeCommit, FaGears, FaX } from 'react-icons/fa6';
+import { leads as salesleads } from '@/db/schema_salesleadsModule';
 
 export default async function Forms() {
   const leads = await db.query.leads.findMany({
@@ -10,6 +12,8 @@ export default async function Forms() {
       revisions: true,
       notes: true,
     },
+    orderBy: [asc(salesleads.created)]
+
   });
   const config = await db.query.configs.findFirst();
 

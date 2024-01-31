@@ -41,16 +41,15 @@ export type SalesLeadWithAllDetails = {
   studies: typeof studies.$inferSelect[]
   repository: string | null
 };
-type SalesLeadRevisionWithAllDetails = typeof salesleadrevisions.$inferSelect & {
+export type SalesLeadRevisionWithAllDetails = typeof salesleadrevisions.$inferSelect & {
   studyplans: {
-    formrevision: SalesFormRevisionWithAllLevelsAndData & {
-      form: Form
-    }
+    formrevision: SalesFormRevisionWithAllLevelsAndData
   }[]
 }
 type SalesLeadNoteWithAllDetails = typeof salesleadnotes.$inferSelect & {
   author: Omit<typeof users.$inferSelect, 'password'>
 }
+export type SalesLeadFormData = typeof salesleadformdata.$inferSelect;
 
 export const salesleadStatusEnum = pgEnum('status', [
   'In Progress', 
