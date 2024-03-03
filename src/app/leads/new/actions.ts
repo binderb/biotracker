@@ -2,7 +2,7 @@
 
 import { db } from '@/db';
 import { projects } from '@/db/schema_clientModule';
-import { NewSalesLead, SalesLeadWithAllDetails, salesleadformdata, salesleadrevisions, salesleadrevisionsToFormrevisions, leads } from '@/db/schema_salesleadsModule';
+import { NewSalesLead, SalesLeadWithAllDetails, salesleadformdata, salesleadrevisions, salesleadrevisionsToFormrevisions, leads, salesformshape } from '@/db/schema_salesleadsModule';
 import { usersToSalesleadcontributors } from '@/db/schema_usersModule';
 import { createDirectoryIfNotExists, getFolderIdFromPath, getGoogleDriveClient } from '@/lib/GoogleDriveFunctions';
 import { eq } from 'drizzle-orm';
@@ -101,12 +101,19 @@ export async function addSalesLead(salesLead: SalesLeadWithAllDetails) {
         formrevision: studyPlan.formrevision.id,
       });
     }
+    // create a salesformshape for each study plan in the new revision(formshape here will be a simple list of section indices since no extensible sections will have been added initially)
+    for (const studyPlan of salesLead.revisions[0].studyplans) {
+      await db.insert(salesformshape).values({
+        salesleadrevision: newRevisionResponse[0].id,
+        formshape: studyPlan.formrevision.sections.map((_, sectionIndex) => sectionIndex),
+      });
+    }
     // for each form field in each study plan, create an empty sales lead form data entry
     for (const studyPlan of salesLead.revisions[0].studyplans) {
       for (const section of studyPlan.formrevision.sections) {
         for (const row of section.rows) {
           for (const field of row.fields) {
-            let value:string[] = [];
+            let value: string[] = [];
             if (field.type === 'checkbox') {
               value = ['false'];
             }
@@ -122,6 +129,8 @@ export async function addSalesLead(salesLead: SalesLeadWithAllDetails) {
               salesleadrevision: newRevisionResponse[0].id,
               formfield: field.id,
               value: value,
+              sectionShapeIndex: 0,
+              rowShapeIndex: 0,
             });
           }
         }

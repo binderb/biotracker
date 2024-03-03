@@ -91,6 +91,7 @@ export default async function EditSalesLead({ params }: { params: { id: number }
               },
             }
           },
+          studyplanshapes: true,
         }
       },
       notes: {

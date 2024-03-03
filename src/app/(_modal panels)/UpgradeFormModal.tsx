@@ -51,10 +51,10 @@ export default function UpgradeFormModal({ fallbackContents, buttonContents, sho
     const latestRevisionOfCurrentFormWithAllLevelsAndData: SalesFormRevisionWithAllLevelsAndData = {
       ...latestRevisionOfCurrentForm,
       form: leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.form,
-      sections: latestRevisionOfCurrentForm.sections.map((section) => {
+      sections: latestRevisionOfCurrentForm.sections.map((section, sectionIndex) => {
         return {
           ...section,
-          rows: section.rows.map((row) => {
+          rows: section.rows.map((row, rowIndex) => {
             return {
               ...row,
               fields: row.fields.map((field) => {

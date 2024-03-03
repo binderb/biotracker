@@ -45,6 +45,7 @@ export type SalesLeadRevisionWithAllDetails = typeof salesleadrevisions.$inferSe
   studyplans: {
     formrevision: SalesFormRevisionWithAllLevelsAndData
   }[]
+  studyplanshapes: typeof salesformshape.$inferSelect[]
 }
 type SalesLeadNoteWithAllDetails = typeof salesleadnotes.$inferSelect & {
   author: Omit<typeof users.$inferSelect, 'password'>
@@ -106,6 +107,7 @@ export const salesleadrevisionsRelations = relations(salesleadrevisions, ({one,m
     references: [leads.id],
   }),
   formdata: many(salesleadformdata),
+  studyplanshapes: many(salesformshape),
   studyplans: many(salesleadrevisionsToFormrevisions),
 }));
 
@@ -130,6 +132,7 @@ export const salesleadformdata = pgTable('leadformdata', {
   id: serial('id').primaryKey(),
   salesleadrevision: integer('salesleadrevision').notNull().references(() => salesleadrevisions.id),
   formfield: integer('formfield').notNull().references(() => formfields.id),
+  sectionShapeIndex: integer('sectionShapeIndex').notNull(),
   value: json('value').notNull(),
 });
 
@@ -162,5 +165,19 @@ export const salesleadnotesRelations = relations(salesleadnotes, ({one}) => ({
   author: one(users, {
     fields: [salesleadnotes.author],
     references: [users.id],
+  }),
+}));
+
+export const salesformshape = pgTable('leadformshape', {
+  id: serial('id').primaryKey(),
+  salesleadrevision: integer('salesleadrevision').notNull().references(() => salesleadrevisions.id),
+  formshape: json('formshape').notNull(),
+});
+
+
+export const salesformshapeRelations = relations(salesformshape, ({one}) => ({
+  salesleadrevision: one(salesleadrevisions, {
+    fields: [salesformshape.salesleadrevision],
+    references: [salesleadrevisions.id],
   }),
 }));

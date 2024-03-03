@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { SalesLeadWithAllDetails, leads, salesleadformdata, salesleadnotes, salesleadrevisions, salesleadrevisionsToFormrevisions } from '@/db/schema_salesleadsModule';
+import { SalesLeadWithAllDetails, leads, salesformshape, salesleadformdata, salesleadnotes, salesleadrevisions, salesleadrevisionsToFormrevisions } from '@/db/schema_salesleadsModule';
 import { and, eq, ne } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -72,6 +72,13 @@ export async function addSalesLeadRevision(leadDetails: SalesLeadWithAllDetails,
       formrevision: studyPlan.formrevision.id,
     });
   }
+  // create a salesformshape for each study plan in the new revision(formshape here will be a simple list of section indices since no extensible sections will have been added initially)
+  for (const studyPlan of leadDetails.revisions[0].studyplans) {
+    await db.insert(salesformshape).values({
+      salesleadrevision: newRevisionResponse[0].id,
+      formshape: studyPlan.formrevision.sections.map((_, sectionIndex) => sectionIndex),
+    });
+  }
   // for each form field in each study plan, create a sales lead form data entry
   for (const studyPlan of leadDetails.revisions[0].studyplans) {
     for (const section of studyPlan.formrevision.sections) {
@@ -81,6 +88,8 @@ export async function addSalesLeadRevision(leadDetails: SalesLeadWithAllDetails,
             salesleadrevision: newRevisionResponse[0].id,
             formfield: field.id,
             value: field.salesleadformdata[0].value,
+            sectionShapeIndex: 0,
+            rowShapeIndex: 0,
           });
         }
       }

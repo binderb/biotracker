@@ -39,7 +39,7 @@ export default function FormTextEditor({ formContents, setFormContents, text, se
           });
         }
 
-        const rowExtensible = !!(rowMatch[0].match(/<row.*extensible.*?>/) ?? [])[0];
+        const rowExtensible = !!(rowMatch[0].match(/<row[^>]*extensible/) ?? [])[0];
         rows.push({
           id: -1,
           formsection: -1,
@@ -49,7 +49,6 @@ export default function FormTextEditor({ formContents, setFormContents, text, se
 
         fieldRegex.lastIndex = 0;
       }
-
       return rows;
     }
 
@@ -60,7 +59,9 @@ export default function FormTextEditor({ formContents, setFormContents, text, se
       const sectionContent = match[1];
       // Build the section object. If the name is not valid, default to '(untitled)'.
       const sectionName = (match[0].match(/name="(.*?)"/) ?? [])[1] ?? '(untitled)';
-      const sectionExtensible = !!(match[0].match(/<section.*?extensible.*?>/) ?? [])[0];
+      // Need to modify this line so that the regex checks for <section and extensible on the same line:
+      const sectionExtensible = !!(match[0].match(/<section[^>]*extensible/) ?? [])[0];
+
       sections.push({
         id: -1,
         formrevision: -1,
@@ -69,7 +70,7 @@ export default function FormTextEditor({ formContents, setFormContents, text, se
         extensible: sectionExtensible,
       });
     }
-
+    console.log('sections', sections)
     return sections;
   }
 
