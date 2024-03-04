@@ -39,10 +39,10 @@ export async function updateClient(clientId: number, clientData: ClientFields, c
           )
       );
       // If any projects have been added, insert them (new projects will have id<0).
-      if (projectsList.filter(project=>project.id < -1).length > 0) {
+      if (projectsList.filter(project=>project.id < 0).length > 0) {
         await db.insert(projects).values(
           projectsList
-            .filter((project) => project.id < -1)
+            .filter((project) => project.id < 0)
             .map(({ id, ...project }) => ({
               ...project,
               client: clientId,

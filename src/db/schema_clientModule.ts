@@ -68,10 +68,6 @@ export const contactsRelations = relations(contacts, ({one,many}) => ({
     fields: [contacts.id],
     references: [contacts.referredBy]
   }),
-  clients: one(clients, {
-    fields: [contacts.id],
-    references: [clients.referredBy]
-  }),
   clientsToContacts: many(clientsToContacts),
   projectsToContacts: many(projectsToContacts),
 }));

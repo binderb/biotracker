@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 import { boolean, integer, json, pgEnum, pgTable, serial, timestamp, varchar } from 'drizzle-orm/pg-core';
-import { salesleadformdata, salesleadrevisions, salesleadrevisionsToFormrevisions } from './schema_salesleadsModule';
+import { SalesLeadFormData, salesleadformdata, salesleadrevisions, salesleadrevisionsToFormrevisions } from './schema_salesleadsModule';
 
 export type Form = typeof forms.$inferSelect;
 export type FormWithAllLevels = typeof forms.$inferSelect & {
@@ -19,6 +19,7 @@ export type FormField = typeof formfields.$inferSelect;
 
 export type SalesFormRevisionWithAllLevelsAndData = typeof formrevisions.$inferSelect & {
   sections: SalesFormSectionWithAllLevelsAndData[];
+  form: Form;
 };
 export type SalesFormSectionWithAllLevelsAndData = typeof formsections.$inferSelect & {
   rows: SalesFormRowWithAllLevelsAndData[];
@@ -27,7 +28,7 @@ export type SalesFormRowWithAllLevelsAndData = typeof formrows.$inferSelect & {
   fields: SalesFormFieldAndData[];
 };
 export type SalesFormFieldAndData = typeof formfields.$inferSelect & {
-  salesleadformdata: typeof salesleadformdata.$inferSelect[];
+  salesleadformdata: SalesLeadFormData[];
 };
 
 export const formfieldTypeEnum = pgEnum('type', ['label', 'textarea', 'multitextarea', 'input', 'multiinput', 'checkbox', 'multicheckbox', 'date', 'database', 'generated']);

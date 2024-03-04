@@ -20,7 +20,7 @@ export async function addUser (formData:FormData) {
   const user = await db.insert(users).values({
     first: formData.get('first') as string,
     last: formData.get('last') as string,
-    password: formData.get('password') as string,
+    password: await bcrypt.hash(formData.get('password') as string || '', 10),
     username: formData.get('username') as string,
     role: formData.get('role') as string,
   }).returning();

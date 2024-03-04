@@ -1,6 +1,6 @@
 'use client';
 
-import { Client } from '@/db/schema_clientModule';
+import { Client, ClientWithAllDetails, ProjectWithAllDetails } from '@/db/schema_clientModule';
 import { FormWithAllLevels } from '@/db/schema_formsModule';
 import { useEffect, useState } from 'react';
 import SalesLeadEditor from '../../(global sales lead components)/SalesLeadEditor';
@@ -129,9 +129,6 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
       <section className='ui-box-thin'>
         {/* TOP BAR */}
         <div className='w-full flex justify-end gap-2'>
-          
-        </div>
-        <div className='w-full flex justify-end gap-2'>
           {config && (
             <Link className='std-button-lite' href={`https://drive.google.com/drive/u/0/folders/${config?.salesleadDriveId ?? '_'}/${leadDetails.repository}`} target='_blank' rel='noopener noreferrer'>
               <FaFolderOpen />
@@ -209,7 +206,7 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
                   ))}
                 </div>
               </div>
-              {currentTab === 'study-plans' && <SalesLeadEditor mode='edit' users={users} clients={clients} studyPlans={studyPlans} leadDetails={leadDetails} setLeadDetails={setLeadDetails} />}
+              {currentTab === 'study-plans' && <SalesLeadEditor mode='edit' users={users} clients={clients} studyPlans={studyPlans} leadDetails={leadDetails} setLeadDetails={setLeadDetails} currentUser={currentUser} />}
               {currentTab === 'settings' && <SalesLeadDetails mode='edit' users={users} clients={clients} studyPlans={studyPlans} leadDetails={leadDetails} setLeadDetails={setLeadDetails} />}
             </section>
           </section>

@@ -6,7 +6,7 @@ import { FaAddressBook, FaEdit, FaPlus, FaSpinner, FaTrashAlt } from 'react-icon
 import { BiSolidBusiness } from 'react-icons/bi';
 import AddressBookModal from '../../../(_modal panels)/AddressBookModal';
 import ContactBookModal from '@/app/(_modal panels)/ContactBookModal';
-import ProjectModal from './ProjectModal';
+import ProjectModal from '../../../(_modal panels)/ProjectModal';
 import SubmitButton from '@/app/(global components)/SubmitButton';
 import { sleep } from '@/debug/Sleep';
 import { updateClient } from '../actions';

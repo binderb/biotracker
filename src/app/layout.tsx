@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { Source_Sans_3 } from 'next/font/google';
 import config from '../../config';
-import './globals.css';
 import "react-toastify/dist/ReactToastify.css";
+import 'react-datepicker/dist/react-datepicker.css';
+import './globals.css';
 import SessionProvider from '@/lib/SessionProvider';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/authOptions';

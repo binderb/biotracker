@@ -21,3 +21,7 @@ export function getFormID (form:FormWithAllLevels) {
   const codes = ['F','SP'];
   return `${codes[docTypes.indexOf(form.docType)]}-${form.functionalArea}-${form.index.toString().padStart(4,'0')}`
 }
+
+export function getFormRevisionNumber (form:FormWithAllLevels, revisionInstance:FormRevisionWithAllLevels) {
+  return form.revisions.map((formrevision)=>formrevision.id).indexOf(revisionInstance.id) + 1;
+}

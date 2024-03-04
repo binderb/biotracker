@@ -62,6 +62,7 @@ export default function ProjectModal({ showModal, setShowModal, addNewFunction, 
     try {
       const formJSON = Object.fromEntries(formData) as unknown as ProjectWithAllDetails;
       if (!formJSON.name) throw new Error('Every project must have a name!');
+      console.log('billing address: ',formJSON.billingAddress);
       const updatedProject: ProjectWithAllDetails = {
         ...formJSON,
         id: project?.id ?? -1,
@@ -128,7 +129,7 @@ export default function ProjectModal({ showModal, setShowModal, addNewFunction, 
                       <select className='std-input w-full' name='billingAddress'>
                         <option value=''>N/A</option>
                         {clientAddresses.map((address) => (
-                          <option key={address.id}>{address.identifier}</option>
+                          <option key={address.id} value={address.id}>{address.identifier}</option>
                         ))}
                       </select>
                     </td>
@@ -260,7 +261,7 @@ export default function ProjectModal({ showModal, setShowModal, addNewFunction, 
                       <select className='std-input w-full' name='billingAddress' defaultValue={project?.billingAddress || ''}>
                         <option value=''>N/A</option>
                         {clientAddresses.map((address) => (
-                          <option key={address.id}>{address.identifier}</option>
+                          <option key={address.id} value={address.id}>{address.identifier}</option>
                         ))}
                       </select>
                     </td>
