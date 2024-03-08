@@ -12,7 +12,7 @@ import { Flip, Slide, ToastContainer, toast } from 'react-toastify';
 import SalesLeadDetails from '../../(global sales lead components)/SalesLeadDetails';
 import { useRouter } from 'next/navigation';
 import { FaClipboardList, FaGear } from 'react-icons/fa6';
-import { FaFolderOpen } from 'react-icons/fa';
+import { FaFolderOpen, FaInfoCircle } from 'react-icons/fa';
 import { cloneDeep } from 'lodash';
 import { useBeforeUnload } from '@/lib/useBeforeUnload';
 import Link from 'next/link';
@@ -45,7 +45,7 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
   }, [salesLead]);
 
   useEffect(() => {
-    console.log("study plans",leadDetails.revisions[0].studyplans);
+    console.log("study plans", leadDetails.revisions[0].studyplans);
     if (JSON.stringify(leadDetails) !== JSON.stringify(salesLead)) {
       console.log('changes detected');
       setChanges(true);
@@ -101,7 +101,7 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
       if (!note.trim()) {
         throw new Error('Please enter a discussion note before committing changes.');
       }
-      await addSalesLeadRevision(leadDetails,note,currentUser.id);
+      await addSalesLeadRevision(leadDetails, note, currentUser.id);
       setNote('');
       notify('success', 'Changes committed successfully.');
     } catch (err: any) {
@@ -114,7 +114,7 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
       if (!note.trim()) {
         throw new Error('Note cannot be blank!');
       }
-      await addBareNote(leadDetails,note,currentUser.id);
+      await addBareNote(leadDetails, note, currentUser.id);
       setNote('');
       notify('success', 'Note added successfully.');
     } catch (err: any) {
@@ -129,28 +129,47 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
       </div> */}
       <section className='ui-box-thin'>
         {/* TOP BAR */}
-        <div className='w-full flex justify-end gap-2'>
-          {config && (
-            <Link className='std-button-lite' href={`https://drive.google.com/drive/u/0/folders/${config?.salesleadDriveId ?? '_'}/${leadDetails.repository}`} target='_blank' rel='noopener noreferrer'>
-              <FaFolderOpen />
-              Files
-            </Link>
-          )}
-          {changes && (
-            <form className='flex items-center gap-2' action={handleSubmitNewSalesLeadRevision}>
-              <SubmitButton text='Commit Changes' className='w-[170px] flex justify-center' pendingText='Committing...' />
-            </form>
-          )}
-          {!changes && note.trim() && (
-            <form className='flex items-center gap-2' action={handleSubmitBareNote}>
-              <SubmitButton text='Add Note' className='w-[170px] flex justify-center' pendingText='Adding...' />
-            </form>
-          )}
-          {!changes && !note.trim() && (
-            <button className='std-button-lite-thin w-[170px] flex justify-center' disabled>
-              No Unsaved Changes
-            </button>
-          )}
+        <div className='w-full flex justify-between gap-2'>
+          <div className='flex gap-1 items-center'>
+            {mode === 'view' && (
+              <>
+                <div className='flex px-3 py-2 bg-secondary/30 rounded-lg flex items-center gap-2'>
+                  <FaInfoCircle />
+                  <div>
+                    {`You are not listed as a contributor on this sales lead, so it is displaying in "View" mode.`}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          <div className='flex gap-1'>
+            {mode === 'edit' && (
+              <>
+                {config && (
+                  <Link className='std-button-lite' href={`https://drive.google.com/drive/u/0/folders/${config?.salesleadDriveId ?? '_'}/${leadDetails.repository}`} target='_blank' rel='noopener noreferrer'>
+                    <FaFolderOpen />
+                    Files
+                  </Link>
+                )}
+                {changes && (
+                  <form className='flex items-center gap-2' action={handleSubmitNewSalesLeadRevision}>
+                    <SubmitButton text='Commit Changes' className='w-[170px] flex justify-center' pendingText='Committing...' />
+                  </form>
+                )}
+                {!changes && note.trim() && (
+                  <form className='flex items-center gap-2' action={handleSubmitBareNote}>
+                    <SubmitButton text='Add Note' className='w-[170px] flex justify-center' pendingText='Adding...' />
+                  </form>
+                )}
+                {!changes && !note.trim() && (
+                  <button className='std-button-lite-thin w-[170px] flex justify-center' disabled>
+                    No Unsaved Changes
+                  </button>
+                )}
+              </>
+            )}
+          </div>
+
         </div>
       </section>
       <section className='max-md:flex max-md:flex-col-reverse md:grid md:grid-cols-12 gap-2 overflow-y-hidden h-full'>
@@ -167,30 +186,33 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
               </div>
             </>
           )}
-          { mode === 'edit' && (
+          {mode === 'edit' && (
             <div className='md:overflow-y-hidden overflow-x-visible h-[calc(100%-238px)]'>
               <div className='md:overflow-y-auto overflow-x-visible h-full pr-4'>
                 <Discussion leadDetails={leadDetails} />
               </div>
             </div>
-          )} 
-          { mode === 'view' && (
+          )}
+          {mode === 'view' && (
             <div className='md:overflow-y-hidden overflow-x-visible h-[calc(100%-40px)]'>
               <div className='md:overflow-y-auto overflow-x-visible h-full pr-4'>
                 <Discussion leadDetails={leadDetails} />
               </div>
             </div>
-          )} 
+          )}
         </section>
         {/* SALES LEAD DETAILS */}
         <section className='ui-box md:col-span-7 xl:col-span-8 md:overflow-y-hidden h-full'>
           <section className='md:overflow-y-hidden h-full'>
             <section className='md:overflow-y-auto h-full pr-4 flex flex-col gap-4'>
               <div className='flex justify-between items-center'>
-<h5>Sales Lead Details:</h5>
-<button className='secondary-button-lite' onClick={()=>setLeadDetails(cloneDeep(salesLead))} disabled={!changes}>Revert to Saved</button>
+                <h5>Sales Lead Details:</h5>
+                {mode === 'edit' && (<>
+                  <button className='secondary-button-lite' onClick={() => setLeadDetails(cloneDeep(salesLead))} disabled={!changes}>Revert to Saved</button>
+                </>)}
+
               </div>
-              
+
               <div className='flex items-center justify-between pl-1'>
                 <div className='tab-group'>
                   {tabs.map((tab) => (
@@ -207,8 +229,25 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
                   ))}
                 </div>
               </div>
-              {currentTab === 'study-plans' && <SalesLeadEditor mode='edit' users={users} clients={clients} studyPlans={studyPlans} leadDetails={leadDetails} setLeadDetails={setLeadDetails} currentUser={currentUser} />}
-              {currentTab === 'settings' && <SalesLeadDetails mode='edit' users={users} clients={clients} studyPlans={studyPlans} leadDetails={leadDetails} setLeadDetails={setLeadDetails} />}
+              {currentTab === 'study-plans' && (
+                <>
+                  {mode === 'view' && (
+                    <SalesLeadEditor mode='view' users={users} clients={clients} studyPlans={studyPlans} leadDetails={leadDetails} setLeadDetails={setLeadDetails} currentUser={currentUser} />)}
+                  {mode === 'edit' && (
+                    <SalesLeadEditor mode='edit' users={users} clients={clients} studyPlans={studyPlans} leadDetails={leadDetails} setLeadDetails={setLeadDetails} currentUser={currentUser} />
+                  )}
+                </>
+              )}
+              {currentTab === 'settings' && (
+                <>
+                  {mode === 'view' && (<>
+                    <SalesLeadDetails mode='view' users={users} clients={clients} studyPlans={studyPlans} leadDetails={leadDetails} setLeadDetails={setLeadDetails} />
+                  </>)}
+                  {mode === 'edit' && (<>
+                    <SalesLeadDetails mode='edit' users={users} clients={clients} studyPlans={studyPlans} leadDetails={leadDetails} setLeadDetails={setLeadDetails} />
+                  </>)}
+                </>)}
+
             </section>
           </section>
         </section>

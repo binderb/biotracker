@@ -10,7 +10,7 @@ import { FaPlus, FaTrashAlt } from 'react-icons/fa';
 import { FaX } from 'react-icons/fa6';
 
 type Props = {
-  mode: 'view' | 'salesleadedit';
+  mode: 'view' | 'salesleadreadonly' | 'salesleadedit';
   formContents: FormRevisionWithAllLevels;
   leadDetails?: SalesLeadWithAllDetails;
   setLeadDetails?: (leadDetails: SalesLeadWithAllDetails) => void;
@@ -21,7 +21,7 @@ type Props = {
 
 export default function FormView({ formContents, mode, leadDetails, setLeadDetails, currentStudyPlanIndex, users, client }: Props) {
   const [formRenderArray, setFormRenderArray] = useState<SalesFormRevisionWithAllLevelsAndData>(
-    mode === 'salesleadedit' && leadDetails && currentStudyPlanIndex
+    (mode === 'salesleadedit' || mode === 'salesleadreadonly') && leadDetails && currentStudyPlanIndex
       ? {
         ...leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision,
         sections: (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).map((sectionIndex) => {
@@ -35,7 +35,7 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
 
   // need useEffect to update formRenderArray when leadDetails or currentStudyPlanIndex changes.
   useEffect(() => {
-    if (mode === 'salesleadedit' && leadDetails && currentStudyPlanIndex !== undefined) {
+    if ((mode === 'salesleadedit' || mode === 'salesleadreadonly') && leadDetails && currentStudyPlanIndex !== undefined) {
       const newFormRenderArray = {
         ...leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision,
         sections: (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).map((sectionIndex, formShapeIndex) => {
@@ -124,7 +124,7 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
     for (const row of newLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[templateSectionIndex].rows) {
       for (const field of row.fields) {
         // remove the salesleadformdata objects with the corresponding sectionShapeIndex.
-        field.salesleadformdata = field.salesleadformdata.filter((salesleadformdata) => salesleadformdata.sectionShapeIndex !== sectionIndex - (newLeadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).indexOf(templateSectionIndex));  
+        field.salesleadformdata = field.salesleadformdata.filter((salesleadformdata) => salesleadformdata.sectionShapeIndex !== sectionIndex - (newLeadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).indexOf(templateSectionIndex));
         // shift the sectionShapeIndex of every downstream salesleadformdata object down by one.
         for (const salesleadformdata of field.salesleadformdata) {
           if (salesleadformdata.sectionShapeIndex > sectionIndex - (newLeadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).indexOf(templateSectionIndex)) {
@@ -135,7 +135,7 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
     }
 
     setLeadDetails(newLeadDetails);
-    
+
   }
 
   function handleAddExtensibleRow(currentStudyPlanIndex: number, templateSectionIndex: number, rowIndex: number, salesleadformdataIndex: number, sectionShapeIndex: number) {
@@ -187,6 +187,25 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                   )}
                 </section>
               )}
+              {/* ----------------- SALES LEAD READ-ONLY MODE ----------------- */}
+              {mode === 'salesleadreadonly' && (
+                <section className='flex items-center justify-between py-2'>
+
+                  {section.extensible &&
+                    leadDetails &&
+                    currentStudyPlanIndex !== undefined && (
+                      <>
+                        <h6 className='font-bold whitespace-pre'>{section.name} {sectionIndex - (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex] + 1}:</h6>
+                        <div className='flex gap-1'></div>
+                      </>
+                    )}
+                  {!section.extensible && (
+                    <>
+                      <h6 className='font-bold'>{section.name}:</h6>
+                    </>
+                  )}
+                </section>
+              )}
               {/* ----------------- SALES LEAD EDIT MODE ----------------- */}
               {mode === 'salesleadedit' && (
                 <section className='flex items-center justify-between py-2'>
@@ -197,16 +216,16 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                       <>
                         <h6 className='font-bold whitespace-pre'>{section.name} {sectionIndex - (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex] + 1}:</h6>
                         <div className='flex gap-1'>
-                        {(formRenderArray.sections[sectionIndex].rows[0].fields[0].salesleadformdata[0].sectionShapeIndex !== 0 || formRenderArray.sections.filter((section) => section.rows[0].fields[0].salesleadformdata[0].sectionShapeIndex > 0).length > 0) && (
-                                          <button
-                                            className='secondary-button-lite'
-                                            onClick={(e) => {
-                                              e.preventDefault();
-                                              handleRemoveExtensibleSection(currentStudyPlanIndex, sectionIndex, (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex]);
-                                            }}>
-                                            <FaTrashAlt />
-                                          </button>
-                                        )}
+                          {(formRenderArray.sections[sectionIndex].rows[0].fields[0].salesleadformdata[0].sectionShapeIndex !== 0 || formRenderArray.sections.filter((section) => section.rows[0].fields[0].salesleadformdata[0].sectionShapeIndex > 0).length > 0) && (
+                            <button
+                              className='secondary-button-lite'
+                              onClick={(e) => {
+                                e.preventDefault();
+                                handleRemoveExtensibleSection(currentStudyPlanIndex, sectionIndex, (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex]);
+                              }}>
+                              <FaTrashAlt />
+                            </button>
+                          )}
                           <button className='std-button-lite' onClick={(e) => { e.preventDefault(); handleAddExtensibleSection(currentStudyPlanIndex, sectionIndex, (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex]) }}>
                             <FaPlus />
                           </button>
@@ -331,7 +350,142 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                           </tr>
                         </>
                       )}
+                      {/* ----------------- SALES LEAD READ-ONLY MODE ----------------- */}
+                      {mode === 'salesleadreadonly' &&
+                        leadDetails &&
+                        currentStudyPlanIndex !== undefined &&
+                        formRenderArray.sections[sectionIndex].rows[rowIndex].fields[0].salesleadformdata.map((_, salesleadformdataIndex) => (
 
+                          <tr key={`${rowIndex}_${salesleadformdataIndex}`}>
+                            {/* {JSON.stringify((leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex])} */}
+                            {row.fields.map((field, fieldIndex) => (
+                              <td key={fieldIndex} className='bg-white/50 border border-secondary/80 p-1 align-top'>
+                                {field.type === 'label' && (
+                                  <>
+                                    {row.extensible && (
+                                      <div className='font-bold'>
+                                        {Array.isArray(field.params) && field.params.length > 0 && field.params[0]}
+                                        {` ${salesleadformdataIndex + 1}`}:
+                                      </div>
+                                    )}
+                                    {!row.extensible && <div className='font-bold'>{Array.isArray(field.params) && field.params.length > 0 && field.params[0]}:</div>}
+                                  </>
+                                )}
+                                {field.type === 'input' && (
+                                  <>
+                                    <div className='flex gap-1 items-center'>
+                                      <div>
+                                        {(formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[salesleadformdataIndex].value as string[])[0] ?? '(no entry)'}
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+                                {field.type === 'textarea' && (
+                                  <>
+                                    <div className='flex gap-1 items-center'>
+                                      <div>
+                                        {(formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[salesleadformdataIndex].value as string[])[0] ?? '(no entry)'}
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+                                {field.type === 'checkbox' && (
+                                  <label className='form-control'>
+                                    <input type='checkbox' disabled={true} checked={formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value === 'true' ? true : false} onChange={(e) => { }} />
+                                    {Array.isArray(field.params) && field.params.length > 0 && field.params[0]}
+                                  </label>
+                                )}
+                                {field.type === 'multicheckbox' && (
+                                  <>
+                                    {Array.isArray(field.params) && field.params.length > 0 && (
+                                      <>
+                                        {field.params.map((param, paramIndex) => (
+                                          <label key={paramIndex} className='form-control'>
+                                            <input type='checkbox' disabled={true} checked={(formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[paramIndex] === 'true' ? true : false} onChange={(e) => { }} />
+                                            {param}
+                                          </label>
+                                        ))}
+                                      </>
+                                    )}
+                                  </>
+                                )}
+                                {field.type === 'date' && (
+                                  <div className='flex gap-1 items-center'>
+                                    <div>
+                                      {(formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[salesleadformdataIndex].value as string[])[0] ?? '(no entry)'}
+                                    </div>
+                                  </div>
+                                )}
+                                {field.type === 'database' && (
+                                  <>
+                                    {Array.isArray(field.params) && field.params.length > 0 && (
+                                      <>
+                                        {field.params[0] === 'users' && users && (
+                                          <div className='flex gap-1 items-center'>
+                                            <div>
+                                              {(formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0] !== '' && (
+                                                <>
+                                                  {`${(users.filter((user) => user.id.toString() === (formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0]))[0].first} ${(users.filter((user) => user.id.toString() === (formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0]))[0].last}`}
+                                                </>
+                                              )}
+                                              {(formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0] === '' && (
+                                                <>
+                                                  {`(no entry)`}
+                                                </>
+                                              )}
+                                            </div>
+                                          </div>
+                                        )}
+                                        {field.params[0] === 'contacts' && leadDetails.project.contacts && (
+                                          <>
+                                            <div className='flex gap-1 items-center'>
+                                              <div>
+                                                {(formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0] !== '' && (
+                                                  <>
+                                                    {leadDetails.project.contacts.filter((joinTableEntry) => joinTableEntry.contact.id.toString() === (formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0])[0].contact.first} {leadDetails.project.contacts.filter((joinTableEntry) => joinTableEntry.contact.id.toString() === (formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0])[0].contact.last}
+                                                  </>
+                                                )}
+                                                {(formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0] === '' && (
+                                                  <>
+                                                    {`(no entry)`}
+                                                  </>
+                                                )}
+                                              </div>
+                                            </div>
+                                            <div className='italic'>
+                                              <select className='std-input w-full' value={(formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0]} onChange={(e) => handleTextChange(currentStudyPlanIndex, (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex], rowIndex, fieldIndex, salesleadformdataIndex, formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[salesleadformdataIndex].sectionShapeIndex, e.target.value)}>
+                                                <option value=''>-- Choose --</option>
+                                                {leadDetails.project.contacts
+                                                  .map((joinTableEntry) => joinTableEntry.contact)
+                                                  .map((contact) => (
+                                                    <option key={contact.id} value={contact.id}>
+                                                      {`${contact.first} ${contact.last}`}
+                                                    </option>
+                                                  ))}
+                                              </select>
+                                            </div>
+                                          </>
+                                        )}
+                                      </>
+                                    )}
+                                  </>
+                                )}
+                                {field.type === 'generated' && (
+                                  <>
+                                    {Array.isArray(field.params) && field.params.length > 0 && (
+                                      <>
+                                        {field.params[0] === 'studyId' && <div className='italic'>(Study ID will be generated when lead is published)</div>}
+                                        {field.params[0] === 'clientName' && <div>{leadDetails.client.name}</div>}
+                                        {field.params[0] === 'projectName' && <div>{leadDetails.project.name}</div>}
+                                        {field.params[0] === 'projectNDA' && <div>{leadDetails.project.nda ? 'Yes' : 'No'}</div>}
+                                      </>
+                                    )}
+                                  </>
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
                       {/* ----------------- SALES LEAD EDIT MODE ----------------- */}
                       {mode === 'salesleadedit' &&
                         leadDetails &&

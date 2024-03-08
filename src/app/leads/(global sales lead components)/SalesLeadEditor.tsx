@@ -18,7 +18,7 @@ import Modal from '@/app/(global components)/Modal';
 import UpgradeFormModal from '@/app/(_modal panels)/UpgradeFormModal';
 
 type Props = {
-  mode: 'new' | 'edit';
+  mode: 'view' | 'edit';
   users: User[];
   clients: Client[];
   studyPlans: FormWithAllLevels[];
@@ -32,12 +32,12 @@ export default function SalesLeadEditor({ mode, users, clients, leadDetails, set
   const [showUpgradeForm, setShowUpgradeForm] = useState(false);
   const [upgradeLeadDetails, setUpgradeLeadDetails] = useState<SalesLeadWithAllDetails>(leadDetails);
 
-  async function handleUpgradeForm() {}
+  async function handleUpgradeForm() { }
 
   return (
     <>
       <section className='flex flex-col gap-2 pb-4'>
-        {mode === 'edit' && leadDetails.revisions[0].studyplans.length > 0 && (
+        {leadDetails.revisions[0].studyplans.length > 0 && (
           <>
             <div className='flex items-center gap-2'>
               <div className='font-bold'>Viewing:</div>
@@ -61,46 +61,40 @@ export default function SalesLeadEditor({ mode, users, clients, leadDetails, set
                 <div className='bg-[#ffeca5] px-2 pr-3 py-1 rounded-full border border-[#aa7d00] flex gap-2 items-center text-[#aa7d00]'>
                   <FaExclamationCircle />
                   Outdated Form
-                  <UpgradeFormModal
-                    buttonContents='Upgrade'
-                    fallbackContents={
-                      <div className='flex gap-2 items-center'>
-                        Upgrade <FaSpinner className='animate-spin' />
-                      </div>
-                    }
-                    users={users}
-                    studyPlans={studyPlans}
-                    leadDetails={leadDetails}
-                    setLeadDetails={setLeadDetails}
-                    currentStudyPlanIndex={currentStudyPlanIndex}
-                    showModal={showUpgradeForm}
-                    setShowModal={setShowUpgradeForm}
-                    saveChangesFunction={handleUpgradeForm}
-                    currentUser={currentUser}
-                  />
+                  {mode === 'edit' && (
+                    <UpgradeFormModal
+                      buttonContents='Upgrade'
+                      fallbackContents={
+                        <div className='flex gap-2 items-center'>
+                          Upgrade <FaSpinner className='animate-spin' />
+                        </div>
+                      }
+                      users={users}
+                      studyPlans={studyPlans}
+                      leadDetails={leadDetails}
+                      setLeadDetails={setLeadDetails}
+                      currentStudyPlanIndex={currentStudyPlanIndex}
+                      showModal={showUpgradeForm}
+                      setShowModal={setShowUpgradeForm}
+                      saveChangesFunction={handleUpgradeForm}
+                      currentUser={currentUser}
+                    />
+                  )}
+
                 </div>
               )}
             </section>
+            {mode === 'view' && (
+              <>
+                <FormView mode='salesleadreadonly' leadDetails={leadDetails} setLeadDetails={setLeadDetails} currentStudyPlanIndex={currentStudyPlanIndex} formContents={leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision} users={users} />
+              </>)}
+            {mode === 'edit' && (
+              <>
+                <FormView mode='salesleadedit' leadDetails={leadDetails} setLeadDetails={setLeadDetails} currentStudyPlanIndex={currentStudyPlanIndex} formContents={leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision} users={users} />
+              </>)}
 
-            <FormView mode='salesleadedit' leadDetails={leadDetails} setLeadDetails={setLeadDetails} currentStudyPlanIndex={currentStudyPlanIndex} formContents={leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision} users={users} />
           </>
         )}
-        {mode === 'new' && leadDetails.revisions[0].studyplans.length > 0 && (
-          <>
-            <div className='flex items-center gap-2'>
-              <div className='font-bold'>Viewing:</div>
-              <select className='std-input flex-grow' value={currentStudyPlanIndex} onChange={(e) => setCurrentStudyPlanIndex(parseInt(e.target.value))}>
-                {leadDetails.revisions[0].studyplans.map((plan) => (
-                  <option key={plan.formrevision.form.id} value={leadDetails.revisions[0].studyplans.indexOf(plan)}>
-                    {plan.formrevision.form.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {/* <FormView formContents={leadDetails.revisions[0].studyplans[currentStudyPlanIndex]} /> */}
-          </>
-        )}
-        {leadDetails.revisions[0].studyplans.length === 0 && <div className='italic'>No study plans added yet.</div>}
       </section>
     </>
   );
