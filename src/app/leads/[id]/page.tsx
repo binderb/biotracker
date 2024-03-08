@@ -1,7 +1,7 @@
 import Nav from "@/app/(global components)/Nav";
 import { db } from "@/db";
-import { SalesLeadWithAllDetails, salesleadrevisions, leads, salesleadformdata, salesleadnotes } from "@/db/schema_salesleadsModule";
-import { and, desc, eq } from "drizzle-orm";
+import { SalesLeadWithAllDetails, salesleadrevisions, leads, salesleadformdata, salesleadnotes, salesformshape, salesleadrevisionsToFormrevisions } from "@/db/schema_salesleadsModule";
+import { and, asc, desc, eq } from "drizzle-orm";
 import Link from "next/link";
 import SalesLeadViewer from "./components/SalesLeadViewer";
 import { getServerSession } from "next-auth";
@@ -65,6 +65,7 @@ export default async function EditSalesLead({ params }: { params: { id: number }
         limit: 1,
         with: {
           studyplans: {
+            orderBy: [asc(salesleadrevisionsToFormrevisions.formrevision)],
             columns: {
               formrevision: true
             },
@@ -91,7 +92,9 @@ export default async function EditSalesLead({ params }: { params: { id: number }
               },
             }
           },
-          studyplanshapes: true,
+          studyplanshapes: {
+            orderBy: [asc(salesformshape.studyplanrevision)],
+          },
         }
       },
       notes: {

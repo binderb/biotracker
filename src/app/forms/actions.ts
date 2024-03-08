@@ -7,10 +7,10 @@ import { revalidatePath } from 'next/cache';
 
 export async function addNewForm(form: FormWithAllLevels) {
   try {
-    const index = (await db
+    const index = await db
       .select({ value: max(forms.index) })
       .from(forms)
-      .where(eq(forms.docType, form.docType))) as { value: number }[];
+      .where(and(eq(forms.docType, form.docType),eq(forms.functionalArea, form.functionalArea))) as { value: number }[];
     const newFormResponse = await db
       .insert(forms)
       .values({

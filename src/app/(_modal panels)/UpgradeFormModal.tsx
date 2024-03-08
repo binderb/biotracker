@@ -65,6 +65,7 @@ export default function UpgradeFormModal({ fallbackContents, buttonContents, sho
                       id: field.id,
                       salesleadrevision: -1,
                       formfield: field.id,
+                      sectionShapeIndex: 0,
                       value: Array<string>() as unknown,
                     } as SalesLeadFormData,
                   ],
@@ -79,6 +80,8 @@ export default function UpgradeFormModal({ fallbackContents, buttonContents, sho
     // now, create a new sales lead object that is identical to the leadDetails object, except that the formrevision object is replaced with the latest revision of the current form. This will be the object that the user edits and then saves as a new revision of the sales lead.
     const newUpgradedLeadDetails = cloneDeep(leadDetails);
     newUpgradedLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision = latestRevisionOfCurrentFormWithAllLevelsAndData;
+    // also need to create a new salesformshape object for the new revision, which will be a simple list of section indices since no extensible sections will have been added initially
+    newUpgradedLeadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape = latestRevisionOfCurrentForm.sections.map((_, sectionIndex) => sectionIndex);
     setUpgradedLeadDetails(newUpgradedLeadDetails);
 
     setLoading(false);

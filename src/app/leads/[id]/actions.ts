@@ -72,11 +72,12 @@ export async function addSalesLeadRevision(leadDetails: SalesLeadWithAllDetails,
       formrevision: studyPlan.formrevision.id,
     });
   }
-  // create a salesformshape for each study plan in the new revision(formshape here will be a simple list of section indices since no extensible sections will have been added initially)
-  for (const studyPlan of leadDetails.revisions[0].studyplans) {
+  // create a salesformshape for each study plan in the new revision
+  for (let i=0;i<leadDetails.revisions[0].studyplans.length;i++) {
     await db.insert(salesformshape).values({
+      studyplanrevision: leadDetails.revisions[0].studyplans[i].formrevision.id,
       salesleadrevision: newRevisionResponse[0].id,
-      formshape: studyPlan.formrevision.sections.map((_, sectionIndex) => sectionIndex),
+      formshape: leadDetails.revisions[0].studyplanshapes[i].formshape,
     });
   }
   // for each form field in each study plan, create a sales lead form data entry
@@ -84,13 +85,14 @@ export async function addSalesLeadRevision(leadDetails: SalesLeadWithAllDetails,
     for (const section of studyPlan.formrevision.sections) {
       for (const row of section.rows) {
         for (const field of row.fields) {
-          await db.insert(salesleadformdata).values({
-            salesleadrevision: newRevisionResponse[0].id,
-            formfield: field.id,
-            value: field.salesleadformdata[0].value,
-            sectionShapeIndex: 0,
-            rowShapeIndex: 0,
-          });
+          for (const formdata of field.salesleadformdata) {
+            await db.insert(salesleadformdata).values({
+              salesleadrevision: newRevisionResponse[0].id,
+              formfield: field.id,
+              value: formdata.value,
+              sectionShapeIndex: formdata.sectionShapeIndex,
+            });
+          }
         }
       }
     }

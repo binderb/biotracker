@@ -104,6 +104,7 @@ export async function addSalesLead(salesLead: SalesLeadWithAllDetails) {
     // create a salesformshape for each study plan in the new revision(formshape here will be a simple list of section indices since no extensible sections will have been added initially)
     for (const studyPlan of salesLead.revisions[0].studyplans) {
       await db.insert(salesformshape).values({
+        studyplanrevision: studyPlan.formrevision.id,
         salesleadrevision: newRevisionResponse[0].id,
         formshape: studyPlan.formrevision.sections.map((_, sectionIndex) => sectionIndex),
       });
@@ -113,12 +114,12 @@ export async function addSalesLead(salesLead: SalesLeadWithAllDetails) {
       for (const section of studyPlan.formrevision.sections) {
         for (const row of section.rows) {
           for (const field of row.fields) {
-            let value: string[] = [];
+            let value: string[] = [''];
             if (field.type === 'checkbox') {
               value = ['false'];
             }
             if (field.type === 'multicheckbox') {
-              value = [];
+              value = [''];
               if (Array.isArray(field.params) && field.params.length > 0) {
                 for (const param of field.params) {
                   value.push('false');
@@ -130,7 +131,6 @@ export async function addSalesLead(salesLead: SalesLeadWithAllDetails) {
               formfield: field.id,
               value: value,
               sectionShapeIndex: 0,
-              rowShapeIndex: 0,
             });
           }
         }

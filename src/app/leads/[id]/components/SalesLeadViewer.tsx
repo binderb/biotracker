@@ -45,6 +45,7 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
   }, [salesLead]);
 
   useEffect(() => {
+    console.log("study plans",leadDetails.revisions[0].studyplans);
     if (JSON.stringify(leadDetails) !== JSON.stringify(salesLead)) {
       console.log('changes detected');
       setChanges(true);

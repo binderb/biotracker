@@ -170,12 +170,18 @@ export const salesleadnotesRelations = relations(salesleadnotes, ({one}) => ({
 
 export const salesformshape = pgTable('leadformshape', {
   id: serial('id').primaryKey(),
+  studyplanrevision: integer('studyplanrevision').notNull().references(() => formrevisions.id),
   salesleadrevision: integer('salesleadrevision').notNull().references(() => salesleadrevisions.id),
+  // This is an array of numbers, each number representing the index of a section in the form revision
   formshape: json('formshape').notNull(),
 });
 
 
 export const salesformshapeRelations = relations(salesformshape, ({one}) => ({
+  studyplanrevision: one(formrevisions, {
+    fields: [salesformshape.studyplanrevision],
+    references: [formrevisions.id],
+  }),
   salesleadrevision: one(salesleadrevisions, {
     fields: [salesformshape.salesleadrevision],
     references: [salesleadrevisions.id],

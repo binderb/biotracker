@@ -54,6 +54,7 @@ export default function SalesLeadCreator({ currentUser, users, clients, studyPla
         id: 0,
         created: new Date(),
         studyplans: [],
+        studyplanshapes: [],
         saleslead: 0,
         author: currentUser.id,
       },

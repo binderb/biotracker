@@ -26,11 +26,8 @@ type Props = {
 export default function SalesLeadDetails({ mode, users, clients, leadDetails, setLeadDetails, studyPlans }: Props) {
   const [clientProjects, setClientProjects] = useState<ProjectWithAllDetails[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
-  // const [currentTab, setCurrentTab] = useState(mode === 'new' ? 'details' : 'study-plans');
   const [planToAdd, setPlanToAdd] = useState('');
   const [contributorToAdd, setContributorToAdd] = useState('');
-  // const [currentStudyPlanIndex, setCurrentStudyPlanIndex] = useState(0);
-  // const [firstNote, setFirstNote] = useState('');
 
   // populate list of client projects, if client is already set.
   useEffect(() => {
@@ -40,11 +37,6 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
       });
     }
   }, [leadDetails.client]);
-
-  const tabs = [
-    { name: 'study-plans', label: 'Study Plans' },
-    { name: 'details', label: 'Sales Lead Details' },
-  ];
 
   async function handleClientChange(e: ChangeEvent<HTMLSelectElement>) {
     console.log(e.target.value);
@@ -72,7 +64,11 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
     const newSections = latestrevision.sections.map((section) => {
       const newRows = section.rows.map((row) => {
         const newFields = row.fields.map((field) => {
-          return {...field, salesleadformdata: [{value: '', salesleadrevision: leadDetails.id ?? 0}]};
+          return {...field, salesleadformdata: [{
+            value: [], 
+            salesleadrevision: leadDetails.id ?? 0,
+            sectionShapeIndex: 0,
+          }]};
         });
         return {...row, fields: newFields};
       });
@@ -82,14 +78,20 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
     const latestrevisionWithData = {...latestrevision, sections: newSections};
     const studyPlanToAdd = { formrevision: {...latestrevisionWithData, form: simpleForm}};
     const newStudyPlans = [...leadDetails.revisions[0].studyplans, studyPlanToAdd];
-    const newLeadDetails = { ...leadDetails, revisions: [{ ...leadDetails.revisions[0], studyplans: newStudyPlans }] } as SalesLeadWithAllDetails;
+    const newStudyPlanShapes = [...leadDetails.revisions[0].studyplanshapes, {
+      salesleadrevision: leadDetails.revisions[0].id,
+      studyplanrevision: latestrevision.id,
+      formshape: latestrevision.sections.map((_, sectionIndex) => sectionIndex)
+    }];
+    const newLeadDetails = { ...leadDetails, revisions: [{ ...leadDetails.revisions[0], studyplans: newStudyPlans, studyplanshapes: newStudyPlanShapes }] } as SalesLeadWithAllDetails;
     setLeadDetails(newLeadDetails);
     setPlanToAdd('');
   }
 
   function handleRemovePlan(id: number) {
     const newStudyPlans = leadDetails.revisions[0].studyplans.filter((plan) => plan.formrevision.form.id !== id);
-    setLeadDetails({ ...leadDetails, revisions: [{ ...leadDetails.revisions[0], studyplans: newStudyPlans }] });
+    const newStudyPlanShapes = leadDetails.revisions[0].studyplanshapes.filter((shape) => shape.studyplanrevision !== id);
+    setLeadDetails({ ...leadDetails, revisions: [{ ...leadDetails.revisions[0], studyplans: newStudyPlans, studyplanshapes: newStudyPlanShapes }] });
   }
 
   function handleAddContributor() {
@@ -186,12 +188,13 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                   <td className='bg-white/50 border border-secondary/80 p-1'>
                     <div className='flex flex-col gap-2'>
                       <div className='flex items-center gap-2'>
+                        {leadDetails.client?.name.split(' ')[0] === '' ? '(select client)' : leadDetails.client?.name.split(' ')[0]} -
+                        {' '}
+                        <input className='std-input flex-grow' name='name' value={leadDetails.name.split(/\((.*)\)$/s)[1]} onChange={(e)=>setLeadDetails({ ...leadDetails, name: `${leadDetails.client?.name.split(' ')[0] ?? ''} - ${e.target.value} - ${leadDetails.created.getFullYear()}${(leadDetails.created.getMonth() + 1).toString().padStart(2, '0')}${leadDetails.created.getDate().toString().padStart(2, '0')}` })} />
+                        {' - '}
                         {leadDetails.created.getFullYear()}
                         {(leadDetails.created.getMonth() + 1).toString().padStart(2, '0')}
-                        {leadDetails.created.getDate().toString().padStart(2, '0')} - {leadDetails.client?.name.split(' ')[0] ?? ''}
-                        {' ('}
-                        <input className='std-input flex-grow' name='name' value={leadDetails.name.split(/\((.*)\)$/s)[1]} onChange={(e)=>setLeadDetails({ ...leadDetails, name: `${leadDetails.created.getFullYear()}${(leadDetails.created.getMonth() + 1).toString().padStart(2, '0')}${leadDetails.created.getDate().toString().padStart(2, '0')} - ${leadDetails.client?.name.split(' ')[0] ?? ''} (${e.target.value})` })} />
-                        {')'}
+                        {leadDetails.created.getDate().toString().padStart(2, '0')}
                       </div>
 
                       <div className='text-[12px]'>Add a brief, 1-2 word description to help you identify this lead on the dashboard.</div>

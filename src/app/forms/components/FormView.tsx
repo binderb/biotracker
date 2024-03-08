@@ -23,55 +23,51 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
   const [formRenderArray, setFormRenderArray] = useState<SalesFormRevisionWithAllLevelsAndData>(
     mode === 'salesleadedit' && leadDetails && currentStudyPlanIndex
       ? {
-          ...leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision,
-          sections: (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).map((sectionIndex) => {
-            return {
-              ...leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex],
-            };
-          }),
-        }
+        ...leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision,
+        sections: (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).map((sectionIndex) => {
+          return {
+            ...leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex],
+          };
+        }),
+      }
       : formContents as SalesFormRevisionWithAllLevelsAndData
   );
 
   // need useEffect to update formRenderArray when leadDetails or currentStudyPlanIndex changes.
   useEffect(() => {
-    console.log('useeffect triggered');
-    console.log(mode);
     if (mode === 'salesleadedit' && leadDetails && currentStudyPlanIndex !== undefined) {
       const newFormRenderArray = {
         ...leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision,
-          sections: (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).map((sectionIndex,formShapeIndex) => {
-            return {
-              ...leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex],
-              rows: leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows.map((row) => {
-                return {
-                  ...row,
-                  fields: row.fields.map((field) => {
-                    return {
-                      ...field,
-                      // want to filter for only the salesleadformdata that match the instance of this section that's currently being mapped over. So... we have to find the first occurrence of sectionIndex in the formshape array, and subtract its index from the current index to get the instance number.  
-                      salesleadformdata: field.salesleadformdata.filter((salesleadformdata) => salesleadformdata.sectionShapeIndex === formShapeIndex - (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).indexOf(sectionIndex)),
-                      
-                    };
-                  }),
-                };
-              }),
-            };
-          }),
+        sections: (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).map((sectionIndex, formShapeIndex) => {
+          return {
+            ...leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex],
+            rows: leadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[sectionIndex].rows.map((row) => {
+              return {
+                ...row,
+                fields: row.fields.map((field) => {
+                  return {
+                    ...field,
+                    // want to filter for only the salesleadformdata that match the instance of this section that's currently being mapped over. So... we have to find the first occurrence of sectionIndex in the formshape array, and subtract its index from the current index to get the instance number.  
+                    salesleadformdata: field.salesleadformdata.filter((salesleadformdata) => salesleadformdata.sectionShapeIndex === formShapeIndex - (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).indexOf(sectionIndex)),
+
+                  };
+                }),
+              };
+            }),
+          };
+        }),
       };
-      console.log(newFormRenderArray);
       setFormRenderArray(newFormRenderArray);
-      console.log('formRenderArray updated');
     } else {
       setFormRenderArray(formContents as SalesFormRevisionWithAllLevelsAndData);
     }
   }, [leadDetails, currentStudyPlanIndex, formContents, mode]);
 
-  function handleTextChange(currentStudyPlanIndex: number, sectionIndex: number, rowIndex: number, fieldIndex: number, salesleadformdataIndex: number, value: string) {
+  function handleTextChange(currentStudyPlanIndex: number, templateSectionIndex: number, rowIndex: number, fieldIndex: number, salesleadformdataIndex: number, sectionShapeIndex: number, value: string) {
     if (leadDetails && setLeadDetails) {
-      const newFormRenderArray = { ...formRenderArray };
-      (newFormRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[salesleadformdataIndex].value as string[])[0] = value;
-      setFormRenderArray(newFormRenderArray);
+      const newLeadDetails = { ...leadDetails };
+      (newLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[templateSectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata.filter((formData) => formData.sectionShapeIndex === sectionShapeIndex)[salesleadformdataIndex].value as string[])[0] = value;
+      setLeadDetails(newLeadDetails);
     }
   }
 
@@ -96,7 +92,6 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
     const newLeadDetails = cloneDeep(leadDetails);
     // Modify the section shape array, splicing in a new number that matches the sectionShapeIndex after the current sectionIndex.
     (newLeadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).splice(sectionIndex + 1, 0, templateSectionIndex);
-    console.log(newLeadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape);
     // for every field in every row of the section, add a new salesleadformdata object and increment its sectionShapeIndex.
     for (const row of newLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[templateSectionIndex].rows) {
       for (const field of row.fields) {
@@ -110,28 +105,49 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
           id: -1,
           salesleadrevision: newLeadDetails.revisions[0].id,
           formfield: field.id,
-          // need to figure out the right number to put here.
           // This should be the index of the new section in the formshape array, minus the index of the first occurrence of the section in the formshape array.
           sectionShapeIndex: (sectionIndex + 1) - (newLeadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).indexOf(templateSectionIndex),
-          value: [],
+          value: [''],
         });
-         
+
       }
     }
     setLeadDetails(newLeadDetails);
+  }
+
+  function handleRemoveExtensibleSection(currentStudyPlanIndex: number, sectionIndex: number, templateSectionIndex: number) {
+    if (!leadDetails || !setLeadDetails) return;
+    const newLeadDetails = cloneDeep(leadDetails);
+    // Modify the section shape array, splicing out the number that matches the sectionShapeIndex at the current sectionIndex.
+    (newLeadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).splice(sectionIndex, 1);
+    // for every field in every row of the section, remove the salesleadformdata object with the corresponding sectionShapeIndex and decrement the sectionShapeIndex property on all other salesleadformdata objects that had a sectionShapeIndex greater than the one that was removed.
+    for (const row of newLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[templateSectionIndex].rows) {
+      for (const field of row.fields) {
+        // remove the salesleadformdata objects with the corresponding sectionShapeIndex.
+        field.salesleadformdata = field.salesleadformdata.filter((salesleadformdata) => salesleadformdata.sectionShapeIndex !== sectionIndex - (newLeadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).indexOf(templateSectionIndex));  
+        // shift the sectionShapeIndex of every downstream salesleadformdata object down by one.
+        for (const salesleadformdata of field.salesleadformdata) {
+          if (salesleadformdata.sectionShapeIndex > sectionIndex - (newLeadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[]).indexOf(templateSectionIndex)) {
+            salesleadformdata.sectionShapeIndex--;
+          }
+        }
+      }
+    }
+
+    setLeadDetails(newLeadDetails);
+    
   }
 
   function handleAddExtensibleRow(currentStudyPlanIndex: number, templateSectionIndex: number, rowIndex: number, salesleadformdataIndex: number, sectionShapeIndex: number) {
     if (!leadDetails || !setLeadDetails) return;
     const newLeadDetails = cloneDeep(leadDetails);
     for (const field of newLeadDetails.revisions[0].studyplans[currentStudyPlanIndex].formrevision.sections[templateSectionIndex].rows[rowIndex].fields) {
-      console.log("sectionShapeIndex: ", field.salesleadformdata[salesleadformdataIndex].sectionShapeIndex);
       field.salesleadformdata.splice(field.salesleadformdata.indexOf(field.salesleadformdata.filter((e) => e.sectionShapeIndex === sectionShapeIndex)[salesleadformdataIndex]) + 1, 0, {
         id: -1,
         salesleadrevision: newLeadDetails.revisions[0].id,
         formfield: field.id,
         sectionShapeIndex: sectionShapeIndex,
-        value: [],
+        value: [''],
       });
     }
     setLeadDetails(newLeadDetails);
@@ -155,18 +171,18 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
               {/* ----------------- FORM MODULE VIEW MODE ----------------- */}
               {mode === 'view' && (
                 <section className='flex items-center justify-between py-2'>
-                  
+
                   {section.extensible && (
                     <>
-                    <h6 className='font-bold'>{section.name} 1:</h6>
-                    <button className='std-button-lite' onClick={(e) => e.preventDefault()}>
-                      <FaPlus />
-                    </button>
+                      <h6 className='font-bold'>{section.name} 1:</h6>
+                      <button className='std-button-lite' onClick={(e) => e.preventDefault()}>
+                        <FaPlus />
+                      </button>
                     </>
                   )}
                   {!section.extensible && (
                     <>
-                    <h6 className='font-bold'>{section.name}:</h6>
+                      <h6 className='font-bold'>{section.name}:</h6>
                     </>
                   )}
                 </section>
@@ -174,20 +190,34 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
               {/* ----------------- SALES LEAD EDIT MODE ----------------- */}
               {mode === 'salesleadedit' && (
                 <section className='flex items-center justify-between py-2'>
-                  
+
                   {section.extensible &&
-                        leadDetails &&
-                        currentStudyPlanIndex !== undefined && (
-                    <>
-                    <h6 className='font-bold whitespace-pre'>{section.name} {sectionIndex - (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex] + 1}:</h6>
-                    <button className='std-button-lite' onClick={(e) => {e.preventDefault();handleAddExtensibleSection(currentStudyPlanIndex,sectionIndex,(leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex] )}}>
-                      <FaPlus />
-                    </button>
-                    </>
-                  )}
+                    leadDetails &&
+                    currentStudyPlanIndex !== undefined && (
+                      <>
+                        <h6 className='font-bold whitespace-pre'>{section.name} {sectionIndex - (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex] + 1}:</h6>
+                        <div className='flex gap-1'>
+                        {(formRenderArray.sections[sectionIndex].rows[0].fields[0].salesleadformdata[0].sectionShapeIndex !== 0 || formRenderArray.sections.filter((section) => section.rows[0].fields[0].salesleadformdata[0].sectionShapeIndex > 0).length > 0) && (
+                                          <button
+                                            className='secondary-button-lite'
+                                            onClick={(e) => {
+                                              e.preventDefault();
+                                              handleRemoveExtensibleSection(currentStudyPlanIndex, sectionIndex, (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex]);
+                                            }}>
+                                            <FaTrashAlt />
+                                          </button>
+                                        )}
+                          <button className='std-button-lite' onClick={(e) => { e.preventDefault(); handleAddExtensibleSection(currentStudyPlanIndex, sectionIndex, (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex]) }}>
+                            <FaPlus />
+                          </button>
+
+                        </div>
+
+                      </>
+                    )}
                   {!section.extensible && (
                     <>
-                    <h6 className='font-bold'>{section.name}:</h6>
+                      <h6 className='font-bold'>{section.name}:</h6>
                     </>
                   )}
                 </section>
@@ -265,7 +295,7 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                                     )}
                                   </>
                                 )}
-                                {field.type === 'date' && <DatePicker className='std-input w-full' dateFormat='MM/dd/yyyy' selected={null} onChange={() => {}} />}
+                                {field.type === 'date' && <DatePicker className='std-input w-full' dateFormat='MM/dd/yyyy' selected={null} onChange={() => { }} />}
                                 {field.type === 'database' && (
                                   <>
                                     {Array.isArray(field.params) && field.params.length > 0 && (
@@ -307,7 +337,7 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                         leadDetails &&
                         currentStudyPlanIndex !== undefined &&
                         formRenderArray.sections[sectionIndex].rows[rowIndex].fields[0].salesleadformdata.map((_, salesleadformdataIndex) => (
-                          
+
                           <tr key={`${rowIndex}_${salesleadformdataIndex}`}>
                             {/* {JSON.stringify((leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex])} */}
                             {row.fields.map((field, fieldIndex) => (
@@ -327,7 +357,7 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                                   <>
                                     {row.extensible && (
                                       <div className='flex gap-1 items-center'>
-                                        <input className='std-input w-full' value={formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[salesleadformdataIndex].value as string} onChange={(e) => handleTextChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, salesleadformdataIndex, e.target.value)} />
+                                        <input className='std-input w-full' value={formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[salesleadformdataIndex].value as string} onChange={(e) => handleTextChange(currentStudyPlanIndex, (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex], rowIndex, fieldIndex, salesleadformdataIndex, formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[salesleadformdataIndex].sectionShapeIndex, e.target.value)} />
                                         {(salesleadformdataIndex !== 0 || formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata.length > 1) && (
                                           <button
                                             className='secondary-button-lite'
@@ -348,12 +378,12 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                                         </button>
                                       </div>
                                     )}
-                                    {!row.extensible && <input className='std-input w-full' value={formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string} onChange={(e) => handleTextChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, salesleadformdataIndex, e.target.value)} />}
+                                    {!row.extensible && <input className='std-input w-full' value={formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string} onChange={(e) => handleTextChange(currentStudyPlanIndex, (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex], rowIndex, fieldIndex, salesleadformdataIndex, formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[salesleadformdataIndex].sectionShapeIndex, e.target.value)} />}
                                   </>
                                 )}
                                 {field.type === 'textarea' && (
                                   <>
-                                    <textarea className='std-input w-full h-[100px] resize-none align-top' value={formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string} onChange={(e) => handleTextChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, salesleadformdataIndex, e.target.value)} />
+                                    <textarea className='std-input w-full h-[100px] resize-none align-top' value={formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string} onChange={(e) => handleTextChange(currentStudyPlanIndex, (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex], rowIndex, fieldIndex, salesleadformdataIndex, formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[salesleadformdataIndex].sectionShapeIndex, e.target.value)} />
                                   </>
                                 )}
                                 {field.type === 'checkbox' && (
@@ -389,7 +419,7 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                                     {Array.isArray(field.params) && field.params.length > 0 && (
                                       <>
                                         {field.params[0] === 'users' && users && (
-                                          <select className='std-input w-full' value={formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string} onChange={(e) => handleTextChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, salesleadformdataIndex, e.target.value)}>
+                                          <select className='std-input w-full' value={(formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0]} onChange={(e) => handleTextChange(currentStudyPlanIndex, (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex], rowIndex, fieldIndex, salesleadformdataIndex, formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[salesleadformdataIndex].sectionShapeIndex, e.target.value)}>
                                             <option value=''>-- Choose --</option>
                                             {users.map((user) => (
                                               <option key={user.id} value={user.id}>{`${user.first} ${user.last}`}</option>
@@ -398,7 +428,7 @@ export default function FormView({ formContents, mode, leadDetails, setLeadDetai
                                         )}
                                         {field.params[0] === 'contacts' && leadDetails.project.contacts && (
                                           <div className='italic'>
-                                            <select className='std-input w-full' value={formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string} onChange={(e) => handleTextChange(currentStudyPlanIndex, sectionIndex, rowIndex, fieldIndex, salesleadformdataIndex, e.target.value)}>
+                                            <select className='std-input w-full' value={(formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[0].value as string[])[0]} onChange={(e) => handleTextChange(currentStudyPlanIndex, (leadDetails.revisions[0].studyplanshapes[currentStudyPlanIndex].formshape as number[])[sectionIndex], rowIndex, fieldIndex, salesleadformdataIndex, formRenderArray.sections[sectionIndex].rows[rowIndex].fields[fieldIndex].salesleadformdata[salesleadformdataIndex].sectionShapeIndex, e.target.value)}>
                                               <option value=''>-- Choose --</option>
                                               {leadDetails.project.contacts
                                                 .map((joinTableEntry) => joinTableEntry.contact)
