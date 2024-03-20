@@ -4,6 +4,7 @@ export type Config = typeof configs.$inferSelect;
 
 export const configs = pgTable('configs', {
   id: serial('id').primaryKey(),
+  type: varchar('type',{length: 500}).notNull(),
   accountEmail: varchar('account_email',{length: 500}).notNull(),
   token: json('token').notNull(),
   studiesDriveName: varchar('studies_drive_name',{length: 500}),
