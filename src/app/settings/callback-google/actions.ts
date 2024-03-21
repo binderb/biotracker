@@ -36,6 +36,7 @@ export async function saveGoogleDriveToken (authCode:string) {
     const accountEmail = userResponse?.data?.user?.emailAddress ?? "(no email retrieved)";
     const deleteResponse = await db.delete(configs);
     const configResponse = await db.insert(configs).values({
+      type: "Google",
       accountEmail: accountEmail,
       token: token
     }).returning();

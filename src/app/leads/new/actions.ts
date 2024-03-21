@@ -56,10 +56,10 @@ export async function addSalesLead(salesLead: SalesLeadWithAllDetails) {
     console.log('repositoryName', repositoryName);
     const config = await db.query.configs.findFirst();
     if (!config) {
-      throw new Error('No configuration object found in database. Please ensure you have connected a Google Drive account.');
+      throw new Error('No configuration object found in database. Please ensure you have connected a Google or Microsoft account.');
     }
     if (!config.salesleadDriveId || !config.salesleadPath) {
-      throw new Error('No sales lead drive ID or path found in database. Please ensure you have connected a Google Drive account.');
+      throw new Error('No sales lead drive ID or path found in database. Please ensure you have connected a Google or Microsoft account.');
     }
     const salesLeadFolderId = await getFolderIdFromPath(config.salesleadDriveId, config.salesleadPath, googleDrive);
     const newSalesLeadFolderId = await createDirectoryIfNotExists(repositoryName, salesLeadFolderId, googleDrive);
