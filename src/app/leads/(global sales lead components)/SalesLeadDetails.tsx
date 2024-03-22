@@ -5,9 +5,10 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import { getProjectsForClient } from '../new/actions';
 import Link from 'next/link';
 import { Form, FormRevisionWithAllLevels, FormWithAllLevels } from '@/db/schema_formsModule';
-import { FaTrashAlt } from 'react-icons/fa';
+import { FaCoins, FaFileSignature, FaMoneyBill, FaMoneyBillWave, FaSignature, FaTrashAlt } from 'react-icons/fa';
 import { User } from '@/db/schema_usersModule';
 import { NewSalesLead, SalesLeadWithAllDetails, salesleadStatusEnum } from '@/db/schema_salesleadsModule';
+import Modal from '@/app/(global components)/Modal';
 // import { extname } from 'path';
 // import Image from 'next/image';
 // import { FaXmark } from 'react-icons/fa6';
@@ -395,18 +396,31 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                   </div>
                 </td>
               </tr>
-              {/* Quote Link */}
+              {/* Quote */}
               <tr>
-                <td className='bg-white/50 border border-secondary/80 p-1 font-bold align-top py-2'>Quote Link:</td>
+                <td className='bg-white/50 border border-secondary/80 p-1 font-bold align-top py-2'>Quote:</td>
                 <td className='bg-white/50 border border-secondary/80 p-1'>
-                  {/* <input className='std-input w-full' name='quote' value={leadDetails.quote ?? ''} onChange={(e)=>setLeadDetails({ ...leadDetails, quote: e.target.value })} /> */}
+                  {leadDetails.quote && (
+                    <>
+                      
+                    </>
+                  )}
+                  {!leadDetails.quote && (
+                    <>
+                      <button className='std-button-lite' onClick={()=>{}}>
+                        <FaFileSignature />
+                        Add Quote
+                      </button>
+                    </>
+                  )}
+                  {/* <input className='std-input w-full' name='quote' value={leadDetails.quote?.link ?? ''} onChange={(e)=>setLeadDetails({ ...leadDetails, quote: leadDetails.quote ? {...leadDetails.quote, link: e.target.value } : null})} /> */}
                 </td>
               </tr>
             </tbody>
           </table>
         </section>
       </>)}
-
+      
     </>
   );
 }
