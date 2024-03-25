@@ -9,6 +9,7 @@ import { FaCoins, FaFileSignature, FaMoneyBill, FaMoneyBillWave, FaSignature, Fa
 import { User } from '@/db/schema_usersModule';
 import { NewSalesLead, SalesLeadWithAllDetails, salesleadStatusEnum } from '@/db/schema_salesleadsModule';
 import Modal from '@/app/(global components)/Modal';
+import QuoteModal from './QuoteModal';
 // import { extname } from 'path';
 // import Image from 'next/image';
 // import { FaXmark } from 'react-icons/fa6';
@@ -402,15 +403,12 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                 <td className='bg-white/50 border border-secondary/80 p-1'>
                   {leadDetails.quote && (
                     <>
-                      
+                      {JSON.stringify(leadDetails.quote)}
                     </>
                   )}
                   {!leadDetails.quote && (
                     <>
-                      <button className='std-button-lite' onClick={()=>{}}>
-                        <FaFileSignature />
-                        Add Quote
-                      </button>
+                      <QuoteModal mode='new' salesleadId={leadDetails.id} clientId={leadDetails.client.id} projectId={leadDetails.project.id} />
                     </>
                   )}
                   {/* <input className='std-input w-full' name='quote' value={leadDetails.quote?.link ?? ''} onChange={(e)=>setLeadDetails({ ...leadDetails, quote: leadDetails.quote ? {...leadDetails.quote, link: e.target.value } : null})} /> */}

@@ -4,6 +4,8 @@ import { leads } from "./schema_salesleadsModule";
 import { clients, projects } from "./schema_clientModule";
 import { studies } from "./schema_studiesModule";
 
+export type Quote = typeof quotes.$inferSelect;
+
 export const quotes = pgTable('quotes', {
   id: serial('id').primaryKey(),
   link: varchar('link', { length: 500 }).notNull(),
