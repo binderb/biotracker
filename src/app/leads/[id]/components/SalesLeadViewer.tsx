@@ -45,7 +45,6 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
   }, [salesLead]);
 
   useEffect(() => {
-    console.log("study plans", leadDetails.revisions[0].studyplans);
     if (JSON.stringify(leadDetails) !== JSON.stringify(salesLead)) {
       console.log('changes detected');
       setChanges(true);
@@ -133,7 +132,7 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
           <div className='flex gap-1 items-center'>
             {mode === 'view' && (
               <>
-                <div className='flex px-3 py-2 bg-secondary/30 rounded-lg flex items-center gap-2'>
+                <div className='flex px-3 py-2 bg-secondary/30 rounded-lg items-center gap-2'>
                   <FaInfoCircle />
                   <div>
                     {`You are not listed as a contributor on this sales lead, so it is displaying in "View" mode.`}

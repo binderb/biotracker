@@ -1,8 +1,9 @@
 'use server';
 
 import { db } from '@/db';
+import { quotes } from '@/db/schema_quotesModule';
 import { SalesLeadWithAllDetails, leads, salesformshape, salesleadformdata, salesleadnotes, salesleadrevisions, salesleadrevisionsToFormrevisions } from '@/db/schema_salesleadsModule';
-import { and, eq, ne } from 'drizzle-orm';
+import { and, eq, max, ne } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
 export async function addBareNote(leadDetails: SalesLeadWithAllDetails, note: string, author: number) {
@@ -97,6 +98,22 @@ export async function addSalesLeadRevision(leadDetails: SalesLeadWithAllDetails,
       }
     }
   }
+  // If the sales lead has a quote, determine if it needs to be created or updated
+  if (leadDetails.quote) {
+    if (leadDetails.quote.id === -1) {
+      const quoteIndex = (await db.select({ value: max(quotes.index) }).from(quotes).where(eq(quotes.client, leadDetails.client.id))) as { value: number }[];
+      await db.insert(quotes).values({
+        link: leadDetails.quote.link,
+        saleslead: leadDetails.id,
+        client: leadDetails.client.id,
+        project: leadDetails.project.id,
+        index: quoteIndex[0].value + 1,
+      });
+    } else {
+      await db.update(quotes).set({ link: leadDetails.quote.link }).where(eq(quotes.id, leadDetails.quote.id)).returning();
+    }
+  }
+
   // Create a new note
   const newNote = await db
     .insert(salesleadnotes)
