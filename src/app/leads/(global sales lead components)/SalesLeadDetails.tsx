@@ -5,7 +5,7 @@ import { ChangeEvent, useEffect, useState } from 'react';
 import { getProjectsForClient } from '../new/actions';
 import Link from 'next/link';
 import { Form, FormRevisionWithAllLevels, FormWithAllLevels } from '@/db/schema_formsModule';
-import { FaCoins, FaFileSignature, FaMoneyBill, FaMoneyBillWave, FaSignature, FaTrashAlt } from 'react-icons/fa';
+import { FaCoins, FaFileSignature, FaFlagCheckered, FaMoneyBill, FaMoneyBillWave, FaSignature, FaTrashAlt } from 'react-icons/fa';
 import { User } from '@/db/schema_usersModule';
 import { NewSalesLead, SalesLeadWithAllDetails, salesleadStatusEnum } from '@/db/schema_salesleadsModule';
 import Modal from '@/app/(global components)/Modal';
@@ -24,9 +24,10 @@ type Props = {
   studyPlans: FormWithAllLevels[];
   leadDetails: SalesLeadWithAllDetails;
   setLeadDetails: (leadDetails: SalesLeadWithAllDetails) => void;
+  handlePublish?: Function;
 };
 
-export default function SalesLeadDetails({ mode, users, clients, leadDetails, setLeadDetails, studyPlans }: Props) {
+export default function SalesLeadDetails({ mode, users, clients, leadDetails, setLeadDetails, studyPlans, handlePublish }: Props) {
   const [clientProjects, setClientProjects] = useState<ProjectWithAllDetails[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [planToAdd, setPlanToAdd] = useState('');
@@ -207,10 +208,20 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                     </div>
                   </td>
                 </tr>
-                {/* Quote Link */}
+                {/* Quote */}
                 <tr>
-                  <td className='bg-white/50 border border-secondary/80 p-1 font-bold align-top py-2'>Quote Link:</td>
-                  <td className='bg-white/50 border border-secondary/80 p-1'>{/* <input className='std-input w-full' name='quote' value={leadDetails.quote ?? ''} onChange={(e)=>setLeadDetails({ ...leadDetails, quote: e.target.value })} /> */}</td>
+                  <td className='bg-white/50 border border-secondary/80 p-2 font-bold align-top py-2'>Quote:</td>
+                  <td className='bg-white/50 border border-secondary/80 p-1'>
+                    {leadDetails.quote && leadDetails.quote.link && (
+                      <div className='flex gap-2 items-center'>
+                        <a className='std-button-lite' target='_blank' href={leadDetails.quote.link}>
+                          <LuExternalLink />
+                          View Quote
+                        </a>
+                      </div>
+                    )}
+                    {!leadDetails.quote && <div className='italic'>{`(No quote link provided)`}</div>}
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -399,7 +410,7 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                 {/* Quote */}
                 <tr>
                   <td className='bg-white/50 border border-secondary/80 p-1 font-bold align-top py-2'>Quote:</td>
-                  <td className='bg-white/50 border border-secondary/80 p-1'>
+                  <td className='bg-white/50 border border-secondary/80 p-2'>
                     {leadDetails.quote && leadDetails.quote.link && (
                       <div className='flex gap-2 items-center'>
                         <a className='std-button-lite' target='_blank' href={leadDetails.quote.link}>
@@ -414,7 +425,24 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                         <QuoteModal mode='new' leadDetails={leadDetails} setLeadDetails={setLeadDetails} salesleadId={leadDetails.id} clientId={leadDetails.client.id} projectId={leadDetails.project.id} />
                       </>
                     )}
-                    {/* <input className='std-input w-full' name='quote' value={leadDetails.quote?.link ?? ''} onChange={(e)=>setLeadDetails({ ...leadDetails, quote: leadDetails.quote ? {...leadDetails.quote, link: e.target.value } : null})} /> */}
+                  </td>
+                </tr>
+                {/* Publish */}
+                <tr>
+                  <td className='bg-white/50 border border-secondary/80 p-1 font-bold align-top py-2'>Publish:</td>
+                  <td className='bg-white/50 border border-secondary/80 p-2'>
+                    <div className='flex flex-col gap-2 justify-start items-start'>
+                      {handlePublish && (
+                        <button className='std-button-lite' onClick={() => handlePublish()}>
+                          <FaFlagCheckered />
+                          Publish
+                        </button>
+                      )}
+
+                      {/* <div>
+                        {`Status: ${leadDetails.status}`}
+                      </div> */}
+                    </div>
                   </td>
                 </tr>
               </tbody>
