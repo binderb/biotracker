@@ -121,6 +121,18 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
     }
   }
 
+  function checkPublishEligible () {
+    try {
+      if (leadDetails.status !== 'Won') throw new Error('Sales lead status must be "Won" before publishing.');
+      if (!leadDetails.quote || !leadDetails.quote.link) throw new Error('Please provide a quote link before publishing.');
+      if (changes) throw new Error('Please commit your changes before publishing.');
+      return true;
+    } catch (err: any) {
+      notify('error', err.message);
+      return false;
+    }
+  }
+
   async function handlePublish () {
     try {
       if (changes) throw new Error('Please commit your changes before publishing.');
@@ -254,7 +266,7 @@ export default function SalesLeadViewer({ mode, config, currentUser, users, clie
                     <SalesLeadDetails mode='view' users={users} clients={clients} studyPlans={studyPlans} leadDetails={leadDetails} setLeadDetails={setLeadDetails} />
                   </>)}
                   {mode === 'edit' && (<>
-                    <SalesLeadDetails mode='edit' users={users} clients={clients} studyPlans={studyPlans} leadDetails={leadDetails} setLeadDetails={setLeadDetails} handlePublish={handlePublish} />
+                    <SalesLeadDetails mode='edit' users={users} clients={clients} studyPlans={studyPlans} leadDetails={leadDetails} setLeadDetails={setLeadDetails} handlePublish={handlePublish} checkPublishEligible={checkPublishEligible} />
                   </>)}
                 </>)}
             </section>

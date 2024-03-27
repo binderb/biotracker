@@ -11,6 +11,7 @@ import { NewSalesLead, SalesLeadWithAllDetails, salesleadStatusEnum } from '@/db
 import Modal from '@/app/(global components)/Modal';
 import QuoteModal from './QuoteModal';
 import { LuExternalLink } from 'react-icons/lu';
+import PublishModal from './PublishModal';
 // import { extname } from 'path';
 // import Image from 'next/image';
 // import { FaXmark } from 'react-icons/fa6';
@@ -24,10 +25,11 @@ type Props = {
   studyPlans: FormWithAllLevels[];
   leadDetails: SalesLeadWithAllDetails;
   setLeadDetails: (leadDetails: SalesLeadWithAllDetails) => void;
-  handlePublish?: Function;
+  handlePublish?: () => Promise<void>;
+  checkPublishEligible?: () => boolean;
 };
 
-export default function SalesLeadDetails({ mode, users, clients, leadDetails, setLeadDetails, studyPlans, handlePublish }: Props) {
+export default function SalesLeadDetails({ mode, users, clients, leadDetails, setLeadDetails, studyPlans, handlePublish, checkPublishEligible }: Props) {
   const [clientProjects, setClientProjects] = useState<ProjectWithAllDetails[]>([]);
   const [loadingProjects, setLoadingProjects] = useState(false);
   const [planToAdd, setPlanToAdd] = useState('');
@@ -444,11 +446,8 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                   <td className='bg-white/50 border border-secondary/80 p-1 font-bold align-top py-2'>Publish:</td>
                   <td className='bg-white/50 border border-secondary/80 p-2'>
                     <div className='flex flex-col gap-2 justify-start items-start'>
-                      {handlePublish && (
-                        <button className='std-button-lite' onClick={() => handlePublish()}>
-                          <FaFlagCheckered />
-                          Publish
-                        </button>
+                      {(handlePublish && checkPublishEligible) && (
+                        <PublishModal mode='new' leadDetails={leadDetails} handlePublishFunction={handlePublish} checkPublishEligibleFunction={checkPublishEligible} />
                       )}
 
                       {/* <div>

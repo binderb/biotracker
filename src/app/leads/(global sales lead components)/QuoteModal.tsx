@@ -25,6 +25,7 @@ export default function QuoteModal({ mode, quoteId, quoteIndex, quoteLink, sales
 
   async function handleAddNewQuote(formData: FormData) {
     try {
+      setStatus('');
       if (formData.get('link') === null) throw new Error('No quote link provided.');
       const newQuote = {
         id: -1,
@@ -45,6 +46,7 @@ export default function QuoteModal({ mode, quoteId, quoteIndex, quoteLink, sales
 
   async function handleUpdateQuote(formData: FormData) {
     try {
+      setStatus('');
       if (!quoteId) throw new Error('No quote ID provided.');
       if (!formData.get('link')) throw new Error('No quote link provided.');
       if (!formData.get('index')) throw new Error('No quote index provided.');
