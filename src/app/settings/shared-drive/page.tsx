@@ -1,6 +1,6 @@
 import Nav from '../../(global components)/Nav';
 import Link from 'next/link';
-import GoogleControl from './components/GoogleControl';
+import SharedControl from './components/SharedControl';
 import { db } from '@/db';
 
 export default async function Settings () {
@@ -16,7 +16,7 @@ export default async function Settings () {
         </Link>
       </div>
       <main className='flex flex-col gap-2 p-4'>
-       <GoogleControl config={config ?? null} />
+       <SharedControl config={config ?? null} />
      </main>
     </>
   );

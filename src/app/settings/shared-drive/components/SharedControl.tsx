@@ -14,10 +14,11 @@ type Props = {
   config: Config | null;
 };
 
-export default function GoogleControl({ config }: Props) {
+export default function SharedControl({ config }: Props) {
   const router = useRouter();
   const [localConfig, setLocalConfig] = useState(config ?? {
     id: 0,
+    type: '',
     accountEmail: '',
     token: '',
     studiesDriveName: '',
@@ -59,10 +60,18 @@ export default function GoogleControl({ config }: Props) {
     }
   }
 
-  async function handleAuthClick() {
+  async function handleAuthClick(formData:FormData) {
     try {
-      const authUrl = await authorizeGoogleDrive();
-      router.push(authUrl);
+      if (!formData.get('type')) {
+        throw new Error('Please select a drive type.');
+      }
+      if (formData.get('type') === 'google') {
+        const authUrl = await authorizeGoogleDrive();
+        router.push(authUrl);
+      }
+      if (formData.get('type') === 'onedrive') {
+        throw new Error('OneDrive is not currently supported.');
+      }
     } catch (err: any) {
       notify('error', err.message);
     }
@@ -130,8 +139,8 @@ export default function GoogleControl({ config }: Props) {
   return (
     <>
       <section className='ui-box'>
-        <h5>Google Drive Connection Status</h5>
-        <div>Connecting a Google Drive account to this app enables the automatic generation and organization of folder repositories for Sales Leads and Studies.</div>
+        <h5>Shared Drive Connection Status</h5>
+        <div>Connecting a OneDrive or Google Drive account to this app enables the automatic generation and organization of folder repositories for Sales Leads and Studies. It is required to use these modules.</div>
         <div className='flex gap-2 pt-2 items-center'>
           {config ? (
             <>
@@ -146,7 +155,19 @@ export default function GoogleControl({ config }: Props) {
             </>
           ) : (
             <form action={handleAuthClick}>
-              <SubmitButton icon={<FaShieldHalved />} text='Connect Google Drive Account' pendingText='Connecting...' />
+              <section className='flex flex-col gap-2 pb-4'>
+                <div className='font-bold'>Drive Type:</div>
+                <div className='flex gap-2'>
+                  <input type='radio' id='google' name='type' value='google' />
+                  <label htmlFor='google'>Google Drive</label>
+                </div>
+                <div className='flex gap-2'>
+                  <input type='radio' id='onedrive' name='type' value='onedrive' />
+                  <label htmlFor='onedrive'>OneDrive</label>
+                </div>
+                
+              </section>
+              <SubmitButton icon={<FaShieldHalved />} text='Connect Shared Drive' pendingText='Connecting...' />
             </form>
             
           )}
