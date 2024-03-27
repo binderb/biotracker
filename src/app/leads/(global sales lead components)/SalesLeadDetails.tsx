@@ -247,6 +247,7 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                   </td>
                   <td className='bg-white/50 border border-secondary/80 p-1'>
                     <div className='flex flex-col gap-2'>
+                      {mode === 'new' && (<>
                       <select className='std-input w-full' onChange={handleClientChange} value={leadDetails.client?.id ?? ''}>
                         <option value=''>-- Choose --</option>
                         {clients.map((client) => (
@@ -260,6 +261,11 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                         </Link>{' '}
                         {`before starting this process!`}
                       </div>
+                      </>)}
+                      {mode === 'edit' && (<>
+                      {`${leadDetails.client.name} - ${leadDetails.client.code}`}
+                      
+                      </>)}
                     </div>
                   </td>
                 </tr>
@@ -270,6 +276,8 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                   </td>
                   <td className='bg-white/50 border border-secondary/80 p-1'>
                     <div className='flex flex-col gap-2'>
+                      {mode === 'new' && (
+                      <>
                       <select className='std-input mr-2' onChange={handleProjectChange} value={leadDetails.project?.id ?? ''} disabled={!leadDetails.client}>
                         <option value=''>N/A</option>
                         {clientProjects.length > 0 && (
@@ -300,6 +308,10 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                           )}
                         </>
                       )}
+                      
+                      </>
+                      )}
+                      {mode === 'edit' && (<> {leadDetails.project.name} </>)}
                     </div>
                   </td>
                 </tr>
@@ -310,7 +322,7 @@ export default function SalesLeadDetails({ mode, users, clients, leadDetails, se
                     <div className='flex flex-col gap-2'>
                       <div className='flex items-center gap-2'>
                         {leadDetails.client?.name.split(' ')[0] === '' ? '(select client)' : leadDetails.client?.name.split(' ')[0]} -{' '}
-                        <input className='std-input flex-grow' name='name' value={leadDetails.name.split(/\((.*)\)$/s)[1]} onChange={(e) => setLeadDetails({ ...leadDetails, name: `${leadDetails.client?.name.split(' ')[0] ?? ''} - ${e.target.value} - ${leadDetails.created.getFullYear()}${(leadDetails.created.getMonth() + 1).toString().padStart(2, '0')}${leadDetails.created.getDate().toString().padStart(2, '0')}` })} />
+                        <input className='std-input flex-grow' name='name' value={leadDetails.name.split(/- (.*) -/s)[1]} onChange={(e) => setLeadDetails({ ...leadDetails, name: `${leadDetails.client?.name.split(' ')[0] ?? ''} - ${e.target.value} - ${leadDetails.created.getFullYear()}${(leadDetails.created.getMonth() + 1).toString().padStart(2, '0')}${leadDetails.created.getDate().toString().padStart(2, '0')}` })} />
                         {' - '}
                         {leadDetails.created.getFullYear()}
                         {(leadDetails.created.getMonth() + 1).toString().padStart(2, '0')}
